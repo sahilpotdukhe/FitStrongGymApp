@@ -1,5 +1,8 @@
 
 import 'package:fitstrong_gym/src/custom_import.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 class MemberProvider with ChangeNotifier {
   List<MemberModel> _members = [];
@@ -110,10 +113,12 @@ class MemberProvider with ChangeNotifier {
   Future<void> addMember(MemberModel member, XFile photo) async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
+      final newpath = p.join((await getTemporaryDirectory()).path,'${DateTime.now()}.${p.extension(photo.path)}');
+      final result = await FlutterImageCompress.compressAndGetFile(photo.path, newpath,quality: 40);
       final storageRef = FirebaseStorage.instance
           .ref()
-          .child('member_photos/${member.name}.jpg');
-      final uploadTask = storageRef.putFile(File(photo.path));
+          .child('member_photos/${currentUser.uid}/${member.name}.jpg');
+      final uploadTask = storageRef.putFile(File(result!.path));
       final downloadUrl = await (await uploadTask).ref.getDownloadURL();
 
       final memberData = {
