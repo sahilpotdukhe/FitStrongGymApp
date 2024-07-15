@@ -107,6 +107,8 @@ class MemberProvider with ChangeNotifier {
       expiryDate: (data['expiryDate'] as Timestamp)?.toDate() ?? DateTime.now(),
       address: data['address'],
       gender: data['gender'],
+      checkInTime: data['checkInTime'] ?? '',
+      checkOutTime: data['checkOutTime'] ?? ''
     );
   }
 
@@ -134,6 +136,8 @@ class MemberProvider with ChangeNotifier {
         'expiryDate': member.expiryDate,
         'address': member.address,
         'gender': member.gender,
+        'checkInTime': member.checkInTime,
+        'checkOutTime': member.checkOutTime
       };
 
       final docRef = await FirebaseFirestore.instance
@@ -215,6 +219,8 @@ class MemberProvider with ChangeNotifier {
           'expiryDate': member.expiryDate,
           'address': member.address,
           'gender': member.gender,
+          'checkInTime': member.checkInTime,
+          'checkOutTime': member.checkOutTime
         });
         int index = _members.indexWhere((m) => m.id == member.id);
         if (index != -1) {

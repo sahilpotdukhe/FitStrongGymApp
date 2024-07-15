@@ -14,6 +14,8 @@ class MemberModel {
   final DateTime expiryDate; // Add this field
   final String address;
   final String gender;
+  final String checkInTime; // Changed to String
+  final String checkOutTime; // Changed to String
 
   MemberModel({
     required this.id,
@@ -29,6 +31,8 @@ class MemberModel {
     required this.expiryDate, // Add this field
     required this.address,
     required this.gender,
+    required this.checkInTime,
+    required this.checkOutTime
   });
 
   MemberModel copyWith({String? id}) {
@@ -47,6 +51,8 @@ class MemberModel {
       // Add this field
       address: address,
       gender: gender,
+      checkInTime: checkInTime,
+      checkOutTime: checkOutTime
     );
   }
 
@@ -70,6 +76,8 @@ class MemberModel {
           newDateOfAdmission.month + newPlan.months, newDateOfAdmission.day),
       address: address,
       gender: gender,
+      checkInTime: checkInTime,
+      checkOutTime: checkOutTime
     );
   }
 
@@ -88,6 +96,20 @@ class MemberModel {
       'expiryDate': expiryDate,
       'address': address,
       'gender': gender,
+      'checkInTime' : checkInTime,
+      'checkOutTime' : checkOutTime,
     };
+  }
+
+  static String timeOfDayToString(BuildContext context, TimeOfDay? time) {
+    return time!.format(context);
+  }
+
+  static TimeOfDay? stringToTimeOfDay(String? time) {
+    if (time == null) return null;
+    final parts = time.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+    return TimeOfDay(hour: hour, minute: minute);
   }
 }

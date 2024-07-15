@@ -20,7 +20,8 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
   String? _gender;
   String? displayName;
   String? phoneNumber;
-
+  late TextEditingController _checkInTimeController;
+  late TextEditingController _checkOutTimeController;
 
   @override
   void initState() {
@@ -34,6 +35,10 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
         TextEditingController(text: widget.member.weight.toString());
     _addressController = TextEditingController(text: widget.member.address);
     _genderController = TextEditingController(text: widget.member.gender);
+    _checkInTimeController =
+        TextEditingController(text: widget.member.checkInTime);
+    _checkOutTimeController =
+        TextEditingController(text: widget.member.checkOutTime);
   }
 
   @override
@@ -233,6 +238,90 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
                         return null;
                       },
                     ),
+                    SizedBox(height: 10,),
+                    TextFormField(
+                      controller: _checkInTimeController,
+                      decoration: InputDecoration(
+                        hintText: 'Update Check-in Time',
+                        labelText: 'Check-in Time',
+                        labelStyle: TextStyle(
+                            fontSize: 16.0 * ScaleUtils.scaleFactor),
+                        floatingLabelStyle: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18 * ScaleUtils.scaleFactor,
+                            color: HexColor('3957ED')),
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.access_time, color: HexColor('3957ED')),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: HexColor('3957ED'), width: 2)),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                          BorderSide(color: HexColor('3957ED'), width: 2),
+                        ),
+                      ),
+                      onTap: () async {
+                        final TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          setState(() {
+                            _checkInTimeController.text =
+                                pickedTime.format(context);
+                          });
+                        }
+                      },
+                      readOnly: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a check-in time';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _checkOutTimeController,
+                      decoration: InputDecoration(
+                        hintText: 'Update CheckOut Time',
+                        labelText: 'CheckOut Time',
+                        labelStyle: TextStyle(
+                            fontSize: 16.0 * ScaleUtils.scaleFactor),
+                        floatingLabelStyle: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 18 * ScaleUtils.scaleFactor,
+                            color: HexColor('3957ED')),
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.access_time, color: HexColor('3957ED')),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: HexColor('3957ED'), width: 2)),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                          BorderSide(color: HexColor('3957ED'), width: 2),
+                        ),
+                      ),
+                      onTap: () async {
+                        final TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          setState(() {
+                            _checkOutTimeController.text =
+                                pickedTime.format(context);
+                          });
+                        }
+                      },
+                      readOnly: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a check-out time';
+                        }
+                        return null;
+                      },
+                    ),
                     SizedBox(height: 20),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
@@ -276,6 +365,8 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
           'height': double.parse(_heightController.text),
           'weight': double.parse(_weightController.text),
           'address': _addressController.text,
+          'checkInTime': _checkInTimeController.text,
+          'checkOutTime': _checkOutTimeController.text
         });
         AwesomeDialog(
           context: context,

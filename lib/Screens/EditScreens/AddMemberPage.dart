@@ -26,6 +26,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
   bool _isLoading = false;
   String? displayName;
   String? gender = 'Male';
+  TimeOfDay? _checkInTime;
+  TimeOfDay? _checkOutTime;
 
   // XFile? _image;
   String? phoneNumber;
@@ -519,6 +521,86 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       const Text('Female'),
                     ],
                   ),
+                  SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: _pickCheckInTime,
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        readOnly: true,
+                        controller: TextEditingController(
+                          text: _checkInTime != null
+                              ? _checkInTime!.format(context)
+                              : null,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Select Check-in Time',
+                          labelText: 'Check-in Time',
+                          labelStyle:
+                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                          floatingLabelStyle: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18 * ScaleUtils.scaleFactor,
+                              color: HexColor('3957ED')),
+                          border: OutlineInputBorder(),
+                          suffixIcon:
+                          Icon(Icons.access_time, color: HexColor('3957ED')),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: HexColor('3957ED'), width: 2)),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                            BorderSide(color: HexColor('3957ED'), width: 2),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (_checkInTime == null) {
+                            return 'Please select a check-in time';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: _pickCheckOutTime,
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        readOnly: true,
+                        controller: TextEditingController(
+                          text: _checkOutTime != null
+                              ? _checkOutTime!.format(context)
+                              : null,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Select Check-out Time',
+                          labelText: 'Check-out Time',
+                          labelStyle:
+                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                          floatingLabelStyle: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18 * ScaleUtils.scaleFactor,
+                              color: HexColor('3957ED')),
+                          border: OutlineInputBorder(),
+                          suffixIcon:
+                          Icon(Icons.access_time, color: HexColor('3957ED')),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: HexColor('3957ED'), width: 2)),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                            BorderSide(color: HexColor('3957ED'), width: 2),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (_checkOutTime == null) {
+                            return 'Please select a check-out time';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
@@ -631,6 +713,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
         // Set expiry date
         address: _addressController.text,
         gender: gender ?? 'Male',
+        checkInTime: MemberModel.timeOfDayToString(context,_checkInTime),
+        checkOutTime: MemberModel.timeOfDayToString(context,_checkOutTime)
       );
 
       await Provider.of<MemberProvider>(context, listen: false)
@@ -676,6 +760,31 @@ class _AddMemberPageState extends State<AddMemberPage> {
       return FileImage(_imagex);
     }
   }
+
+  void _pickCheckInTime() async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (pickedTime != null) {
+      setState(() {
+        _checkInTime = pickedTime;
+      });
+    }
+  }
+
+  void _pickCheckOutTime() async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (pickedTime != null) {
+      setState(() {
+        _checkOutTime = pickedTime;
+      });
+    }
+  }
+
 
   void _modalBottomSheetMenu(BuildContext context) {
     showModalBottomSheet(

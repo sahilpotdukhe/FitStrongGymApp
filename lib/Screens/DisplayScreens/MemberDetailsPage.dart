@@ -227,6 +227,26 @@ class MemberDetailsPage extends StatelessWidget {
                           ),
                           Divider(),
                           Text(
+                            "Check In Time",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18*ScaleUtils.scaleFactor),
+                          ),
+                          Text(
+                            member.checkInTime.toString(),
+                            style: TextStyle(fontSize: 16*ScaleUtils.scaleFactor),
+                          ),
+                          Divider(),
+                          Text(
+                            "CheckOutTime",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18*ScaleUtils.scaleFactor),
+                          ),
+                          Text(
+                            member.checkOutTime.toString(),
+                            style: TextStyle(fontSize: 16*ScaleUtils.scaleFactor),
+                          ),
+                          Divider(),
+                          Text(
                             "Member Id",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 18*ScaleUtils.scaleFactor),
