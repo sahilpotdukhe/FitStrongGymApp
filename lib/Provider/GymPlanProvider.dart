@@ -19,6 +19,7 @@ class GymPlanProvider with ChangeNotifier {
                 id: doc.id,
                 name: doc['name'],
                 months: doc['months'],
+                days: doc['days'],
                 fee: doc['fee'],
                 personalTraining: doc['personalTraining'],
               ))
@@ -37,6 +38,7 @@ class GymPlanProvider with ChangeNotifier {
           .add({
         'name': plan.name,
         'months': plan.months,
+        'days': plan.days,
         'fee': plan.fee,
         'personalTraining': plan.personalTraining,
       });
@@ -45,6 +47,7 @@ class GymPlanProvider with ChangeNotifier {
         id: docRef.id,
         name: plan.name,
         months: plan.months,
+        days: plan.days,
         fee: plan.fee,
         personalTraining: plan.personalTraining,
       ));
@@ -52,7 +55,7 @@ class GymPlanProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updatePlan(String id, String name, int months, double fee,
+  Future<void> updatePlan(String id, String name, int months,int days, double fee,
       bool personalTraining) async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
@@ -64,6 +67,7 @@ class GymPlanProvider with ChangeNotifier {
           .update({
         'name': name,
         'months': months,
+        'days' : days,
         'fee': fee,
         'personalTraining': personalTraining,
       });
@@ -74,6 +78,7 @@ class GymPlanProvider with ChangeNotifier {
           id: id,
           name: name,
           months: months,
+          days: days,
           fee: fee,
           personalTraining: personalTraining,
         );

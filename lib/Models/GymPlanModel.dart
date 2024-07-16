@@ -2,6 +2,7 @@ class GymPlanModel {
   final String id;
   final String name;
   final int months;
+  final int days;
   final double fee;
   final bool personalTraining;
 
@@ -9,6 +10,7 @@ class GymPlanModel {
     required this.id,
     required this.name,
     required this.months,
+    required this.days,
     required this.fee,
     required this.personalTraining,
   });

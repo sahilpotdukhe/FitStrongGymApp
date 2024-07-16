@@ -53,6 +53,32 @@ class _AddMemberPageState extends State<AddMemberPage> {
             },
             icon: Icon(Icons.arrow_back_outlined),
           ),
+          actions: [
+            IconButton(onPressed: () async{
+              CollectionReference users = FirebaseFirestore.instance.collection('Users');
+
+              // Fetch all users
+              QuerySnapshot usersSnapshot = await users.get();
+
+              // Iterate through each user
+              for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
+                // Reference to the user's members subcollection
+                CollectionReference gymplans = users.doc(userDoc.id).collection('gymPlans');
+
+                // Fetch all documents from the user's members subcollection
+                QuerySnapshot membersSnapshot = await gymplans.get();
+
+                // Iterate through each document in the members subcollection and update it
+                for (QueryDocumentSnapshot memberDoc in membersSnapshot.docs) {
+                  await gymplans.doc(memberDoc.id).update({
+                    'days': 0
+                  }).catchError((error) {
+                    print("Failed to update document ${memberDoc.id} for user ${userDoc.id}: $error");
+                  });
+                }
+              }
+            }, icon: Icon(Icons.notifications))
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -695,7 +721,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         _dateOfAdmission!.year,
         _dateOfAdmission!.month + selectedPlan.months,
         _dateOfAdmission!.day,
-      );
+      ).add(Duration(days: selectedPlan.days));
 
       final newMember = MemberModel(
         id: '',

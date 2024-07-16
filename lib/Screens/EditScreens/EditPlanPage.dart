@@ -15,6 +15,7 @@ class _EditPlanPageState extends State<EditPlanPage> {
   final _formKey = GlobalKey<FormState>();
   late String _name;
   late int _months;
+  late int _days;
   late double _fee;
   late bool _personalTraining;
 
@@ -23,6 +24,7 @@ class _EditPlanPageState extends State<EditPlanPage> {
     super.initState();
     _name = widget.plan.name;
     _months = widget.plan.months;
+    _days = widget.plan.days;
     _fee = widget.plan.fee;
     _personalTraining = widget.plan.personalTraining;
   }
@@ -107,6 +109,38 @@ class _EditPlanPageState extends State<EditPlanPage> {
               ),
               SizedBox(height: 14,),
               TextFormField(
+                initialValue: _days.toString(), // New TextFormField for days
+                decoration: InputDecoration(
+                  hintText: 'Update Duration (Days)',
+                  labelText: 'Duration (Days)',
+                  labelStyle: TextStyle(
+                      fontSize: 16.0 * ScaleUtils.scaleFactor),
+                  floatingLabelStyle: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 18 * ScaleUtils.scaleFactor,
+                      color: HexColor('3957ED')),
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: HexColor('3957ED'), width: 2)),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                    BorderSide(color: HexColor('3957ED'), width: 2),
+                  ),
+                  suffixIcon:
+                  Icon(Icons.calendar_today, color: HexColor('3957ED')),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the duration in days';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _days = int.parse(value!),
+              ),
+              SizedBox(height: 14,),
+              TextFormField(
                 initialValue: _fee.toString(),
                 decoration: InputDecoration(
                   hintText: 'Update Fee',
@@ -158,8 +192,10 @@ class _EditPlanPageState extends State<EditPlanPage> {
                       widget.plan.id,
                       _name,
                       _months,
+                        _days,
                       _fee,
-                      _personalTraining,
+                      _personalTraining
+
                     );
                     Navigator.pop(context);
                   }

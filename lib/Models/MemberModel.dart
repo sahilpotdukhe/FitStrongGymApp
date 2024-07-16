@@ -73,7 +73,7 @@ class MemberModel {
       dateOfAdmission: dateOfAdmission,
       renewalDate: newDateOfAdmission,
       expiryDate: DateTime(newDateOfAdmission.year,
-          newDateOfAdmission.month + newPlan.months, newDateOfAdmission.day),
+          newDateOfAdmission.month + newPlan.months, newDateOfAdmission.day).add(Duration(days: newPlan.days)),
       address: address,
       gender: gender,
       checkInTime: checkInTime,
