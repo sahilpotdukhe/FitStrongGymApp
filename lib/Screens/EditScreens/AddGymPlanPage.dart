@@ -13,7 +13,6 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
   final _daysController = TextEditingController(); // New controller for days
 
   final _feeController = TextEditingController();
-  bool _personalTraining = false;
   bool _isLoading = false;
 
   @override
@@ -177,18 +176,6 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
                     return null;
                   },
                 ),
-                SizedBox(
-                  height: 10,
-                ),
-                SwitchListTile(
-                  title: Text('Personal Training'),
-                  value: _personalTraining,
-                  onChanged: (value) {
-                    setState(() {
-                      _personalTraining = value;
-                    });
-                  },
-                ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _saveForm,
@@ -228,7 +215,6 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
         months: int.parse(_monthsController.text),
         days: int.parse(_daysController.text),
         fee: double.parse(_feeController.text),
-        personalTraining: _personalTraining,
       );
 
       await Provider.of<GymPlanProvider>(context, listen: false)

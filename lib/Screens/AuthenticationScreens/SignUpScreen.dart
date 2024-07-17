@@ -43,7 +43,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           profilePic:
               'https://firebasestorage.googleapis.com/v0/b/echat-888ef.appspot.com/o/user.jpg?alt=media&token=6f598b3e-9c10-49ee-8a68-49468b32bddf',
           authType: 'emailAuth',
-          mobilenumber: mobile.text);
+          mobilenumber: mobile.text,
+          qrImageUrl: 'https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/qrgeneral.png?alt=media&token=ffa3b5fe-ade2-4d7e-b675-bfdf2b281f5a',
+          address: ''
+      );
       AwesomeDialog(
         context: context,
         animType: AnimType.leftSlide,

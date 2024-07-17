@@ -1,5 +1,6 @@
 
 
+import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
 
@@ -16,6 +17,10 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
   late TextEditingController _renewalDateController;
   late TextEditingController _cashAmountController;
   GymPlanModel? _selectedPlan;
+  String? _planId;
+
+  double _selectedPlanFee = 0.0;
+
   String? _selectedPaymentMethod;
   final List<String> _paymentMethods = ['Cash', 'Online'];
   bool _isLoading = false;
@@ -26,11 +31,15 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
     _renewalDateController = TextEditingController(
         text: DateFormat('dd-MM-yyyy').format(widget.member.renewalDate));
     _cashAmountController = TextEditingController();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.refreshUser();
   }
 
   @override
   Widget build(BuildContext context) {
     final plans = Provider.of<GymPlanProvider>(context).plans;
+    UserProvider userProvider = Provider.of<UserProvider>(context);
+    UserModel? userModel = userProvider.getUser;
     ScaleUtils.init(context);
     return Stack(children: [
       Scaffold(
@@ -95,43 +104,60 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
               SizedBox(
                 height: 10,
               ),
-              DropdownButtonFormField<GymPlanModel>(
-                value: _selectedPlan,
+              DropdownButtonFormField<String>(
                 decoration: InputDecoration(
-                  hintText: 'Select new Plan',
+                  hintText: 'Select Plan',
                   labelText: 'Plan',
                   labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                  TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                   floatingLabelStyle: TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 18 * ScaleUtils.scaleFactor,
                       color: HexColor('3957ED')),
                   border: OutlineInputBorder(),
+                  suffixIcon: Icon(Icons.card_membership,
+                      color: HexColor('3957ED')),
                   focusedBorder: OutlineInputBorder(
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
+                      BorderSide(color: HexColor('3957ED'), width: 2)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
+                    borderSide:
+                    BorderSide(color: HexColor('3957ED'), width: 2),
                   ),
-                  suffixIcon: Icon(Icons.height, color: HexColor('3957ED')),
                 ),
-                items: plans.map((GymPlanModel plan) {
-                  return DropdownMenuItem<GymPlanModel>(
-                    value: plan,
-                    child: Text(plan.name),
-                  );
-                }).toList(),
+                value: _planId,
+                onChanged: (value) {
+                  setState(() {
+                    _planId = value;
+                    // Find the selected plan and set the fee
+                    final selectedPlan = GymPlanModel.findById(plans, value!);
+                    if (selectedPlan != null) {
+                      _selectedPlanFee = selectedPlan.fee;
+                    }
+                  });
+                },
+                items: plans
+                    .map((plan) => DropdownMenuItem(
+                  child: Text(plan.name),
+                  value: plan
+                      .id, // Using plan.id as the unique identifier
+                ))
+                    .toList(),
                 validator: (value) {
                   if (value == null) {
                     return 'Please select a plan';
                   }
                   return null;
                 },
-                onChanged: (GymPlanModel? newPlan) {
-                  setState(() {
-                    _selectedPlan = newPlan;
-                  });
-                },
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Center(
+                child: Text(
+                  'Fees to be paid: \₹$_selectedPlanFee',
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
               ),
               SizedBox(
                 height: 10,
@@ -179,12 +205,13 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 Column(
                   children: [
                     SizedBox(height: 10),
-                    Image.asset(
-                      'assets/QRcode.jpg',
-                      // Replace with your QR code image URL
-                      height: 350,
-                      width: 350,
-                    ),
+                    CachedImage(
+                        imageUrl: userModel!.qrImageUrl,
+                        isRound: false,
+                        radius: 0,
+                        height: 350,
+                        width: 350,
+                        fit: BoxFit.cover),
                     SizedBox(height: 10),
                     Text('Scan the QR code to pay online'),
                   ],

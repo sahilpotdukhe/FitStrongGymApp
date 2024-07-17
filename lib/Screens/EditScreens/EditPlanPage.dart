@@ -17,7 +17,6 @@ class _EditPlanPageState extends State<EditPlanPage> {
   late int _months;
   late int _days;
   late double _fee;
-  late bool _personalTraining;
 
   @override
   void initState() {
@@ -26,7 +25,6 @@ class _EditPlanPageState extends State<EditPlanPage> {
     _months = widget.plan.months;
     _days = widget.plan.days;
     _fee = widget.plan.fee;
-    _personalTraining = widget.plan.personalTraining;
   }
 
   @override
@@ -171,16 +169,6 @@ class _EditPlanPageState extends State<EditPlanPage> {
                 },
                 onSaved: (value) => _fee = double.parse(value!),
               ),
-              SizedBox(height: 4,),
-              SwitchListTile(
-                title: Text('Personal Training'),
-                value: _personalTraining,
-                onChanged: (value) {
-                  setState(() {
-                    _personalTraining = value;
-                  });
-                },
-              ),
               SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
@@ -193,8 +181,7 @@ class _EditPlanPageState extends State<EditPlanPage> {
                       _name,
                       _months,
                         _days,
-                      _fee,
-                      _personalTraining
+                      _fee
 
                     );
                     Navigator.pop(context);

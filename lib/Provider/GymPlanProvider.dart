@@ -21,7 +21,6 @@ class GymPlanProvider with ChangeNotifier {
                 months: doc['months'],
                 days: doc['days'],
                 fee: doc['fee'],
-                personalTraining: doc['personalTraining'],
               ))
           .toList();
       notifyListeners();
@@ -40,7 +39,6 @@ class GymPlanProvider with ChangeNotifier {
         'months': plan.months,
         'days': plan.days,
         'fee': plan.fee,
-        'personalTraining': plan.personalTraining,
       });
 
       _plans.add(GymPlanModel(
@@ -49,14 +47,12 @@ class GymPlanProvider with ChangeNotifier {
         months: plan.months,
         days: plan.days,
         fee: plan.fee,
-        personalTraining: plan.personalTraining,
       ));
       notifyListeners();
     }
   }
 
-  Future<void> updatePlan(String id, String name, int months,int days, double fee,
-      bool personalTraining) async {
+  Future<void> updatePlan(String id, String name, int months,int days, double fee) async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       await FirebaseFirestore.instance
@@ -69,7 +65,6 @@ class GymPlanProvider with ChangeNotifier {
         'months': months,
         'days' : days,
         'fee': fee,
-        'personalTraining': personalTraining,
       });
 
       int index = _plans.indexWhere((plan) => plan.id == id);
@@ -80,7 +75,6 @@ class GymPlanProvider with ChangeNotifier {
           months: months,
           days: days,
           fee: fee,
-          personalTraining: personalTraining,
         );
         notifyListeners();
       }

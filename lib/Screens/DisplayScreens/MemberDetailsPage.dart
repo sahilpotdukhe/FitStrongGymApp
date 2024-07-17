@@ -1,6 +1,7 @@
 
 
 
+import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
 
@@ -36,15 +37,22 @@ class MemberDetailsPage extends StatelessWidget {
                           );
                         }));
                   },
-                  child: CircleAvatar(
-                    radius: 70,
-                    backgroundImage:AssetImage('assets/user.jpg'),
-                    foregroundImage: NetworkImage(
-                      member.photoUrl.isNotEmpty
-                          ? member.photoUrl
-                          : 'https://icons.veryicon.com/png/o/miscellaneous/administration/person-16.png',
-                    ),
-                  ),
+                  child:  CachedImage(
+                      imageUrl: member.photoUrl,
+                      isRound: true,
+                      radius: 120,
+                      height: 0,
+                      width: 0,
+                      fit: BoxFit.cover),
+                  // CircleAvatar(
+                  //   radius: 70,
+                  //   backgroundImage:AssetImage('assets/user.jpg'),
+                  //   foregroundImage: NetworkImage(
+                  //     member.photoUrl.isNotEmpty
+                  //         ? member.photoUrl
+                  //         : 'https://icons.veryicon.com/png/o/miscellaneous/administration/person-16.png',
+                  //   ),
+                  // ),
                 ),
               ),
               SizedBox(height: 10*ScaleUtils.verticalScale,),

@@ -1,4 +1,5 @@
 
+import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
 
@@ -35,17 +36,13 @@ class _MemberCardState extends State<MemberCard> {
                 children: [
                   Padding(
                     padding:  EdgeInsets.all(8.0*ScaleUtils.scaleFactor),
-                    child: Container(
-                      height: 80*ScaleUtils.verticalScale,
-                      width: 80*ScaleUtils.horizontalScale,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                            image: CachedNetworkImageProvider(
-                                widget.member.photoUrl),
-                            fit: BoxFit.cover),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                    child:  CachedImage(
+                        imageUrl: widget.member.photoUrl,
+                        isRound: true,
+                        radius: 80,
+                        height: 0,
+                        width: 0,
+                        fit: BoxFit.cover),
                   ),
                   SizedBox(
                     width: 40*ScaleUtils.horizontalScale,

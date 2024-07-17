@@ -1,3 +1,4 @@
+import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
 
@@ -33,8 +34,20 @@ class _AddMemberPageState extends State<AddMemberPage> {
   String? phoneNumber;
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.refreshUser();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final plans = Provider.of<GymPlanProvider>(context).plans;
+    final plans = Provider
+        .of<GymPlanProvider>(context)
+        .plans;
+    UserProvider userProvider = Provider.of<UserProvider>(context);
+    UserModel? userModel = userProvider.getUser;
     ScaleUtils.init(context);
     return Stack(children: [
       Scaffold(
@@ -54,8 +67,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
             icon: Icon(Icons.arrow_back_outlined),
           ),
           actions: [
-            IconButton(onPressed: () async{
-              CollectionReference users = FirebaseFirestore.instance.collection('Users');
+            IconButton(onPressed: () async {
+              CollectionReference users = FirebaseFirestore.instance.collection(
+                  'Users');
 
               // Fetch all users
               QuerySnapshot usersSnapshot = await users.get();
@@ -63,7 +77,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
               // Iterate through each user
               for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
                 // Reference to the user's members subcollection
-                CollectionReference gymplans = users.doc(userDoc.id).collection('gymPlans');
+                CollectionReference gymplans = users.doc(userDoc.id).collection(
+                    'gymPlans');
 
                 // Fetch all documents from the user's members subcollection
                 QuerySnapshot membersSnapshot = await gymplans.get();
@@ -73,7 +88,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   await gymplans.doc(memberDoc.id).update({
                     'days': 0
                   }).catchError((error) {
-                    print("Failed to update document ${memberDoc.id} for user ${userDoc.id}: $error");
+                    print("Failed to update document ${memberDoc
+                        .id} for user ${userDoc.id}: $error");
                   });
                 }
               }
@@ -142,7 +158,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       hintText: 'Enter Your Name',
                       labelText: 'Name',
                       labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                       floatingLabelStyle: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 18 * ScaleUtils.scaleFactor,
@@ -150,10 +166,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('3957ED'), width: 2)),
                       enabledBorder: OutlineInputBorder(
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                        BorderSide(color: HexColor('3957ED'), width: 2),
                       ),
                       suffixIcon: Icon(Icons.person, color: HexColor('3957ED')),
                     ),
@@ -177,7 +193,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       labelText: 'Phone number',
                       counterText: "",
                       labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                       floatingLabelStyle: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 18 * ScaleUtils.scaleFactor,
@@ -187,10 +203,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           color: HexColor('3957ED')),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('3957ED'), width: 2)),
                       enabledBorder: OutlineInputBorder(
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                        BorderSide(color: HexColor('3957ED'), width: 2),
                       ),
                     ),
                     onChanged: (value) {
@@ -236,13 +252,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
                               color: HexColor('3957ED')),
                           border: OutlineInputBorder(),
                           suffixIcon:
-                              Icon(Icons.date_range, color: HexColor('3957ED')),
+                          Icon(Icons.date_range, color: HexColor('3957ED')),
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                   color: HexColor('3957ED'), width: 2)),
                           enabledBorder: OutlineInputBorder(
                             borderSide:
-                                BorderSide(color: HexColor('3957ED'), width: 2),
+                            BorderSide(color: HexColor('3957ED'), width: 2),
                           ),
                         ),
                         validator: (value) {
@@ -263,7 +279,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       hintText: 'Enter Your Height',
                       labelText: 'Height (cm)',
                       labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                       floatingLabelStyle: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 18 * ScaleUtils.scaleFactor,
@@ -271,10 +287,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('3957ED'), width: 2)),
                       enabledBorder: OutlineInputBorder(
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                        BorderSide(color: HexColor('3957ED'), width: 2),
                       ),
                       suffixIcon: Icon(Icons.height, color: HexColor('3957ED')),
                     ),
@@ -295,7 +311,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       hintText: 'Enter Your Weight',
                       labelText: 'Weight (kg)',
                       labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                       floatingLabelStyle: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 18 * ScaleUtils.scaleFactor,
@@ -303,13 +319,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('3957ED'), width: 2)),
                       enabledBorder: OutlineInputBorder(
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                        BorderSide(color: HexColor('3957ED'), width: 2),
                       ),
                       suffixIcon:
-                          Icon(Icons.monitor_weight, color: HexColor('3957ED')),
+                      Icon(Icons.monitor_weight, color: HexColor('3957ED')),
                     ),
                     keyboardType: TextInputType.number,
                     validator: (value) {
@@ -328,7 +344,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       hintText: 'Enter Your Address',
                       labelText: 'Address',
                       labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                       floatingLabelStyle: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 18 * ScaleUtils.scaleFactor,
@@ -337,10 +353,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       suffixIcon: Icon(Icons.place, color: HexColor('3957ED')),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('3957ED'), width: 2)),
                       enabledBorder: OutlineInputBorder(
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                        BorderSide(color: HexColor('3957ED'), width: 2),
                       ),
                     ),
                     validator: (value) {
@@ -361,7 +377,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         controller: TextEditingController(
                           text: _dateOfAdmission != null
                               ? DateFormat('dd/MM/yyyy')
-                                  .format(_dateOfAdmission!)
+                              .format(_dateOfAdmission!)
                               : null,
                         ),
                         decoration: InputDecoration(
@@ -375,13 +391,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
                               color: HexColor('3957ED')),
                           border: OutlineInputBorder(),
                           suffixIcon:
-                              Icon(Icons.date_range, color: HexColor('3957ED')),
+                          Icon(Icons.date_range, color: HexColor('3957ED')),
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                   color: HexColor('3957ED'), width: 2)),
                           enabledBorder: OutlineInputBorder(
                             borderSide:
-                                BorderSide(color: HexColor('3957ED'), width: 2),
+                            BorderSide(color: HexColor('3957ED'), width: 2),
                           ),
                         ),
                         validator: (value) {
@@ -401,7 +417,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       hintText: 'Select Plan',
                       labelText: 'Plan',
                       labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                       floatingLabelStyle: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 18 * ScaleUtils.scaleFactor,
@@ -411,10 +427,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           color: HexColor('3957ED')),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('3957ED'), width: 2)),
                       enabledBorder: OutlineInputBorder(
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                        BorderSide(color: HexColor('3957ED'), width: 2),
                       ),
                     ),
                     value: _planId,
@@ -422,18 +438,20 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       setState(() {
                         _planId = value;
                         // Find the selected plan and set the fee
-                        final selectedPlan = GymPlanModel.findById(plans, value!);
+                        final selectedPlan = GymPlanModel.findById(
+                            plans, value!);
                         if (selectedPlan != null) {
                           _selectedPlanFee = selectedPlan.fee;
                         }
                       });
                     },
                     items: plans
-                        .map((plan) => DropdownMenuItem(
-                              child: Text(plan.name),
-                              value: plan
-                                  .id, // Using plan.id as the unique identifier
-                            ))
+                        .map((plan) =>
+                        DropdownMenuItem(
+                          child: Text(plan.name),
+                          value: plan
+                              .id, // Using plan.id as the unique identifier
+                        ))
                         .toList(),
                     validator: (value) {
                       if (value == null) {
@@ -458,20 +476,20 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       hintText: 'Select Payment Mode',
                       labelText: 'Payment Mode',
                       labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                       floatingLabelStyle: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 18 * ScaleUtils.scaleFactor,
                           color: HexColor('3957ED')),
                       border: OutlineInputBorder(),
                       suffixIcon:
-                          Icon(Icons.credit_card, color: HexColor('3957ED')),
+                      Icon(Icons.credit_card, color: HexColor('3957ED')),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('3957ED'), width: 2)),
                       enabledBorder: OutlineInputBorder(
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                        BorderSide(color: HexColor('3957ED'), width: 2),
                       ),
                     ),
                     validator: (value) {
@@ -496,12 +514,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     Column(
                       children: [
                         SizedBox(height: 10),
-                        Image.asset(
-                          'assets/QRcode.jpg',
-                          // Replace with your QR code image URL
-                          height: 350,
-                          width: 350,
-                        ),
+                        CachedImage(
+                            imageUrl: userModel!.qrImageUrl,
+                            isRound: false,
+                            radius: 0,
+                            height: 350,
+                            width: 350,
+                            fit: BoxFit.cover),
                         SizedBox(height: 10),
                         Text('Scan the QR code to pay online'),
                       ],
@@ -629,9 +648,11 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green),
                     onPressed: _saveForm,
-                    child: Text('Save Member',style: TextStyle(color: Colors.white),),
+                    child: Text(
+                      'Save Member', style: TextStyle(color: Colors.white),),
                   ),
                 ],
               ),
@@ -697,7 +718,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
   }
 
   void _saveForm() async {
-    final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
+    final plans = Provider
+        .of<GymPlanProvider>(context, listen: false)
+        .plans;
 
     if (_formKey.currentState!.validate() && _isImageSelected()) {
       setState(() {
@@ -724,23 +747,23 @@ class _AddMemberPageState extends State<AddMemberPage> {
       ).add(Duration(days: selectedPlan.days));
 
       final newMember = MemberModel(
-        id: '',
-        name: _nameController.text,
-        mobileNumber: _mobileNumberController.text,
-        dateOfBirth: _dateOfBirth!,
-        height: double.parse(_heightController.text),
-        weight: double.parse(_weightController.text),
-        photoUrl: '',
-        // This will be updated in provider
-        planId: _planId!,
-        dateOfAdmission: _dateOfAdmission!,
-        renewalDate: expiryDate!,
-        expiryDate: expiryDate,
-        // Set expiry date
-        address: _addressController.text,
-        gender: gender ?? 'Male',
-        checkInTime: MemberModel.timeOfDayToString(context,_checkInTime),
-        checkOutTime: MemberModel.timeOfDayToString(context,_checkOutTime)
+          id: '',
+          name: _nameController.text,
+          mobileNumber: _mobileNumberController.text,
+          dateOfBirth: _dateOfBirth!,
+          height: double.parse(_heightController.text),
+          weight: double.parse(_weightController.text),
+          photoUrl: '',
+          // This will be updated in provider
+          planId: _planId!,
+          dateOfAdmission: _dateOfAdmission!,
+          renewalDate: expiryDate!,
+          expiryDate: expiryDate,
+          // Set expiry date
+          address: _addressController.text,
+          gender: gender ?? 'Male',
+          checkInTime: MemberModel.timeOfDayToString(context, _checkInTime),
+          checkOutTime: MemberModel.timeOfDayToString(context, _checkOutTime)
       );
 
       await Provider.of<MemberProvider>(context, listen: false)
@@ -754,7 +777,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         //autoHide: Duration(seconds: 6),
         title: 'Added!',
         desc:
-            'You have successfully added a member.\n Please wait you will be redirected to the HomePage.',
+        'You have successfully added a member.\n Please wait you will be redirected to the HomePage.',
         btnOkOnPress: () {
           debugPrint('OnClcik');
         },
@@ -772,7 +795,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ViewInvoicePage(
+              builder: (context) =>
+                  ViewInvoicePage(
                     member: newMember,
                   )));
     }

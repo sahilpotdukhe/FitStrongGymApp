@@ -1,3 +1,4 @@
+import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -34,11 +35,13 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 100*ScaleUtils.verticalScale,
             ),
             (userModel != null)
-                ? CachedNetworkImage(
-                    imageUrl: userModel.profilePhoto,
-                    height: 250*ScaleUtils.verticalScale,
-                    width: 250*ScaleUtils.horizontalScale,
-                  )
+                ?  CachedImage(
+                imageUrl: userModel.profilePhoto,
+                isRound: false,
+                radius: 0,
+                height: 250*ScaleUtils.verticalScale,
+                width: 250*ScaleUtils.horizontalScale,
+                fit: BoxFit.cover)
                 : Image.asset(
                     'assets/invoiceimage.png',
                     height: 250*ScaleUtils.verticalScale,

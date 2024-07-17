@@ -173,6 +173,23 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
+                      (userModel.address == '') ? Container()
+                          : Column(
+                        children: [
+                          Divider(),
+                          Text(
+                            "Address",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18 * ScaleUtils.scaleFactor),
+                          ),
+                          Text(
+                            userModel.address,
+                            style: TextStyle(
+                                fontSize: 16 * ScaleUtils.scaleFactor),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

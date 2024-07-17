@@ -92,13 +92,15 @@ class AuthMethods {
       String? email,
       var mobilenumber,
       var profilePic,
-      String? authType}) async {
+      String? authType,var qrImageUrl,var address}) async {
     await firestore.collection("Users").doc(_auth.currentUser!.uid).set({
       "name": name,
       "email": email,
       "uid": _auth.currentUser!.uid,
       "profile_photo": profilePic,
       "phone_Number": mobilenumber,
+      "qrImageUrl" : qrImageUrl,
+      "address" : address
     });
   }
 
@@ -107,6 +109,8 @@ class AuthMethods {
       'name': user.name,
       'phone_Number': user.phoneNumber,
       'profile_photo': user.profilePhoto,
+      'qrImageUrl' : user.qrImageUrl,
+      'address' : user.address
     });
   }
 

@@ -4,6 +4,8 @@ class UserModel {
   String email;
   String profilePhoto;
   String phoneNumber;
+  String qrImageUrl;
+  String address;
 
   UserModel({
     required this.uid,
@@ -11,6 +13,8 @@ class UserModel {
     required this.email,
     required this.profilePhoto,
     required this.phoneNumber,
+    required this.qrImageUrl,
+    required this.address
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +24,8 @@ class UserModel {
       'email': email,
       'profile_photo': profilePhoto,
       'phone_Number': phoneNumber,
+      'qrImageUrl': qrImageUrl,
+      'address' : address
     };
   }
 
@@ -30,6 +36,8 @@ class UserModel {
       email: mapData['email'],
       profilePhoto: mapData['profile_photo'],
       phoneNumber: mapData['phone_Number'],
+      qrImageUrl: mapData['qrImageUrl'],
+      address: mapData['address']
     );
   }
 }
