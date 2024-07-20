@@ -1,5 +1,6 @@
 
 import 'package:fitstrong_gym/src/custom_import.dart';
+import 'package:intl/intl.dart';
 
 class AttendanceProvider with ChangeNotifier {
   List<String> _attendanceDates = [];
@@ -18,12 +19,21 @@ class AttendanceProvider with ChangeNotifier {
             .collection('attendance')
             .get();
 
-
-        _attendanceDates = querySnapshot.docs
+        // Use a temporary list to store DateTime objects
+        List<DateTime> dateTimes = querySnapshot.docs
             .map((doc) => doc['date'] as String)
             .toSet()
+            .map((dateString) => DateFormat('d MMMM, yyyy').parse(dateString))
             .toList();
-        _attendanceDates.sort((a, b) => b.compareTo(a));
+
+        // Sort the DateTime objects in descending order
+        dateTimes.sort((a, b) => b.compareTo(a));
+
+        // Convert DateTime objects back to strings
+        _attendanceDates = dateTimes
+            .map((date) => DateFormat('d MMMM, yyyy').format(date))
+            .toList();
+
         print(_attendanceDates);
         notifyListeners();
       }
@@ -47,7 +57,14 @@ class AttendanceProvider with ChangeNotifier {
         _attendanceList = querySnapshot.docs
             .map((doc) => Attendance.fromMap(doc.data()))
             .toList();
-        _attendanceList.sort((a, b) => a.time.compareTo(b.time));
+
+        // Parse the time strings to DateTime and sort
+        _attendanceList.sort((a, b) {
+          DateTime timeA = DateFormat('h:mm a').parse(a.time);
+          DateTime timeB = DateFormat('h:mm a').parse(b.time);
+          return timeA.compareTo(timeB);
+        });
+
         notifyListeners();
       }
     } catch (e) {
