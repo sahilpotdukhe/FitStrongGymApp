@@ -1,5 +1,3 @@
-
-
 import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
@@ -71,7 +69,7 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                   hintText: 'Renewal Date',
                   labelText: 'Renewal Date',
                   labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                  TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                   floatingLabelStyle: TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 18 * ScaleUtils.scaleFactor,
@@ -80,25 +78,31 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                   suffixIcon: Icon(Icons.date_range, color: HexColor('3957ED')),
                   focusedBorder: OutlineInputBorder(
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
+                      BorderSide(color: HexColor('3957ED'), width: 2)),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
                   ),
                 ),
                 readOnly: true,
                 onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: widget.member.renewalDate,
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      _renewalDateController.text =
-                          DateFormat('dd-MM-yyyy').format(pickedDate);
-                    });
+                  try{
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: widget.member.renewalDate,
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime.now(),
+                    );
+                    if (pickedDate != null) {
+                      setState(() {
+                        _renewalDateController.text =
+                            DateFormat('dd-MM-yyyy').format(pickedDate);
+                      });
+                    }
+                  }catch(e){
+                    print(e);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("The plan is not expired yet so you can't renew the membership!"),backgroundColor: Colors.red,));
                   }
+
                 },
               ),
               SizedBox(
@@ -130,9 +134,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                   setState(() {
                     _planId = value;
                     // Find the selected plan and set the fee
-                    final selectedPlan = GymPlanModel.findById(plans, value!);
-                    if (selectedPlan != null) {
-                      _selectedPlanFee = selectedPlan.fee;
+                    _selectedPlan = GymPlanModel.findById(plans, value!);
+                    if (_selectedPlan != null) {
+                      _selectedPlanFee = _selectedPlan!.fee;
                     }
                   });
                 },
@@ -168,17 +172,17 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                   hintText: 'Select Payment Mode',
                   labelText: 'Payment Mode',
                   labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
+                  TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
                   floatingLabelStyle: TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 18 * ScaleUtils.scaleFactor,
                       color: HexColor('3957ED')),
                   border: OutlineInputBorder(),
                   suffixIcon:
-                      Icon(Icons.credit_card, color: HexColor('3957ED')),
+                  Icon(Icons.credit_card, color: HexColor('3957ED')),
                   focusedBorder: OutlineInputBorder(
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
+                      BorderSide(color: HexColor('3957ED'), width: 2)),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
                   ),
@@ -257,9 +261,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
 
     try {
       final newDateOfRenewal =
-          DateFormat('dd-MM-yyyy').parse(_renewalDateController.text);
+      DateFormat('dd-MM-yyyy').parse(_renewalDateController.text);
       final renewedMember =
-          widget.member.renewMembership(_selectedPlan!, newDateOfRenewal);
+      widget.member.renewMembership(_selectedPlan!, newDateOfRenewal);
       await Provider.of<MemberProvider>(context, listen: false)
           .updateMember(renewedMember);
 
@@ -275,7 +279,7 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
         //autoHide: Duration(seconds: 6),
         title: 'Renewed!',
         desc:
-            'You have successfully Renewed Membership.\n Please wait you will be redirected to the MembersList Screen.',
+        'You have successfully Renewed Membership.\n Please wait you will be redirected to the MembersList Screen.',
         btnOkOnPress: () {
           debugPrint('OnClcik');
         },
@@ -298,3 +302,5 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
     }
   }
 }
+
+

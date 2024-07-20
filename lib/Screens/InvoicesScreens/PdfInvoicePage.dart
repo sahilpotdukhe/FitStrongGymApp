@@ -1,65 +1,75 @@
-import 'dart:ffi';
 import 'dart:io';
 import 'package:fitstrong_gym/Models/InvoiceModel.dart';
+import 'package:fitstrong_gym/Models/UserModel.dart';
 import 'package:fitstrong_gym/Resources/PdfApi.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
+import 'package:http/http.dart' as http;
 
 class PdfInvoiceApi {
-  static Future<File> generate(Invoice invoice) async {
+  static Future<File> generate(Invoice invoice,UserModel userModel) async {
     final pdf = Document();
-    final img = await rootBundle.load('assets/arjunalogo.jpg');
-    final imageBytes = img.buffer.asUint8List();
-    Image image1 = Image(MemoryImage(imageBytes));
-    final img2 = await rootBundle.load('assets/invoiceimage.png');
-    final imageBytes1 = img2.buffer.asUint8List();
-    Image image2 = Image(MemoryImage(imageBytes1));
-    final img3 = await rootBundle.load('assets/demosign.jpg');
-    final imageBytes3 = img3.buffer.asUint8List();
-    Image image3 = Image(MemoryImage(imageBytes3));
+
+    // Load images from the network
+    final image1 = await _loadImageFromNetwork(userModel.profilePhoto);
+    final image2 = await _loadImageFromNetwork('https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/invoiceimage.png?alt=media&token=f01ad79e-1759-4887-b09a-1f7e513e57ac');
+    final image3 = await _loadImageFromNetwork('https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/Signature.jpg?alt=media&token=1a71259d-e9a7-4b72-899f-b44693368694');
+
     pdf.addPage(MultiPage(
         build: (context) => [
-              Row(children: [
-                Container(child: image1, height: 300, width: 300),
-                Container(child: image2, height: 200, width: 200),
-              ]),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text(
-                  'Address: ',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Text(invoice.owner.address, style: TextStyle(fontSize: 16))
-              ]),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text(
-                  'Mobile Number: ',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Text(invoice.owner.mobileNumber, style: TextStyle(fontSize: 16))
-              ]),
-              Divider(),
-              Center(
-                  child: Text('Invoice',
-                      style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: PdfColors.red))),
-              SizedBox(height: 5),
-              buildInvoiceDetails(invoice),
-              Divider(),
-              buildTitle(invoice),
-              SizedBox(height: 0.6 * PdfPageFormat.cm),
-              buildTable(invoice),
-              Divider(),
-              buildTotal(invoice),
-              Spacer(),
-              buildSignature(invoice, image3),
-              Divider(),
-              buildFooter(),
-            ]));
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+            Container(child: image1, height: 200, width: 300),
+            Container(child: image2, height: 200, width: 200),
+          ]),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(
+              'Address: ',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            Text(invoice.owner.address, style: TextStyle(fontSize: 16))
+          ]),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(
+              'Mobile Number: ',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            Text(invoice.owner.mobileNumber, style: TextStyle(fontSize: 16))
+          ]),
+          Divider(),
+          Center(
+              child: Text('Invoice',
+                  style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: PdfColors.red))),
+          SizedBox(height: 5),
+          buildInvoiceDetails(invoice),
+          Divider(),
+          buildTitle(invoice),
+          SizedBox(height: 0.6 * PdfPageFormat.cm),
+          buildTable(invoice),
+          Divider(),
+          buildTotal(invoice),
+          Spacer(),
+          buildSignature(invoice, image3),
+          Divider(),
+          buildFooter(),
+        ]));
     return PdfApi.saveDocument(name: '${invoice.customer.name} ${DateFormat('dd-MM-yyyy').format(invoice.customer.dateOfAdmission)}.pdf', pdf: pdf);
+  }
+
+  static Future<Image> _loadImageFromNetwork(String url) async {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final imageBytes = response.bodyBytes;
+      return Image(MemoryImage(imageBytes));
+    } else {
+      throw Exception('Failed to load image from network');
+    }
   }
 
   static Widget buildTitle(Invoice invoice) {
@@ -189,17 +199,17 @@ class PdfInvoiceApi {
   static Widget buildFooter() {
     return Container(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold)),
-      Text('1. Amount Paid is non-refundable '),
-      Text(
-          '2. Memberships are non-transferable and cannot be assigned to friends or family members.')
-    ]));
+          Text('Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text('1. Amount Paid is non-refundable '),
+          Text(
+              '2. Memberships are non-transferable and cannot be assigned to friends or family members.')
+        ]));
   }
 
   static Widget buildSignature(
-    Invoice invoice,
-    Image image3,
-  ) {
+      Invoice invoice,
+      Image image3,
+      ) {
     return Row(children: [
       Spacer(flex: 6),
       Column(children: [

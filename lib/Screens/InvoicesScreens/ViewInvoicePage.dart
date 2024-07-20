@@ -13,13 +13,17 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.refreshUser();
   }
+
   @override
   Widget build(BuildContext context) {
     final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
     final plan = GymPlanModel.findById(plans, widget.member.planId);
     final planName = plan?.name ?? 'Unknown Plan';
+    UserProvider userProvider = Provider.of<UserProvider>(context);
+    UserModel? userModel = userProvider.getUser;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -41,9 +45,9 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                 final dueDate = DateTime.now();
                 final invoice = Invoice(
                     owner: Owner(
-                        name:'Arjuna Fitness Gym',
-                        address: 'Opposite Hajare PetrolPump,Chimur-442903',
-                        mobileNumber: '9404102064'
+                        name:userModel!.name,
+                        address: userModel.address,
+                        mobileNumber: userModel.phoneNumber
                     ),
                     customer: Customer(
                         name: widget.member.name,
@@ -70,7 +74,7 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                       ),
                     ]
                 );
-                final pdfFile = await PdfInvoiceApi.generate(invoice);
+                final pdfFile = await PdfInvoiceApi.generate(invoice,userModel);
                 PdfApi.openFile(pdfFile);
               },
               child: Text('Generate Invoice'),
