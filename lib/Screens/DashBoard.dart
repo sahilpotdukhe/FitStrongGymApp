@@ -76,7 +76,7 @@ class _DashBoardState extends State<DashBoard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => DisplayAllMembers()),
+                                builder: (context) => MemberListPage()),
                           );
                         },
                         child: Container(

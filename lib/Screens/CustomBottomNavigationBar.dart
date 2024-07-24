@@ -51,7 +51,7 @@ getPage(int page) {
     case 2:
       return DashBoard();
     case 3:
-      return MemberListPage();
+      return DisplayAllMembers();
     case 4:
       return MenuPage();
   }
