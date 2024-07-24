@@ -15,7 +15,7 @@ class PdfInvoiceApi {
     // Load images from the network
     final image1 = await _loadImageFromNetwork(userModel.profilePhoto);
     final image2 = await _loadImageFromNetwork('https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/invoiceimage.png?alt=media&token=f01ad79e-1759-4887-b09a-1f7e513e57ac');
-    final image3 = await _loadImageFromNetwork('https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/Signature.jpg?alt=media&token=1a71259d-e9a7-4b72-899f-b44693368694');
+    final image3 = await _loadImageFromNetwork(userModel.signature);
 
     pdf.addPage(MultiPage(
         build: (context) => [

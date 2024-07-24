@@ -45,7 +45,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           authType: 'emailAuth',
           mobilenumber: mobile.text,
           qrImageUrl: 'https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/qrgeneral.png?alt=media&token=ffa3b5fe-ade2-4d7e-b675-bfdf2b281f5a',
-          address: ''
+          address: '',
+          signature: '',
       );
       AwesomeDialog(
         context: context,

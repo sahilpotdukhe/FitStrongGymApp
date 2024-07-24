@@ -59,7 +59,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('OwnerPhotos')
-            .child('${widget.userModel.name}${widget.userModel.uid}.jpg');
+            .child(widget.userModel.name)
+            .child('ProfilePic ${widget.userModel.uid}.jpg');
 
         await storageRef.putFile(_imageFile!);
         profilePhotoUrl = await storageRef.getDownloadURL();
@@ -69,7 +70,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('OwnerPhotos')
-            .child('QR${widget.userModel.name}${widget.userModel.uid}.jpg');
+            .child(widget.userModel.name)
+            .child('QR ${widget.userModel.uid}.jpg');
 
         await storageRef.putFile(_qrImageFile!);
         qrImageUrl = await storageRef.getDownloadURL();
@@ -82,7 +84,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         phoneNumber: _phoneController.text,
         profilePhoto: profilePhotoUrl,
         qrImageUrl: qrImageUrl,
-        address: _addressController.text
+        address: _addressController.text,
+        signature: widget.userModel.signature
       );
 
       await AuthMethods().updateUser(updatedUser);
