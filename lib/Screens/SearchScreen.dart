@@ -1,7 +1,8 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({Key? key}) : super(key: key);
+  final String screen;
+  const SearchScreen({Key? key, required this.screen}) : super(key: key);
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -17,11 +18,25 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
-    memberProvider.getAllMembers().then((list) {
-      setState(() {
-        memberList = list;
+    if(widget.screen == 'All'){
+      memberProvider.getAllMembers().then((list) {
+        setState(() {
+          memberList = list;
+        });
       });
-    });
+    }else if(widget.screen == 'Active'){
+      memberProvider.fetchActiveMembers().then((list) {
+        setState(() {
+          memberList = list;
+        });
+      });
+    }else{
+      memberProvider.fetchExpiredMembers().then((list) {
+        setState(() {
+          memberList = list;
+        });
+      });
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(searchFocusNode);
     });

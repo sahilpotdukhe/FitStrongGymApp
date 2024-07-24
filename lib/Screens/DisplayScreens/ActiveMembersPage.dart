@@ -42,7 +42,7 @@ class _ActiveMembersPageState extends State<ActiveMembersPage> {
             ),
             onPressed: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SearchScreen()));
+                  MaterialPageRoute(builder: (context) => SearchScreen(screen: 'Active',)));
             },
           )
         ],

@@ -49,7 +49,7 @@ class _MemberListPageState extends State<MemberListPage> {
               ),
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => SearchScreen()));
+                    MaterialPageRoute(builder: (context) => SearchScreen(screen: 'All',)));
               },
             )
           ],

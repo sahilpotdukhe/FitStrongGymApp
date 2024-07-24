@@ -74,7 +74,7 @@ class _DisplayAllMembersState extends State<DisplayAllMembers> {
             ),
             onPressed: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SearchScreen()));
+                  MaterialPageRoute(builder: (context) => SearchScreen(screen: 'All',)));
             },
           )
         ],

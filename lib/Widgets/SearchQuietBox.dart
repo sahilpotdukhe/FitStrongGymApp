@@ -65,7 +65,7 @@ class SearchQuietBox extends StatelessWidget {
                       Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => SearchScreen()));
+                              builder: (context) => SearchScreen(screen: 'All',)));
                     },
                   )
                 ],

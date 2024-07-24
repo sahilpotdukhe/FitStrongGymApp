@@ -42,7 +42,7 @@ class _ExpiredMembersPageState extends State<ExpiredMembersPage> {
             ),
             onPressed: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SearchScreen()));
+                  MaterialPageRoute(builder: (context) => SearchScreen(screen: 'Expired',)));
             },
           )
         ],
