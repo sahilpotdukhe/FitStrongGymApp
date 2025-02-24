@@ -1,4 +1,5 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
+
 class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -376,8 +377,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ? Loading()
                                   : ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                          primary:
-                                              UniversalVariables.appThemeColor),
+                                        backgroundColor:
+                                            UniversalVariables.appThemeColor,
+                                      ),
                                       onPressed: () {
                                         if (_loginkey.currentState!
                                             .validate()) {
@@ -442,7 +444,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                                           ]);
                                                     });
                                               }
-                                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login failed")));
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(SnackBar(
+                                                      content: Text(
+                                                          "Login failed")));
                                             }
                                           });
                                         }
