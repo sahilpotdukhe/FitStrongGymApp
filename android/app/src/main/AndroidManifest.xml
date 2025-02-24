@@ -19,7 +19,7 @@
     </queries>
     <application
         android:label="fitstrong_gym"
-        android:name="${applicationName}"
+        android:name=".MainApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

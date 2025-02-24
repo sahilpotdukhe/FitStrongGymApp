@@ -13,7 +13,7 @@ import firebase_storage
 import flutter_image_compress_macos
 import path_provider_foundation
 import rive_common
-import sqflite
+import sqflite_darwin
 import url_launcher_macos
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
