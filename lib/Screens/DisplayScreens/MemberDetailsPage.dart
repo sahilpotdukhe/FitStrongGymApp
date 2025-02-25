@@ -287,12 +287,12 @@ class MemberDetailsPage extends StatelessWidget {
   }
 
   void _sendSMS(String message, List<String> recipents) async {
-    String _result = await sendSMS(message: message, recipients: recipents)
-        .catchError((onError) {
-      print(onError);
-          return 'Error';
-
-    });
-    print(_result);
+    // String _result = await sendSMS(message: message, recipients: recipents)
+    //     .catchError((onError) {
+    //   print(onError);
+    //       return 'Error';
+    //
+    // });
+    // print(_result);
   }
 }

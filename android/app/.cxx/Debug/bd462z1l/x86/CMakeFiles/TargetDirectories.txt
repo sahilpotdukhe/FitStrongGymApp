@@ -1,0 +1,2 @@
+D:/AndroidStudioProjects/fitstrong_gym/android/app/.cxx/Debug/bd462z1l/x86/CMakeFiles/edit_cache.dir
+D:/AndroidStudioProjects/fitstrong_gym/android/app/.cxx/Debug/bd462z1l/x86/CMakeFiles/rebuild_cache.dir

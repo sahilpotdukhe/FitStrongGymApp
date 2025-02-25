@@ -60,6 +60,5 @@ export 'package:provider/provider.dart';
 export 'package:cached_network_image/cached_network_image.dart';
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
 export 'package:hexcolor/hexcolor.dart';
-export 'package:flutter_sms/flutter_sms.dart';
 export 'package:url_launcher/url_launcher.dart';
 export 'package:firebase_core/firebase_core.dart';
