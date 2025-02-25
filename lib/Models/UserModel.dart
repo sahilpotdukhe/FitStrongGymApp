@@ -39,9 +39,9 @@ class UserModel {
       email: mapData['email'],
       profilePhoto: mapData['profile_photo'],
       phoneNumber: mapData['phone_Number'],
-      qrImageUrl: mapData['qrImageUrl'],
-      address: mapData['address'],
-      signature: mapData['signature']
+      qrImageUrl: mapData['qrImageUrl'] ?? '',
+      address: mapData['address'] ?? '',
+      signature: mapData['signature']?? ''
     );
   }
 }

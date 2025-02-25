@@ -20,7 +20,7 @@ class GymPlanProvider with ChangeNotifier {
                 name: doc['name'],
                 months: doc['months'],
                 days: doc['days'],
-                fee: doc['fee'],
+                fee: (doc['fee'] is int) ? (doc['fee'] as int).toDouble() : doc['fee'],
               ))
           .toList();
       notifyListeners();
