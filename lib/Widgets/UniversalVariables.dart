@@ -1,5 +1,3 @@
-
-
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class UniversalVariables {

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -12,14 +13,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isHidden = true;
   bool _isLoading = false;
   bool isVerified = false;
-  bool? googleloading = false;
   bool isPressed = false;
   Timer? timer;
-  final _signupkey = GlobalKey<FormState>();
-  TextEditingController name = TextEditingController();
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
-  TextEditingController mobile = TextEditingController();
+  final _signupKey = GlobalKey<FormState>();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController mobileController = TextEditingController();
 
   AuthMethods authMethods = AuthMethods();
 
@@ -38,12 +38,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (isVerified) timer?.cancel();
     if (isVerified) {
       authMethods.setUserProfile(
-        name: name.text,
-        email: email.text,
+        name: nameController.text,
+        email: emailController.text,
         profilePic:
             'https://firebasestorage.googleapis.com/v0/b/echat-888ef.appspot.com/o/user.jpg?alt=media&token=6f598b3e-9c10-49ee-8a68-49468b32bddf',
         authType: 'emailAuth',
-        mobilenumber: mobile.text,
+        mobilenumber: mobileController.text,
         qrImageUrl:
             'https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/qrgeneral.png?alt=media&token=ffa3b5fe-ade2-4d7e-b675-bfdf2b281f5a',
         address: '',
@@ -80,7 +80,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  void _togglepasswordview() {
+  void _togglePasswordView() {
     setState(() {
       _isHidden = !_isHidden;
     });
@@ -96,7 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ListView(
             shrinkWrap: true,
             children: [
-              Container(
+              SizedBox(
                 height: 267 * ScaleUtils.verticalScale,
                 child: Row(
                   children: [
@@ -130,7 +130,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         topRight:
                             Radius.circular(50 * ScaleUtils.scaleFactor))),
                 child: Form(
-                  key: _signupkey,
+                  key: _signupKey,
                   child: Container(
                     margin: EdgeInsets.fromLTRB(
                         24 * ScaleUtils.horizontalScale,
@@ -150,7 +150,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       shrinkWrap: true,
                       children: [
                         TextFormField(
-                          controller: name,
+                          controller: nameController,
                           decoration: InputDecoration(
                               hintText: 'Enter Your Name',
                               hintStyle: TextStyle(
@@ -190,7 +190,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           height: 12 * ScaleUtils.verticalScale,
                         ),
                         TextFormField(
-                          controller: email,
+                          controller: emailController,
                           decoration: InputDecoration(
                               hintText: 'Enter Your Email',
                               hintStyle: TextStyle(
@@ -232,7 +232,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           height: 12 * ScaleUtils.verticalScale,
                         ),
                         TextFormField(
-                          controller: password,
+                          controller: passwordController,
                           decoration: InputDecoration(
                               hintText: 'Set Password',
                               hintStyle: TextStyle(
@@ -256,7 +256,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     width: 2),
                               ),
                               suffix: InkWell(
-                                onTap: _togglepasswordview,
+                                onTap: _togglePasswordView,
                                 child: Icon(
                                     _isHidden
                                         ? Icons.visibility_off
@@ -280,7 +280,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           height: 12 * ScaleUtils.verticalScale,
                         ),
                         TextFormField(
-                          controller: mobile,
+                          controller: mobileController,
                           decoration: InputDecoration(
                               hintText: 'Enter Your Number',
                               hintStyle: TextStyle(
@@ -334,13 +334,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       backgroundColor:
                                           UniversalVariables.appThemeColor),
                                   onPressed: () async {
-                                    if (_signupkey.currentState!.validate()) {
+                                    if (_signupKey.currentState!.validate()) {
                                       setState(() {
                                         _isLoading = true;
                                       });
                                       authMethods
-                                          .createAccountbyEmail(email.text,
-                                              password.text, context)
+                                          .createAccountByEmail(
+                                              emailController.text,
+                                              passwordController.text,
+                                              context)
                                           .then((user) async {
                                         if (user != null) {
                                           print(user);
@@ -393,7 +395,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                           style: TextStyle(),
                                                         ),
                                                         Text(
-                                                          '${email.text}',
+                                                          emailController.text,
                                                           style: TextStyle(
                                                               fontWeight:
                                                                   FontWeight
@@ -471,7 +473,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                               TextAlign.center,
                                                         ),
                                                         Text(
-                                                          '${email.text}',
+                                                          '${emailController.text}',
                                                           textAlign:
                                                               TextAlign.center,
                                                           style: TextStyle(

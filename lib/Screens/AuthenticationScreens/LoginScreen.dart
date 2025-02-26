@@ -8,13 +8,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isHidden = true;
   bool _isLoading = false;
-  final _loginkey = GlobalKey<FormState>();
   bool isPressed = false;
+  final _loginKey = GlobalKey<FormState>();
   final FirebaseAuth auth = FirebaseAuth.instance;
-  final TextEditingController email = TextEditingController();
-
-  final TextEditingController pass = TextEditingController();
   AuthMethods authMethods = AuthMethods();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   void dispose() {
@@ -22,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _togglepasswordview() {
+  void _togglePasswordView() {
     setState(() {
       _isHidden = !_isHidden;
     });
@@ -53,7 +52,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               text: 'Signing ',
                               style: TextStyle(
                                 color: Colors.blue,
-                                // Set the color for the word "Signing"
                                 fontSize: 24 * ScaleUtils.scaleFactor,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -62,7 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               text: 'In ',
                               style: TextStyle(
                                 color: Colors.yellow.shade700,
-                                // Set the color for the word "in"
                                 fontSize: 24 * ScaleUtils.scaleFactor,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -71,7 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               text: 'Please ',
                               style: TextStyle(
                                 color: Colors.red,
-                                // Set the color for the word "Please"
                                 fontSize: 24 * ScaleUtils.scaleFactor,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -80,7 +76,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               text: 'wait',
                               style: TextStyle(
                                 color: Colors.green,
-                                // Set the color for the word "wait"
                                 fontSize: 24 * ScaleUtils.scaleFactor,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -91,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ))
               : ListView(shrinkWrap: true, children: [
-                  Container(
+                  SizedBox(
                     height: 267 * ScaleUtils.verticalScale,
                     child: Row(
                       // mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -127,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             topRight:
                                 Radius.circular(50 * ScaleUtils.scaleFactor))),
                     child: Form(
-                      key: _loginkey,
+                      key: _loginKey,
                       child: Container(
                         margin: EdgeInsets.fromLTRB(
                             38 * ScaleUtils.horizontalScale,
@@ -147,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           shrinkWrap: true,
                           children: [
                             TextFormField(
-                              controller: email,
+                              controller: emailController,
                               decoration: InputDecoration(
                                   hintText: 'Enter Your Email',
                                   labelText: 'Email',
@@ -191,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               height: 16 * ScaleUtils.verticalScale,
                             ),
                             TextFormField(
-                              controller: pass,
+                              controller: passwordController,
                               decoration: InputDecoration(
                                   hintText: 'Enter Password',
                                   labelText: 'Password',
@@ -215,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         width: 2 * ScaleUtils.horizontalScale),
                                   ),
                                   suffix: InkWell(
-                                    onTap: _togglepasswordview,
+                                    onTap: _togglePasswordView,
                                     child: Icon(
                                       _isHidden
                                           ? Icons.visibility_off
@@ -229,9 +224,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (value!.isEmpty) {
                                   return 'Enter the Password';
                                 } else if (!RegExp(
-                                        r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$')
+                                        r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$&*~]).{8,}$')
                                     .hasMatch(value)) {
-                                  return 'Password must have atleast one Uppercase, one Lowercase, one special character, and one numeric value';
+                                  return 'Password must have at least one Uppercase, one Lowercase, one special character, and one numeric value';
                                 }
                                 return null;
                               },
@@ -241,9 +236,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             InkWell(
                               onTap: () {
-                                if (email.text.isNotEmpty) {
+                                if (emailController.text.isNotEmpty) {
                                   auth.sendPasswordResetEmail(
-                                      email: email.text);
+                                      email: emailController.text);
                                   showDialog(
                                       context: context,
                                       builder: (BuildContext context) {
@@ -285,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 style: TextStyle(),
                                               ),
                                               Text(
-                                                '${email.text}',
+                                                emailController.text,
                                                 style: TextStyle(
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -381,14 +376,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                             UniversalVariables.appThemeColor,
                                       ),
                                       onPressed: () {
-                                        if (_loginkey.currentState!
+                                        if (_loginKey.currentState!
                                             .validate()) {
                                           setState(() {
                                             _isLoading = true;
                                           });
                                           authMethods
                                               .logInByEmail(
-                                                  email.text, pass.text)
+                                                  emailController.text,
+                                                  passwordController.text)
                                               .then((user) async {
                                             if (user != null) {
                                               print(user);
