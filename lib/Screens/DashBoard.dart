@@ -1,24 +1,31 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class DashBoard extends StatefulWidget {
-  const DashBoard({Key? key});
+  const DashBoard({super.key});
 
   @override
   State<DashBoard> createState() => _DashBoardState();
 }
 
 class _DashBoardState extends State<DashBoard> {
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseFirestore fireStore = FirebaseFirestore.instance;
 
+  @override
   void initState() {
     super.initState();
+    _fetchInitialData();
+  }
+
+  void _fetchInitialData() {
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
-    final gymPlanProvider = Provider.of<GymPlanProvider>(context, listen: false);
+    final gymPlanProvider =
+        Provider.of<GymPlanProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     memberProvider.getAllMembers();
-    gymPlanProvider.fetchPlans(); // Fetch plans
+    gymPlanProvider.fetchPlans();
     memberProvider.fetchActiveMembers();
     memberProvider.fetchExpiredMembers();
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
     userProvider.refreshUser();
   }
 
@@ -27,15 +34,12 @@ class _DashBoardState extends State<DashBoard> {
     ScaleUtils.init(context);
     final memberProvider = Provider.of<MemberProvider>(context);
     final gymPlanProvider = Provider.of<GymPlanProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
     final members = memberProvider.members;
     final plans = gymPlanProvider.plans;
-    // final active = memberProvider.fetchActiveMembers();
-    final activemembers = memberProvider.activeMembers;
-    final expiredmembers = memberProvider.expiredMembers;
-    UserProvider userProvider = Provider.of<UserProvider>(context);
+    final activeMembers = memberProvider.activeMembers;
+    final expiredMembers = memberProvider.expiredMembers;
     UserModel? userModel = userProvider.getUser;
-    AuthMethods authMethods = AuthMethods();
-    ScaleUtils.init(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -70,7 +74,11 @@ class _DashBoardState extends State<DashBoard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding: EdgeInsets.fromLTRB(20*ScaleUtils.horizontalScale, 10*ScaleUtils.verticalScale, 10*ScaleUtils.horizontalScale, 10*ScaleUtils.verticalScale),
+                      padding: EdgeInsets.fromLTRB(
+                          20 * ScaleUtils.horizontalScale,
+                          10 * ScaleUtils.verticalScale,
+                          10 * ScaleUtils.horizontalScale,
+                          10 * ScaleUtils.verticalScale),
                       child: InkWell(
                         onTap: () {
                           Navigator.push(
@@ -93,12 +101,14 @@ class _DashBoardState extends State<DashBoard> {
                               Text(
                                 'Total Members',
                                 style: TextStyle(
-                                    color: Colors.white, fontSize: 14*ScaleUtils.scaleFactor),
+                                    color: Colors.white,
+                                    fontSize: 14 * ScaleUtils.scaleFactor),
                               ),
                               Text(
                                 '${members.length}',
                                 style: TextStyle(
-                                    fontSize: 38*ScaleUtils.scaleFactor, color: Colors.white),
+                                    fontSize: 38 * ScaleUtils.scaleFactor,
+                                    color: Colors.white),
                               ),
                             ],
                           )),
@@ -106,10 +116,17 @@ class _DashBoardState extends State<DashBoard> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.fromLTRB(20*ScaleUtils.horizontalScale, 10*ScaleUtils.verticalScale, 10*ScaleUtils.horizontalScale, 10*ScaleUtils.verticalScale),
+                      padding: EdgeInsets.fromLTRB(
+                          20 * ScaleUtils.horizontalScale,
+                          10 * ScaleUtils.verticalScale,
+                          10 * ScaleUtils.horizontalScale,
+                          10 * ScaleUtils.verticalScale),
                       child: InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>GymPlansPage()));
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => GymPlansPage()));
                         },
                         child: Container(
                           decoration: BoxDecoration(
@@ -124,13 +141,15 @@ class _DashBoardState extends State<DashBoard> {
                             children: [
                               Text(
                                 'Gym Plans',
-                                style:
-                                    TextStyle(color: Colors.white, fontSize: 14*ScaleUtils.scaleFactor),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14 * ScaleUtils.scaleFactor),
                               ),
                               Text(
                                 '${plans.length}',
-                                style:
-                                    TextStyle(fontSize: 40*ScaleUtils.scaleFactor, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 40 * ScaleUtils.scaleFactor,
+                                    color: Colors.white),
                               ),
                             ],
                           )),
@@ -143,11 +162,18 @@ class _DashBoardState extends State<DashBoard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=>ActiveMembersPage()));
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ActiveMembersPage()));
                       },
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(20*ScaleUtils.horizontalScale, 10*ScaleUtils.verticalScale, 10*ScaleUtils.horizontalScale, 10*ScaleUtils.verticalScale),
+                        padding: EdgeInsets.fromLTRB(
+                            20 * ScaleUtils.horizontalScale,
+                            10 * ScaleUtils.verticalScale,
+                            10 * ScaleUtils.horizontalScale,
+                            10 * ScaleUtils.verticalScale),
                         child: Container(
                           decoration: BoxDecoration(
                             color: HexColor('2BC155'),
@@ -161,13 +187,15 @@ class _DashBoardState extends State<DashBoard> {
                             children: [
                               Text(
                                 'Active Members',
-                                style:
-                                    TextStyle(color: Colors.white, fontSize: 14*ScaleUtils.scaleFactor),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14 * ScaleUtils.scaleFactor),
                               ),
                               Text(
-                                '${activemembers.length}',
-                                style:
-                                    TextStyle(fontSize: 38*ScaleUtils.scaleFactor, color: Colors.white),
+                                '${activeMembers.length}',
+                                style: TextStyle(
+                                    fontSize: 38 * ScaleUtils.scaleFactor,
+                                    color: Colors.white),
                               ),
                             ],
                           )),
@@ -175,11 +203,18 @@ class _DashBoardState extends State<DashBoard> {
                       ),
                     ),
                     InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=>ExpiredMembersPage()));
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ExpiredMembersPage()));
                       },
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(20*ScaleUtils.horizontalScale, 10*ScaleUtils.verticalScale, 10*ScaleUtils.horizontalScale, 10*ScaleUtils.verticalScale),
+                        padding: EdgeInsets.fromLTRB(
+                            20 * ScaleUtils.horizontalScale,
+                            10 * ScaleUtils.verticalScale,
+                            10 * ScaleUtils.horizontalScale,
+                            10 * ScaleUtils.verticalScale),
                         child: Container(
                           decoration: BoxDecoration(
                             color: HexColor('FF0000'),
@@ -193,13 +228,15 @@ class _DashBoardState extends State<DashBoard> {
                             children: [
                               Text(
                                 'Expired Members',
-                                style:
-                                    TextStyle(color: Colors.white, fontSize: 14*ScaleUtils.scaleFactor),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14 * ScaleUtils.scaleFactor),
                               ),
                               Text(
-                                '${expiredmembers.length}',
-                                style:
-                                    TextStyle(fontSize: 38*ScaleUtils.scaleFactor, color: Colors.white),
+                                '${expiredMembers.length}',
+                                style: TextStyle(
+                                    fontSize: 38 * ScaleUtils.scaleFactor,
+                                    color: Colors.white),
                               ),
                             ],
                           )),

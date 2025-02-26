@@ -1,21 +1,30 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
-
 class Authenticate extends StatelessWidget {
+  const Authenticate({super.key});
+
   @override
   Widget build(BuildContext context) {
-    if (_auth.currentUser != null) {
-      return CustomBottomNavigationBar();
-    } else {
-      return LoginScreen();
-    }
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance
+          .authStateChanges(), //Listens to Firebase Auth changes in real-time (e.g., user logs in or out).
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+              child: CircularProgressIndicator()); // Show loading spinner
+        } else if (snapshot.hasData) {
+          return CustomBottomNavigationBar(); // User logged in
+        } else {
+          return LoginScreen(); // User not logged in
+        }
+      },
+    );
   }
 }
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseFirestore fireStore = FirebaseFirestore.instance;
 
   Future<User?> getCurrentUser() async {
     User? currentUser = _auth.currentUser;
@@ -25,17 +34,11 @@ class AuthMethods {
   Future<UserModel> getUserDetails() async {
     User? currentUser = await getCurrentUser();
     DocumentSnapshot documentSnapshot =
-        await firestore.collection("Users").doc(currentUser!.uid).get();
+        await fireStore.collection("Users").doc(currentUser!.uid).get();
     return UserModel.fromMap(documentSnapshot.data() as Map<String, dynamic>);
   }
 
-  Future<UserModel> getUserDetailsById(id) async {
-    DocumentSnapshot documentSnapshot =
-        await firestore.collection("Users").doc(id).get();
-    return UserModel.fromMap(documentSnapshot.data() as Map<String, dynamic>);
-  }
-
-  Future<User?> createAccountbyEmail(
+  Future<User?> createAccountByEmail(
       String email, String password, BuildContext context) async {
     try {
       User? user = (await _auth.createUserWithEmailAndPassword(
@@ -92,32 +95,35 @@ class AuthMethods {
       String? email,
       var mobilenumber,
       var profilePic,
-      String? authType,var qrImageUrl,var address,var signature}) async {
-    await firestore.collection("Users").doc(_auth.currentUser!.uid).set({
+      String? authType,
+      var qrImageUrl,
+      var address,
+      var signature}) async {
+    await fireStore.collection("Users").doc(_auth.currentUser!.uid).set({
       "name": name,
       "email": email,
       "uid": _auth.currentUser!.uid,
       "profile_photo": profilePic,
       "phone_Number": mobilenumber,
-      "qrImageUrl" : qrImageUrl,
-      "address" : address,
+      "qrImageUrl": qrImageUrl,
+      "address": address,
       "signature": signature
     });
   }
 
   Future<void> updateUser(UserModel user) async {
-    await firestore.collection('Users').doc(user.uid).update({
+    await fireStore.collection('Users').doc(user.uid).update({
       'name': user.name,
       'phone_Number': user.phoneNumber,
       'profile_photo': user.profilePhoto,
-      'qrImageUrl' : user.qrImageUrl,
-      'address' : user.address,
+      'qrImageUrl': user.qrImageUrl,
+      'address': user.address,
       'signature': user.signature
     });
   }
 
   Future<bool> checkAlreadyRegistered(String email) async {
-    QuerySnapshot result = await firestore
+    QuerySnapshot result = await fireStore
         .collection("Users")
         .where("email", isEqualTo: email)
         .get();
@@ -128,7 +134,7 @@ class AuthMethods {
 
   Future<List<UserModel>> fetchAllUsers(User currentUser) async {
     List<UserModel> userList = [];
-    QuerySnapshot querySnapshot = await firestore.collection("Users").get();
+    QuerySnapshot querySnapshot = await fireStore.collection("Users").get();
     for (var i = 0; i < querySnapshot.docs.length; i++) {
       if (querySnapshot.docs[i].id != currentUser.uid) {
         userList.add(UserModel.fromMap(
@@ -139,5 +145,5 @@ class AuthMethods {
   }
 
   Stream<DocumentSnapshot> getUserStream({required String uid}) =>
-      firestore.collection("Users").doc(uid).snapshots();
+      fireStore.collection("Users").doc(uid).snapshots();
 }

@@ -1,4 +1,3 @@
-
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as p;
@@ -91,32 +90,31 @@ class MemberProvider with ChangeNotifier {
   MemberModel _memberFromSnapshot(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return MemberModel(
-      id: doc.id,
-      name: data['name'],
-      mobileNumber: data['mobileNumber'],
-      dateOfBirth:
-          (data['dateOfBirth'] as Timestamp)?.toDate() ?? DateTime.now(),
-      height: data['height'],
-      weight: data['weight'],
-      photoUrl: data['photoUrl'],
-      planId: data['planId'],
-      dateOfAdmission:
-          (data['dateOfAdmission'] as Timestamp)?.toDate() ?? DateTime.now(),
-      renewalDate:
-          (data['renewalDate'] as Timestamp)?.toDate() ?? DateTime.now(),
-      expiryDate: (data['expiryDate'] as Timestamp)?.toDate() ?? DateTime.now(),
-      address: data['address'],
-      gender: data['gender'],
-      checkInTime: data['checkInTime'] ?? '',
-      checkOutTime: data['checkOutTime'] ?? ''
-    );
+        id: doc.id,
+        name: data['name'],
+        mobileNumber: data['mobileNumber'],
+        dateOfBirth: (data['dateOfBirth'] as Timestamp).toDate(),
+        height: data['height'],
+        weight: data['weight'],
+        photoUrl: data['photoUrl'],
+        planId: data['planId'],
+        dateOfAdmission: (data['dateOfAdmission'] as Timestamp).toDate(),
+        renewalDate: (data['renewalDate'] as Timestamp).toDate(),
+        expiryDate: (data['expiryDate'] as Timestamp).toDate(),
+        address: data['address'],
+        gender: data['gender'],
+        checkInTime: data['checkInTime'] ?? '',
+        checkOutTime: data['checkOutTime'] ?? '');
   }
 
   Future<void> addMember(MemberModel member, XFile photo) async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      final newpath = p.join((await getTemporaryDirectory()).path,'${DateTime.now()}.${p.extension(photo.path)}');
-      final result = await FlutterImageCompress.compressAndGetFile(photo.path, newpath,quality: 40);
+      final newPath =
+          p.join((await getTemporaryDirectory()).path, '${DateTime.now()}.jpg');
+      final result = await FlutterImageCompress.compressAndGetFile(
+          photo.path, newPath,
+          quality: 40, format: CompressFormat.jpeg);
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('member_photos/${currentUser.uid}/${member.name}.jpg');

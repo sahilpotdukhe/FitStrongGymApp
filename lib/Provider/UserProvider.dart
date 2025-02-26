@@ -2,12 +2,10 @@ import 'package:fitstrong_gym/src/custom_import.dart';
 
 class UserProvider with ChangeNotifier {
   UserModel? _userModel;
-  bool _isLoading = false;
+  final bool _isLoading = false;
   AuthMethods authMethods = AuthMethods();
 
-  // UserModel? get user => _user;
   bool get isLoading => _isLoading;
-
   UserModel? get getUser => _userModel;
 
   Future<void> refreshUser() async {
