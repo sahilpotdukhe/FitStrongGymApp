@@ -28,11 +28,11 @@ class _MemberListPageState extends State<MemberListPage> {
             color: Colors.white, //change your color here
           ),
           title: Text(
-            'Member List',
+            'Members',
             style: TextStyle(color: Colors.white),
           ),
           bottom: TabBar(
-            tabs: [
+            tabs: const [
               Tab(text: 'All Members'),
               Tab(text: 'Active Members'),
               Tab(text: 'Expired Members'),
@@ -48,8 +48,12 @@ class _MemberListPageState extends State<MemberListPage> {
                 color: Colors.white,
               ),
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => SearchScreen(screen: 'All',)));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => SearchScreen(
+                              screen: 'All',
+                            )));
               },
             )
           ],
@@ -69,6 +73,15 @@ class _MemberListPageState extends State<MemberListPage> {
               emptyMessage: 'No expired members found.',
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => AddMemberPage()));
+          },
+          foregroundColor: Colors.white,
+          backgroundColor: UniversalVariables.appThemeColor,
+          child: Icon(Icons.add),
         ),
       ),
     );
@@ -92,7 +105,9 @@ class MemberListSection extends StatelessWidget {
     final plans = gymPlanProvider.plans;
 
     if (members.isEmpty) {
-      return MembersQuietBox(screen: 'nomembers',);
+      return MembersQuietBox(
+        screen: 'nomembers',
+      );
     }
 
     final filteredMembers =
