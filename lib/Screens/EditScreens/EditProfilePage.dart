@@ -22,13 +22,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.userModel.name);
-    _phoneController = TextEditingController(text: widget.userModel.phoneNumber);
+    _phoneController =
+        TextEditingController(text: widget.userModel.phoneNumber);
     _addressController = TextEditingController(text: widget.userModel.address);
-
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -36,8 +37,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       });
     }
   }
+
   Future<void> _pickQrImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -78,15 +81,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
 
       UserModel updatedUser = UserModel(
-        uid: widget.userModel.uid,
-        email: widget.userModel.email,
-        name: _nameController.text,
-        phoneNumber: _phoneController.text,
-        profilePhoto: profilePhotoUrl,
-        qrImageUrl: qrImageUrl,
-        address: _addressController.text,
-        signature: widget.userModel.signature
-      );
+          uid: widget.userModel.uid,
+          email: widget.userModel.email,
+          name: _nameController.text,
+          phoneNumber: _phoneController.text,
+          profilePhoto: profilePhotoUrl,
+          qrImageUrl: qrImageUrl,
+          address: _addressController.text,
+          signature: widget.userModel.signature);
 
       await AuthMethods().updateUser(updatedUser);
 
@@ -96,7 +98,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _isLoading = false;
       });
 
-      Navigator.popAndPushNamed(context,'/home');
+      Navigator.popAndPushNamed(context, '/home');
     }
   }
 
@@ -109,224 +111,252 @@ class _EditProfilePageState extends State<EditProfilePage> {
         iconTheme: IconThemeData(
           color: Colors.white, //change your color here
         ),
-        title: Text('Edit Profile', style: TextStyle(color: Colors.white),),
+        title: Text(
+          'Edit Profile',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Stack(
-                      children: [
-                        Center(
-                          child: GestureDetector(
-                          onTap: _pickImage,
-                          child: CircleAvatar(
-                            backgroundColor: UniversalVariables.appThemeColor,
-                            radius: 60*ScaleUtils.scaleFactor,
-                            child: CircleAvatar(
-                              radius: 54*ScaleUtils.scaleFactor,
-                              backgroundImage: AssetImage('assets/user.jpg'),
-                              foregroundImage: _imageFile != null
-                                  ? FileImage(_imageFile!)
-                                  : NetworkImage(widget.userModel.profilePhoto)
-                              as ImageProvider,
-                            ),
-                          ),
-                                            ),
-                        ),
-                        Center(
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                height: 84 * ScaleUtils.verticalScale,
-                              ),
-                              InkWell(
-                                onTap: _pickImage,
-                                child: Container(
-                                  margin: EdgeInsets.only(
-                                      right: 6 * ScaleUtils.horizontalScale,
-                                      top: 8 * ScaleUtils.verticalScale),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: HexColor("3957ED"),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(
-                                        8.0 * ScaleUtils.scaleFactor),
-                                    child: Icon(
-                                      Icons.camera_alt,
-                                      size: 26 * ScaleUtils.scaleFactor,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ]
-                    ),
-                    SizedBox(width: 25,),
-                    Stack(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Center(
-                            child: GestureDetector(
-                              onTap: _pickQrImage,
-                              child: CircleAvatar(
-                                backgroundColor: UniversalVariables.appThemeColor,
-                                radius: 60*ScaleUtils.scaleFactor,
+                          Stack(children: [
+                            Center(
+                              child: GestureDetector(
+                                onTap: _pickImage,
                                 child: CircleAvatar(
-                                  radius: 54*ScaleUtils.scaleFactor,
-                                  backgroundImage: AssetImage('assets/user.jpg'),
-                                  foregroundImage: _qrImageFile != null
-                                      ? FileImage(_qrImageFile!)
-                                      : NetworkImage(widget.userModel.qrImageUrl)
-                                  as ImageProvider,
+                                  backgroundColor: Colors.grey,
+                                  radius: 60 * ScaleUtils.scaleFactor,
+                                  child: CircleAvatar(
+                                    radius: 54 * ScaleUtils.scaleFactor,
+                                    backgroundImage:
+                                        AssetImage('assets/user.jpg'),
+                                    foregroundImage: _imageFile != null
+                                        ? FileImage(_imageFile!)
+                                        : NetworkImage(
+                                                widget.userModel.profilePhoto)
+                                            as ImageProvider,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          Center(
-                            child: Column(
-                              children: [
-                                SizedBox(
-                                  height: 84 * ScaleUtils.verticalScale,
-                                ),
-                                InkWell(
-                                  onTap: _pickQrImage,
-                                  child: Container(
-                                    margin: EdgeInsets.only(
-                                        right: 6 * ScaleUtils.horizontalScale,
-                                        top: 8 * ScaleUtils.verticalScale),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: HexColor("3957ED"),
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(
-                                          8.0 * ScaleUtils.scaleFactor),
-                                      child: Icon(
-                                        Icons.camera_alt,
-                                        size: 26 * ScaleUtils.scaleFactor,
-                                        color: Colors.white,
+                            Center(
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 84 * ScaleUtils.verticalScale,
+                                  ),
+                                  InkWell(
+                                    onTap: _pickImage,
+                                    child: Container(
+                                      margin: EdgeInsets.only(
+                                          right: 6 * ScaleUtils.horizontalScale,
+                                          top: 8 * ScaleUtils.verticalScale),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: HexColor("3B82F6"),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(
+                                            8.0 * ScaleUtils.scaleFactor),
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          size: 26 * ScaleUtils.scaleFactor,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                )
-                              ],
+                                  )
+                                ],
+                              ),
                             ),
+                          ]),
+                          SizedBox(
+                            width: 25,
                           ),
-                        ]
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    hintText: 'Update Your Name',
-                    labelText: 'Name',
-                    labelStyle: TextStyle(
-                        fontSize: 16.0 * ScaleUtils.scaleFactor),
-                    floatingLabelStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18 * ScaleUtils.scaleFactor,
-                        color: HexColor('3957ED')),
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: HexColor('3957ED'), width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                      BorderSide(color: HexColor('3957ED'), width: 2),
-                    ),
-                    suffixIcon:
-                    Icon(Icons.person, color: HexColor('3957ED')),
+                          Stack(children: [
+                            Center(
+                              child: GestureDetector(
+                                onTap: _pickQrImage,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.grey,
+                                  radius: 60 * ScaleUtils.scaleFactor,
+                                  child: CircleAvatar(
+                                    radius: 54 * ScaleUtils.scaleFactor,
+                                    backgroundImage:
+                                        AssetImage('assets/user.jpg'),
+                                    foregroundImage: _qrImageFile != null
+                                        ? FileImage(_qrImageFile!)
+                                        : NetworkImage(
+                                                widget.userModel.qrImageUrl)
+                                            as ImageProvider,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 84 * ScaleUtils.verticalScale,
+                                  ),
+                                  InkWell(
+                                    onTap: _pickQrImage,
+                                    child: Container(
+                                      margin: EdgeInsets.only(
+                                          right: 6 * ScaleUtils.horizontalScale,
+                                          top: 8 * ScaleUtils.verticalScale),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: HexColor("3B82F6"),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(
+                                            8.0 * ScaleUtils.scaleFactor),
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          size: 26 * ScaleUtils.scaleFactor,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ]),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Name',
+                          style: TextStyle(fontSize: 16),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          hintText: 'Update Your Name',
+                          border: OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                  color: HexColor('E5E7EB'), width: 2)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                BorderSide(color: HexColor('E5E7EB'), width: 2),
+                          ),
+                          suffixIcon: Icon(
+                            Icons.person,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your name';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Mobile number',
+                          style: TextStyle(fontSize: 16),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: InputDecoration(
+                          hintText: 'Update Phone Number',
+                          border: OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                  color: HexColor('E5E7EB'), width: 2)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                BorderSide(color: HexColor('E5E7EB'), width: 2),
+                          ),
+                          suffixIcon: Icon(
+                            Icons.phone_android_outlined,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your phone number';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Address',
+                          style: TextStyle(fontSize: 16),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _addressController,
+                        decoration: InputDecoration(
+                          hintText: 'Update Address',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(
+                            Icons.place,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                  color: HexColor('E5E7EB'), width: 2)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                BorderSide(color: HexColor('E5E7EB'), width: 2),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter an address';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 14),
+                      Center(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green),
+                          onPressed: _updateProfile,
+                          child: Text(
+                            'Update Profile',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
                 ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: InputDecoration(
-                    hintText: 'Update Phone Number',
-                    labelText: 'Phone Number',
-                    labelStyle: TextStyle(
-                        fontSize: 16.0 * ScaleUtils.scaleFactor),
-                    floatingLabelStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18 * ScaleUtils.scaleFactor,
-                        color: HexColor('3957ED')),
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: HexColor('3957ED'), width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                      BorderSide(color: HexColor('3957ED'), width: 2),
-                    ),
-                    suffixIcon:
-                    Icon(Icons.phone_android_outlined, color: HexColor('3957ED')),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10,),
-                TextFormField(
-                  controller: _addressController,
-                  decoration: InputDecoration(
-                    hintText: 'Update Address',
-                    labelText: 'Address',
-                    labelStyle:
-                    TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                    floatingLabelStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18 * ScaleUtils.scaleFactor,
-                        color: HexColor('3957ED')),
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.place, color: HexColor('3957ED')),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide:
-                        BorderSide(color: HexColor('3957ED'), width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter an address';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 32),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: _updateProfile,
-                  child: Text('Update Profile',style: TextStyle(color: Colors.white),),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

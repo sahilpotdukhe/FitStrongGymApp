@@ -61,12 +61,12 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CircleAvatar(
-                radius: 60,
-                backgroundColor: UniversalVariables.appThemeColor,
+                radius: 62,
+                backgroundColor: Colors.grey,
                 child: CachedImage(
                     imageUrl: widget.member.photoUrl,
                     isRound: true,
-                    radius: 105,
+                    radius: 118,
                     height: 0,
                     width: 0,
                     fit: BoxFit.cover),
@@ -87,25 +87,28 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
               SizedBox(
                 height: 20,
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Name ',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.start,
+                ),
+              ),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
                   hintText: 'Update Your Name',
-                  labelText: 'Name',
-                  labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
                   border: OutlineInputBorder(),
                   focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
                   ),
-                  suffixIcon: Icon(Icons.person, color: HexColor('3957ED')),
+                  suffixIcon: Icon(Icons.person),
                 ),
                 onSaved: (value) {
                   displayName = value;
@@ -120,26 +123,30 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
               SizedBox(
                 height: 10,
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Mobile number ',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.start,
+                ),
+              ),
               TextFormField(
                 controller: _mobileNumberController,
                 decoration: InputDecoration(
                   hintText: 'Update Phone number',
-                  labelText: 'Phone number',
                   counterText: "",
-                  labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
                   border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.phone_android_outlined,
-                      color: HexColor('3957ED')),
+                  suffixIcon: Icon(
+                    Icons.phone_android_outlined,
+                  ),
                   focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
                   ),
                 ),
                 onChanged: (value) {
@@ -164,87 +171,29 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
               SizedBox(
                 height: 10,
               ),
-              TextFormField(
-                controller: _heightController,
-                decoration: InputDecoration(
-                  hintText: 'Update Height',
-                  labelText: 'Height (cm)',
-                  labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
-                  ),
-                  suffixIcon: Icon(Icons.height, color: HexColor('3957ED')),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Address ',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.start,
                 ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a height';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                controller: _weightController,
-                decoration: InputDecoration(
-                  hintText: 'Update Your Weight',
-                  labelText: 'Weight (kg)',
-                  labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
-                  ),
-                  suffixIcon:
-                      Icon(Icons.monitor_weight, color: HexColor('3957ED')),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a weight';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(
-                height: 10,
               ),
               TextFormField(
                 controller: _addressController,
                 decoration: InputDecoration(
                   hintText: 'Update Address',
-                  labelText: 'Address',
-                  labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
                   border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.place, color: HexColor('3957ED')),
+                  suffixIcon: Icon(
+                    Icons.place,
+                  ),
                   focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -257,94 +206,230 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
               SizedBox(
                 height: 10,
               ),
-              TextFormField(
-                controller: _checkInTimeController,
-                decoration: InputDecoration(
-                  hintText: 'Update Check-in Time',
-                  labelText: 'Check-in Time',
-                  labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
-                  border: OutlineInputBorder(),
-                  suffixIcon:
-                      Icon(Icons.access_time, color: HexColor('3957ED')),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
+              Row(
+                children: [
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Height ',
+                            style: TextStyle(fontSize: 16),
+                            textAlign: TextAlign.start,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 50,
+                          child: TextFormField(
+                            controller: _heightController,
+                            decoration: InputDecoration(
+                              hintText: 'Update Height',
+                              border: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                      color: HexColor('E5E7EB'), width: 2)),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                    color: HexColor('E5E7EB'), width: 2),
+                              ),
+                              suffixIcon: Icon(
+                                Icons.height,
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a height';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                onTap: () async {
-                  final TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.now(),
-                  );
-                  if (pickedTime != null) {
-                    setState(() {
-                      _checkInTimeController.text = pickedTime.format(context);
-                    });
-                  }
-                },
-                readOnly: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a check-in time';
-                  }
-                  return null;
-                },
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Weight ',
+                            style: TextStyle(fontSize: 16),
+                            textAlign: TextAlign.start,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 50,
+                          child: TextFormField(
+                            controller: _weightController,
+                            decoration: InputDecoration(
+                              hintText: 'Update Your Weight',
+                              border: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                      color: HexColor('E5E7EB'), width: 2)),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                    color: HexColor('E5E7EB'), width: 2),
+                              ),
+                              suffixIcon: Icon(
+                                Icons.monitor_weight,
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a weight';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _checkOutTimeController,
-                decoration: InputDecoration(
-                  hintText: 'Update CheckOut Time',
-                  labelText: 'CheckOut Time',
-                  labelStyle:
-                      TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
-                  border: OutlineInputBorder(),
-                  suffixIcon:
-                      Icon(Icons.access_time, color: HexColor('3957ED')),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
+              SizedBox(
+                height: 10,
+              ),
+
+              Row(
+                children: [
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Check-in Time ',
+                            style: TextStyle(fontSize: 16),
+                            textAlign: TextAlign.start,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 50,
+                          child: TextFormField(
+                            controller: _checkInTimeController,
+                            decoration: InputDecoration(
+                              hintText: 'Update Check-in Time',
+                              border: OutlineInputBorder(),
+                              suffixIcon: Icon(Icons.access_time),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                      color: HexColor('E5E7EB'), width: 2)),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                    color: HexColor('E5E7EB'), width: 2),
+                              ),
+                            ),
+                            onTap: () async {
+                              final TimeOfDay? pickedTime =
+                                  await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.now(),
+                              );
+                              if (pickedTime != null) {
+                                setState(() {
+                                  _checkInTimeController.text =
+                                      pickedTime.format(context);
+                                });
+                              }
+                            },
+                            readOnly: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a check-in time';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                onTap: () async {
-                  final TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.now(),
-                  );
-                  if (pickedTime != null) {
-                    setState(() {
-                      _checkOutTimeController.text = pickedTime.format(context);
-                    });
-                  }
-                },
-                readOnly: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a check-out time';
-                  }
-                  return null;
-                },
+                  SizedBox(width: 10),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Check-out Time ',
+                            style: TextStyle(fontSize: 16),
+                            textAlign: TextAlign.start,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 50,
+                          child: TextFormField(
+                            controller: _checkOutTimeController,
+                            decoration: InputDecoration(
+                              hintText: 'Update CheckOut Time',
+                              border: OutlineInputBorder(),
+                              suffixIcon: Icon(Icons.access_time),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                      color: HexColor('E5E7EB'), width: 2)),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                    color: HexColor('E5E7EB'), width: 2),
+                              ),
+                            ),
+                            onTap: () async {
+                              final TimeOfDay? pickedTime =
+                                  await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.now(),
+                              );
+                              if (pickedTime != null) {
+                                setState(() {
+                                  _checkOutTimeController.text =
+                                      pickedTime.format(context);
+                                });
+                              }
+                            },
+                            readOnly: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a check-out time';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                onPressed: _updateMemberDetails,
-                child: Text(
-                  'Update Details',
-                  style: TextStyle(color: Colors.white),
+              Center(
+                child: ElevatedButton(
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: _updateMemberDetails,
+                  child: Text(
+                    'Update Details',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],

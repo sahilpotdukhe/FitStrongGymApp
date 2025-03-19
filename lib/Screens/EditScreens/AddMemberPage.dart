@@ -113,9 +113,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         child: Center(
                           child: CircleAvatar(
                             backgroundColor: Colors.grey,
-                            radius: 52 * ScaleUtils.scaleFactor,
+                            radius: 52,
                             child: CircleAvatar(
-                              radius: 50 * ScaleUtils.scaleFactor,
+                              radius: 106,
                               backgroundColor: Colors.transparent,
                               backgroundImage: _displayChild(),
                               //foregroundImage: NetworkImage(userModel!.profilePhoto),

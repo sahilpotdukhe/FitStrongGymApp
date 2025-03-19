@@ -1,4 +1,3 @@
-
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class AddGymPlanPage extends StatefulWidget {
@@ -41,28 +40,31 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Plan name',
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.start,
+                  ),
+                ),
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
                     hintText: 'Enter Plan Name',
-                    labelText: 'Plan Name',
-                    labelStyle:
-                        TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                    floatingLabelStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18 * ScaleUtils.scaleFactor,
-                        color: HexColor('3957ED')),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2)),
+                            BorderSide(color: HexColor('E5E7EB'), width: 2)),
                     enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2),
                     ),
-                    suffixIcon:
-                        Icon(Icons.card_membership, color: HexColor('3957ED')),
+                    suffixIcon: Icon(Icons.card_membership),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -74,27 +76,31 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
                 SizedBox(
                   height: 10,
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Months',
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.start,
+                  ),
+                ),
                 TextFormField(
                   controller: _monthsController,
                   decoration: InputDecoration(
                     hintText: 'Enter Months',
-                    labelText: 'Months',
-                    labelStyle:
-                        TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                    floatingLabelStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18 * ScaleUtils.scaleFactor,
-                        color: HexColor('3957ED')),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2)),
+                            BorderSide(color: HexColor('E5E7EB'), width: 2)),
                     enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2),
                     ),
-                    suffixIcon: Icon(Icons.calendar_month_sharp,
-                        color: HexColor('3957ED')),
+                    suffixIcon: Icon(
+                      Icons.calendar_month_sharp,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -109,27 +115,31 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
                 SizedBox(
                   height: 10,
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Days',
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.start,
+                  ),
+                ),
                 TextFormField(
-                  controller: _daysController, // New TextFormField for days
+                  controller: _daysController,
                   decoration: InputDecoration(
                     hintText: 'Enter Days',
-                    labelText: 'Days',
-                    labelStyle:
-                    TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                    floatingLabelStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18 * ScaleUtils.scaleFactor,
-                        color: HexColor('3957ED')),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                        BorderSide(color: HexColor('3957ED'), width: 2)),
+                            BorderSide(color: HexColor('E5E7EB'), width: 2)),
                     enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                      BorderSide(color: HexColor('3957ED'), width: 2),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2),
                     ),
-                    suffixIcon: Icon(Icons.calendar_today,
-                        color: HexColor('3957ED')),
+                    suffixIcon: Icon(
+                      Icons.calendar_today,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -144,27 +154,31 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
                 SizedBox(
                   height: 10,
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Fees',
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.start,
+                  ),
+                ),
                 TextFormField(
                   controller: _feeController,
                   decoration: InputDecoration(
                     hintText: 'Enter Fees',
-                    labelText: 'Fees',
-                    labelStyle:
-                        TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                    floatingLabelStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18 * ScaleUtils.scaleFactor,
-                        color: HexColor('3957ED')),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2)),
+                            BorderSide(color: HexColor('E5E7EB'), width: 2)),
                     enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                          BorderSide(color: HexColor('3957ED'), width: 2),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2),
                     ),
-                    suffixIcon:
-                        Icon(Icons.attach_money, color: HexColor('3957ED')),
+                    suffixIcon: Icon(
+                      Icons.attach_money,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -177,13 +191,15 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
                   },
                 ),
                 SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _saveForm,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: UniversalVariables.appThemeColor),
-                  child: Text(
-                    'Add Plan',
-                    style: TextStyle(color: Colors.white),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _saveForm,
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    child: Text(
+                      'Add Plan',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               ],
