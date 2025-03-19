@@ -102,6 +102,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
             key: _formKey,
             child: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Stack(
                     children: [
@@ -111,7 +112,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         },
                         child: Center(
                           child: CircleAvatar(
-                            backgroundColor: UniversalVariables.appThemeColor,
+                            backgroundColor: Colors.grey,
                             radius: 52 * ScaleUtils.scaleFactor,
                             child: CircleAvatar(
                               radius: 50 * ScaleUtils.scaleFactor,
@@ -134,7 +135,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   top: 12 * ScaleUtils.verticalScale),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: HexColor("3957ED"),
+                                color: HexColor("#3B82F6"),
                               ),
                               child: Padding(
                                 padding: EdgeInsets.all(
@@ -152,26 +153,33 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     ],
                   ),
                   SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Full Name',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
                   TextFormField(
                     controller: _nameController,
                     decoration: InputDecoration(
                       hintText: 'Enter Your Name',
-                      labelText: 'Name',
-                      labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                      floatingLabelStyle: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18 * ScaleUtils.scaleFactor,
-                          color: HexColor('3957ED')),
-                      border: OutlineInputBorder(),
+                      hintStyle: TextStyle(color: Colors.grey),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16)),
                       focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                              BorderSide(color: HexColor('#E5E7EB'), width: 2)),
                       enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                            BorderSide(color: HexColor('#E5E7EB'), width: 2),
                       ),
-                      suffixIcon: Icon(Icons.person, color: HexColor('3957ED')),
+                      suffixIcon: Icon(
+                        Icons.person,
+                      ),
                     ),
                     onSaved: (value) {
                       displayName = value;
@@ -186,27 +194,32 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   SizedBox(
                     height: 10,
                   ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Mobile Number',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
                   TextFormField(
                     controller: _mobileNumberController,
                     decoration: InputDecoration(
                       hintText: 'Enter Your Phone number',
-                      labelText: 'Phone number',
+                      hintStyle: TextStyle(color: Colors.grey),
                       counterText: "",
-                      labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                      floatingLabelStyle: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18 * ScaleUtils.scaleFactor,
-                          color: HexColor('3957ED')),
                       border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.phone_android_outlined,
-                          color: HexColor('3957ED')),
+                      suffixIcon: Icon(
+                        Icons.phone_android_outlined,
+                      ),
                       focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                              BorderSide(color: HexColor('E5E7EB'), width: 2)),
                       enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                            BorderSide(color: HexColor('E5E7EB'), width: 2),
                       ),
                     ),
                     onChanged: (value) {
@@ -231,6 +244,14 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   SizedBox(
                     height: 10,
                   ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Date of Birth  ',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
                   GestureDetector(
                     onTap: _pickDateOfBirth,
                     child: AbsorbPointer(
@@ -243,22 +264,19 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         ),
                         decoration: InputDecoration(
                           hintText: 'Select Date of Birth',
-                          labelText: 'Date of Birth',
-                          labelStyle: TextStyle(
-                              fontSize: 16.0 * ScaleUtils.scaleFactor),
-                          floatingLabelStyle: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18 * ScaleUtils.scaleFactor,
-                              color: HexColor('3957ED')),
+                          hintStyle: TextStyle(color: Colors.grey),
                           border: OutlineInputBorder(),
-                          suffixIcon:
-                              Icon(Icons.date_range, color: HexColor('3957ED')),
+                          suffixIcon: Icon(
+                            Icons.date_range,
+                          ),
                           focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide(
-                                  color: HexColor('3957ED'), width: 2)),
+                                  color: HexColor('E5E7EB'), width: 2)),
                           enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
                             borderSide:
-                                BorderSide(color: HexColor('3957ED'), width: 2),
+                                BorderSide(color: HexColor('E5E7EB'), width: 2),
                           ),
                         ),
                         validator: (value) {
@@ -273,90 +291,132 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   SizedBox(
                     height: 10,
                   ),
-                  TextFormField(
-                    controller: _heightController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter Your Height',
-                      labelText: 'Height (cm)',
-                      labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                      floatingLabelStyle: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18 * ScaleUtils.scaleFactor,
-                          color: HexColor('3957ED')),
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Height ',
+                                style: TextStyle(fontSize: 16),
+                                textAlign: TextAlign.start,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 50,
+                              child: TextFormField(
+                                controller: _heightController,
+                                decoration: InputDecoration(
+                                  hintText: 'Height',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                  border: OutlineInputBorder(),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                          color: HexColor('E5E7EB'), width: 2)),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                        color: HexColor('E5E7EB'), width: 2),
+                                  ),
+                                  suffixIcon: Icon(
+                                    Icons.height,
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a height';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      suffixIcon: Icon(Icons.height, color: HexColor('3957ED')),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a height';
-                      }
-                      return null;
-                    },
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Weight',
+                                style: TextStyle(fontSize: 16),
+                                textAlign: TextAlign.start,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 50,
+                              child: TextFormField(
+                                controller: _weightController,
+                                decoration: InputDecoration(
+                                  hintText: 'Weight',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                  border: OutlineInputBorder(),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                          color: HexColor('E5E7EB'), width: 2)),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                        color: HexColor('E5E7EB'), width: 2),
+                                  ),
+                                  suffixIcon: Icon(
+                                    Icons.monitor_weight,
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a weight';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                    ],
                   ),
                   SizedBox(
-                    height: 10,
+                    width: 10,
                   ),
-                  TextFormField(
-                    controller: _weightController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter Your Weight',
-                      labelText: 'Weight (kg)',
-                      labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                      floatingLabelStyle: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18 * ScaleUtils.scaleFactor,
-                          color: HexColor('3957ED')),
-                      border: OutlineInputBorder(),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
-                      ),
-                      suffixIcon:
-                          Icon(Icons.monitor_weight, color: HexColor('3957ED')),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Address',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.start,
                     ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a weight';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(
-                    height: 10,
                   ),
                   TextFormField(
                     controller: _addressController,
                     decoration: InputDecoration(
                       hintText: 'Enter Your Address',
-                      labelText: 'Address',
-                      labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                      floatingLabelStyle: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18 * ScaleUtils.scaleFactor,
-                          color: HexColor('3957ED')),
+                      hintStyle: TextStyle(color: Colors.grey),
                       border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.place, color: HexColor('3957ED')),
+                      suffixIcon: Icon(Icons.place),
                       focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                              BorderSide(color: HexColor('E5E7EB'), width: 2)),
                       enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                            BorderSide(color: HexColor('E5E7EB'), width: 2),
                       ),
                     ),
                     validator: (value) {
@@ -368,6 +428,14 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   ),
                   SizedBox(
                     height: 10,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Date of Admission',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.start,
+                    ),
                   ),
                   GestureDetector(
                     onTap: _pickDateOfAdmission,
@@ -382,22 +450,17 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         ),
                         decoration: InputDecoration(
                           hintText: 'Select Date of Admission',
-                          labelText: 'Date of Admission',
-                          labelStyle: TextStyle(
-                              fontSize: 16.0 * ScaleUtils.scaleFactor),
-                          floatingLabelStyle: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18 * ScaleUtils.scaleFactor,
-                              color: HexColor('3957ED')),
+                          hintStyle: TextStyle(color: Colors.grey),
                           border: OutlineInputBorder(),
-                          suffixIcon:
-                              Icon(Icons.date_range, color: HexColor('3957ED')),
+                          suffixIcon: Icon(Icons.date_range),
                           focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide(
-                                  color: HexColor('3957ED'), width: 2)),
+                                  color: HexColor('E5E7EB'), width: 2)),
                           enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
                             borderSide:
-                                BorderSide(color: HexColor('3957ED'), width: 2),
+                                BorderSide(color: HexColor('E5E7EB'), width: 2),
                           ),
                         ),
                         validator: (value) {
@@ -412,25 +475,168 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   SizedBox(
                     height: 10,
                   ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Check-in Time',
+                                style: TextStyle(fontSize: 16),
+                                textAlign: TextAlign.start,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: _pickCheckInTime,
+                              child: AbsorbPointer(
+                                child: TextFormField(
+                                  readOnly: true,
+                                  controller: TextEditingController(
+                                    text: _checkInTime?.format(context),
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Check-in Time',
+                                    hintStyle: TextStyle(color: Colors.grey),
+                                    border: OutlineInputBorder(),
+                                    suffixIcon: Icon(
+                                      Icons.access_time,
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        borderSide: BorderSide(
+                                            color: HexColor('E5E7EB'),
+                                            width: 2)),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                          color: HexColor('E5E7EB'), width: 2),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (_checkInTime == null) {
+                                      return 'Please select a check-in time';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Check-out time',
+                                style: TextStyle(fontSize: 16),
+                                textAlign: TextAlign.start,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: _pickCheckOutTime,
+                              child: AbsorbPointer(
+                                child: TextFormField(
+                                  readOnly: true,
+                                  controller: TextEditingController(
+                                    text: _checkOutTime?.format(context),
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Check-out Time',
+                                    hintStyle: TextStyle(color: Colors.grey),
+                                    border: OutlineInputBorder(),
+                                    suffixIcon: Icon(
+                                      Icons.access_time,
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        borderSide: BorderSide(
+                                            color: HexColor('E5E7EB'),
+                                            width: 2)),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                          color: HexColor('E5E7EB'), width: 2),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (_checkOutTime == null) {
+                                      return 'Please select a check-out time';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Gender',
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'Male',
+                        groupValue: gender,
+                        onChanged: (value) {
+                          setState(() {
+                            gender = value!;
+                          });
+                        },
+                        activeColor: HexColor('#3B82F6'),
+                      ),
+                      const Text('Male'),
+                      Radio<String>(
+                        value: 'Female',
+                        groupValue: gender,
+                        onChanged: (value) {
+                          setState(() {
+                            gender = value!;
+                          });
+                        },
+                        activeColor: HexColor('#3B82F6'),
+                      ),
+                      const Text('Female'),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Plan',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       hintText: 'Select Plan',
-                      labelText: 'Plan',
-                      labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                      floatingLabelStyle: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18 * ScaleUtils.scaleFactor,
-                          color: HexColor('3957ED')),
+                      hintStyle: TextStyle(color: Colors.grey),
                       border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.card_membership,
-                          color: HexColor('3957ED')),
+                      suffixIcon: Icon(
+                        Icons.card_membership,
+                      ),
                       focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                              BorderSide(color: HexColor('E5E7EB'), width: 2)),
                       enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                            BorderSide(color: HexColor('E5E7EB'), width: 2),
                       ),
                     ),
                     value: _planId,
@@ -447,9 +653,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     },
                     items: plans
                         .map((plan) => DropdownMenuItem(
-                              child: Text(plan.name),
-                              value: plan
-                                  .id, // Using plan.id as the unique identifier
+                              value: plan.id,
+                              child: Container(
+                                width: 40, // Adjust width
+                                height: 40, // Adjust height
+                                alignment: Alignment.centerLeft,
+                                child: Text(plan.name),
+                              ),
                             ))
                         .toList(),
                     validator: (value) {
@@ -460,35 +670,42 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     },
                   ),
                   SizedBox(
-                    height: 10,
+                    height: 4,
                   ),
-                  Text(
-                    'Fees to be paid: \₹$_selectedPlanFee',
-                    style: TextStyle(color: Colors.red, fontSize: 16),
+                  Center(
+                    child: Text(
+                      'Fees to be paid: \₹$_selectedPlanFee',
+                      style: TextStyle(color: Colors.red, fontSize: 16),
+                    ),
                   ),
                   SizedBox(
                     height: 10,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Payment Mode',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.start,
+                    ),
                   ),
                   DropdownButtonFormField<String>(
                     value: _selectedPaymentMethod,
                     decoration: InputDecoration(
                       hintText: 'Select Payment Mode',
-                      labelText: 'Payment Mode',
-                      labelStyle:
-                          TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                      floatingLabelStyle: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 18 * ScaleUtils.scaleFactor,
-                          color: HexColor('3957ED')),
+                      hintStyle: TextStyle(color: Colors.grey),
                       border: OutlineInputBorder(),
-                      suffixIcon:
-                          Icon(Icons.credit_card, color: HexColor('3957ED')),
+                      suffixIcon: Icon(
+                        Icons.credit_card,
+                      ),
                       focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
                           borderSide:
-                              BorderSide(color: HexColor('3957ED'), width: 2)),
+                              BorderSide(color: HexColor('E5E7EB'), width: 2)),
                       enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
                         borderSide:
-                            BorderSide(color: HexColor('3957ED'), width: 2),
+                            BorderSide(color: HexColor('E5E7EB'), width: 2),
                       ),
                     ),
                     validator: (value) {
@@ -513,144 +730,29 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     Column(
                       children: [
                         SizedBox(height: 10),
-                        CachedImage(
-                            imageUrl: userModel!.qrImageUrl,
-                            isRound: false,
-                            radius: 0,
-                            height: 350,
-                            width: 350,
-                            fit: BoxFit.cover),
+                        Center(
+                          child: CachedImage(
+                              imageUrl: userModel!.qrImageUrl,
+                              isRound: false,
+                              radius: 0,
+                              height: 350,
+                              width: 350,
+                              fit: BoxFit.cover),
+                        ),
                         SizedBox(height: 10),
                         Text('Scan the QR code to pay online'),
                       ],
                     ),
                   SizedBox(height: 20),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 8.0 * ScaleUtils.verticalScale),
-                        child: Text(
-                          'Gender',
-                          style: TextStyle(
-                            fontSize: 16.0 * ScaleUtils.scaleFactor,
-                            color: HexColor('3957ED'),
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
+                  Center(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green),
+                      onPressed: _saveForm,
+                      child: Text(
+                        'Save Member',
+                        style: TextStyle(color: Colors.white),
                       ),
-                      Radio<String>(
-                        value: 'Male',
-                        groupValue: gender,
-                        onChanged: (value) {
-                          setState(() {
-                            gender = value!;
-                          });
-                        },
-                      ),
-                      const Text('Male'),
-                      Radio<String>(
-                        value: 'Female',
-                        groupValue: gender,
-                        onChanged: (value) {
-                          setState(() {
-                            gender = value!;
-                          });
-                        },
-                      ),
-                      const Text('Female'),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: _pickCheckInTime,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: _checkInTime != null
-                              ? _checkInTime!.format(context)
-                              : null,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Select Check-in Time',
-                          labelText: 'Check-in Time',
-                          labelStyle: TextStyle(
-                              fontSize: 16.0 * ScaleUtils.scaleFactor),
-                          floatingLabelStyle: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18 * ScaleUtils.scaleFactor,
-                              color: HexColor('3957ED')),
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.access_time,
-                              color: HexColor('3957ED')),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: HexColor('3957ED'), width: 2)),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: HexColor('3957ED'), width: 2),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (_checkInTime == null) {
-                            return 'Please select a check-in time';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: _pickCheckOutTime,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: _checkOutTime?.format(context),
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Select Check-out Time',
-                          labelText: 'Check-out Time',
-                          labelStyle: TextStyle(
-                              fontSize: 16.0 * ScaleUtils.scaleFactor),
-                          floatingLabelStyle: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18 * ScaleUtils.scaleFactor,
-                              color: HexColor('3957ED')),
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.access_time,
-                              color: HexColor('3957ED')),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: HexColor('3957ED'), width: 2)),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: HexColor('3957ED'), width: 2),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (_checkOutTime == null) {
-                            return 'Please select a check-out time';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: _saveForm,
-                    child: Text(
-                      'Save Member',
-                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
