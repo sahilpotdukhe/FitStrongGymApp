@@ -63,29 +63,32 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
               SizedBox(
                 height: 10,
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Renewal Date',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.start,
+                ),
+              ),
               TextFormField(
                 controller: _renewalDateController,
                 decoration: InputDecoration(
                   hintText: 'Renewal Date',
-                  labelText: 'Renewal Date',
-                  labelStyle:
-                  TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
                   border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.date_range, color: HexColor('3957ED')),
+                  suffixIcon: Icon(Icons.date_range),
                   focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                      BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
                   ),
                 ),
                 readOnly: true,
                 onTap: () async {
-                  try{
+                  try {
                     DateTime? pickedDate = await showDatePicker(
                       context: context,
                       initialDate: widget.member.renewalDate,
@@ -98,35 +101,41 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                             DateFormat('dd-MM-yyyy').format(pickedDate);
                       });
                     }
-                  }catch(e){
+                  } catch (e) {
                     print(e);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("The plan is not expired yet so you can't renew the membership!"),backgroundColor: Colors.red,));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          "The plan is not expired yet so you can't renew the membership!"),
+                      backgroundColor: Colors.red,
+                    ));
                   }
-
                 },
               ),
               SizedBox(
                 height: 10,
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Plan',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.start,
+                ),
+              ),
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(
                   hintText: 'Select Plan',
-                  labelText: 'Plan',
-                  labelStyle:
-                  TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
                   border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.card_membership,
-                      color: HexColor('3957ED')),
+                  suffixIcon: Icon(
+                    Icons.card_membership,
+                  ),
                   focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                      BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide:
-                    BorderSide(color: HexColor('3957ED'), width: 2),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
                   ),
                 ),
                 value: _planId,
@@ -142,10 +151,10 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 },
                 items: plans
                     .map((plan) => DropdownMenuItem(
-                  child: Text(plan.name),
-                  value: plan
-                      .id, // Using plan.id as the unique identifier
-                ))
+                          child: Text(plan.name),
+                          value:
+                              plan.id, // Using plan.id as the unique identifier
+                        ))
                     .toList(),
                 validator: (value) {
                   if (value == null) {
@@ -166,25 +175,29 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
               SizedBox(
                 height: 10,
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Payment Mode ',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.start,
+                ),
+              ),
               DropdownButtonFormField<String>(
                 value: _selectedPaymentMethod,
                 decoration: InputDecoration(
                   hintText: 'Select Payment Mode',
-                  labelText: 'Payment Mode',
-                  labelStyle:
-                  TextStyle(fontSize: 16.0 * ScaleUtils.scaleFactor),
-                  floatingLabelStyle: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18 * ScaleUtils.scaleFactor,
-                      color: HexColor('3957ED')),
                   border: OutlineInputBorder(),
-                  suffixIcon:
-                  Icon(Icons.credit_card, color: HexColor('3957ED')),
+                  suffixIcon: Icon(
+                    Icons.credit_card,
+                  ),
                   focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide:
-                      BorderSide(color: HexColor('3957ED'), width: 2)),
+                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: HexColor('3957ED'), width: 2),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -221,9 +234,16 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                   ],
                 ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _renewMembership,
-                child: Text('Renew Membership'),
+              Center(
+                child: ElevatedButton(
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: _renewMembership,
+                  child: Text(
+                    'Renew Membership',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
               ),
             ],
           ),
@@ -261,9 +281,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
 
     try {
       final newDateOfRenewal =
-      DateFormat('dd-MM-yyyy').parse(_renewalDateController.text);
+          DateFormat('dd-MM-yyyy').parse(_renewalDateController.text);
       final renewedMember =
-      widget.member.renewMembership(_selectedPlan!, newDateOfRenewal);
+          widget.member.renewMembership(_selectedPlan!, newDateOfRenewal);
       await Provider.of<MemberProvider>(context, listen: false)
           .updateMember(renewedMember);
 
@@ -279,7 +299,7 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
         //autoHide: Duration(seconds: 6),
         title: 'Renewed!',
         desc:
-        'You have successfully Renewed Membership.\n Please wait you will be redirected to the MembersList Screen.',
+            'You have successfully Renewed Membership.\n Please wait you will be redirected to the MembersList Screen.',
         btnOkOnPress: () {
           debugPrint('OnClcik');
         },
@@ -293,7 +313,12 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
         _isLoading = false;
       });
       Navigator.pop(context);
-      Navigator.push(context, MaterialPageRoute(builder: (context)=>ViewInvoicePage(member: renewedMember,)));
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ViewInvoicePage(
+                    member: renewedMember,
+                  )));
     } catch (error) {
       print('Error renewing membership: $error');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -302,5 +327,3 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
     }
   }
 }
-
-
