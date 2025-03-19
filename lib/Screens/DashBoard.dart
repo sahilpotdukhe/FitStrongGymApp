@@ -41,21 +41,16 @@ class _DashBoardState extends State<DashBoard> {
     final expiredMembers = memberProvider.expiredMembers;
     UserModel? userModel = userProvider.getUser;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          userModel?.name ?? 'Gym',
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-        backgroundColor: UniversalVariables.appThemeColor,
-        elevation: 10,
-        // leading: IconButton(
-        //   icon: Icon(Icons.nat,color: Colors.white,),
-        //   onPressed: (){
-        //     Navigator.push(context, MaterialPageRoute(builder: (context)=>AttendancePage()));
-        //   },
-        // ),
-      ),
+      // extendBodyBehindAppBar: true,
+      // appBar: AppBar(
+      //   title: Text(
+      //     'FitStrong Gym',
+      //     style: TextStyle(color: Colors.grey[800]),
+      //   ),
+      //   elevation: 0,
+      //   centerTitle: true,
+      //   backgroundColor: Colors.white70,
+      // ),
       body: Stack(children: [
         Image.asset(
           'assets/home3.jpg',
@@ -65,8 +60,25 @@ class _DashBoardState extends State<DashBoard> {
         ),
         ListView(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8.0, 14, 8, 0),
+              child: Text(
+                'Welcome back, ${userModel?.name}!',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 22),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+              child: Text(
+                'Let\'s check your dashboard',
+                style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
+              ),
+            ),
             SizedBox(
-              height: 220 * ScaleUtils.verticalScale,
+              height: 240 * ScaleUtils.verticalScale,
             ),
             Column(
               children: [
@@ -89,26 +101,38 @@ class _DashBoardState extends State<DashBoard> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: HexColor('FD8024'),
+                            gradient: LinearGradient(
+                              colors: const [
+                                Colors.white, // Light grey
+                                Colors.white70, // Darker grey
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          height: 150 * ScaleUtils.verticalScale,
+                          height: 130 * ScaleUtils.verticalScale,
                           width: 150 * ScaleUtils.horizontalScale,
                           child: Center(
                               child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Image.asset(
+                                'assets/totalmembers.png',
+                                height: 40 * ScaleUtils.verticalScale,
+                                width: 40 * ScaleUtils.horizontalScale,
+                              ),
                               Text(
                                 'Total Members',
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.grey[800],
                                     fontSize: 14 * ScaleUtils.scaleFactor),
                               ),
                               Text(
                                 '${members.length}',
                                 style: TextStyle(
-                                    fontSize: 38 * ScaleUtils.scaleFactor,
-                                    color: Colors.white),
+                                    fontSize: 20 * ScaleUtils.scaleFactor,
+                                    color: Colors.black),
                               ),
                             ],
                           )),
@@ -130,26 +154,41 @@ class _DashBoardState extends State<DashBoard> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: HexColor('007FFF'),
+                            gradient: LinearGradient(
+                              colors: const [
+                                Colors.white, // Light grey
+                                Colors.white70, // Darker grey
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          height: 150 * ScaleUtils.verticalScale,
+                          // decoration: BoxDecoration(
+                          //   color: Colors.white,
+                          // ),
+                          height: 130 * ScaleUtils.verticalScale,
                           width: 150 * ScaleUtils.horizontalScale,
                           child: Center(
                               child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Image.asset(
+                                'assets/plan.png',
+                                height: 40 * ScaleUtils.verticalScale,
+                                width: 40 * ScaleUtils.horizontalScale,
+                              ),
                               Text(
                                 'Gym Plans',
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.grey[800],
                                     fontSize: 14 * ScaleUtils.scaleFactor),
                               ),
                               Text(
                                 '${plans.length}',
                                 style: TextStyle(
-                                    fontSize: 40 * ScaleUtils.scaleFactor,
-                                    color: Colors.white),
+                                  fontSize: 20 * ScaleUtils.scaleFactor,
+                                ),
                               ),
                             ],
                           )),
@@ -176,26 +215,38 @@ class _DashBoardState extends State<DashBoard> {
                             10 * ScaleUtils.verticalScale),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: HexColor('2BC155'),
+                            gradient: LinearGradient(
+                              colors: const [
+                                Colors.white, // Light grey
+                                Colors.white70, // Darker grey
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          height: 150 * ScaleUtils.verticalScale,
+                          height: 130 * ScaleUtils.verticalScale,
                           width: 150 * ScaleUtils.horizontalScale,
                           child: Center(
                               child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Image.asset(
+                                'assets/active.png',
+                                height: 40 * ScaleUtils.verticalScale,
+                                width: 40 * ScaleUtils.horizontalScale,
+                              ),
                               Text(
                                 'Active Members',
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.grey[800],
                                     fontSize: 14 * ScaleUtils.scaleFactor),
                               ),
                               Text(
                                 '${activeMembers.length}',
                                 style: TextStyle(
-                                    fontSize: 38 * ScaleUtils.scaleFactor,
-                                    color: Colors.white),
+                                  fontSize: 20 * ScaleUtils.scaleFactor,
+                                ),
                               ),
                             ],
                           )),
@@ -217,26 +268,38 @@ class _DashBoardState extends State<DashBoard> {
                             10 * ScaleUtils.verticalScale),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: HexColor('FF0000'),
+                            gradient: LinearGradient(
+                              colors: const [
+                                Colors.white, // Light grey
+                                Colors.white70, // Darker grey
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          height: 150 * ScaleUtils.verticalScale,
+                          height: 130 * ScaleUtils.verticalScale,
                           width: 150 * ScaleUtils.horizontalScale,
                           child: Center(
                               child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Image.asset(
+                                'assets/expired.png',
+                                height: 40 * ScaleUtils.verticalScale,
+                                width: 40 * ScaleUtils.horizontalScale,
+                              ),
                               Text(
                                 'Expired Members',
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.grey[800],
                                     fontSize: 14 * ScaleUtils.scaleFactor),
                               ),
                               Text(
                                 '${expiredMembers.length}',
                                 style: TextStyle(
-                                    fontSize: 38 * ScaleUtils.scaleFactor,
-                                    color: Colors.white),
+                                  fontSize: 20 * ScaleUtils.scaleFactor,
+                                ),
                               ),
                             ],
                           )),
