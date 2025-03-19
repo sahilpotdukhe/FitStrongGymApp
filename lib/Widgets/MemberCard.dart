@@ -146,7 +146,7 @@ class _MemberCardState extends State<MemberCard> {
                         Row(
                           children: [
                             Text(
-                              'Joined : ',
+                              'Joined: ',
                               style: TextStyle(
                                   color: HexColor('#6B7280'),
                                   fontSize: 13 * ScaleUtils.scaleFactor),
@@ -167,7 +167,7 @@ class _MemberCardState extends State<MemberCard> {
                         Row(
                           children: [
                             Text(
-                              'Expires: ',
+                              'Expires:',
                               style: TextStyle(
                                   color: HexColor('#6B7280'),
                                   fontSize: 13 * ScaleUtils.scaleFactor),
