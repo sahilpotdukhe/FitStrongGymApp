@@ -55,330 +55,352 @@ class _MenuPageState extends State<MenuPage>
       body: userModel == null
           ? Center(child: CircularProgressIndicator())
           : Padding(
-              padding: EdgeInsets.all(20.0 * ScaleUtils.scaleFactor),
+              padding: EdgeInsets.symmetric(
+                  horizontal: 20.0 * ScaleUtils.scaleFactor,
+                  vertical: 10.0 * ScaleUtils.scaleFactor),
               child: ListView(children: [
                 InkWell(
                   onTap: () {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => ProfilePage()));
                   },
-                  child: Card(
-                    elevation: 20,
-                    shadowColor: Colors.grey,
-                    child: Container(
-                      width: ScaleUtils.width,
-                      height: 120 * ScaleUtils.verticalScale,
-                      // color: Colors.red,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: CircleAvatar(
-                              radius: 40 * ScaleUtils.scaleFactor,
-                              child: CircleAvatar(
-                                radius: 35 * ScaleUtils.scaleFactor,
-                                backgroundColor: Colors.transparent,
-                                backgroundImage: AssetImage('assets/user.jpg'),
-                                foregroundImage:
-                                    NetworkImage(userModel!.profilePhoto),
+                  child: Container(
+                    width: ScaleUtils.width,
+                    height: 120 * ScaleUtils.verticalScale,
+                    // color: Colors.red,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CircleAvatar(
+                            radius: 32 * ScaleUtils.scaleFactor,
+                            backgroundColor: Colors.transparent,
+                            backgroundImage: AssetImage('assets/user.jpg'),
+                            foregroundImage:
+                                NetworkImage(userModel.profilePhoto),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                userModel.name,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20 * ScaleUtils.scaleFactor,
+                                    fontWeight: FontWeight.bold),
                               ),
-                            ),
+                              Text(
+                                userModel.email,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14 * ScaleUtils.scaleFactor,
+                                    fontWeight: FontWeight.w300),
+                              ),
+                              Text(
+                                userModel.phoneNumber,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w300,
+                                    fontSize: 14 * ScaleUtils.scaleFactor),
+                              ),
+                            ],
                           ),
-                          SizedBox(
-                            width: 5,
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            Icons.arrow_forward_ios_sharp,
+                            color: Colors.grey,
                           ),
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  userModel.name,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20 * ScaleUtils.scaleFactor,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  userModel.email,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14 * ScaleUtils.scaleFactor,
-                                      fontWeight: FontWeight.w300),
-                                ),
-                                Text(
-                                  userModel.phoneNumber,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w300,
-                                      fontSize: 14 * ScaleUtils.scaleFactor),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Icon(
-                              Icons.arrow_forward_ios_sharp,
-                              color: Colors.white,
-                            ),
-                          )
-                        ],
-                      ),
+                        )
+                      ],
                     ),
                   ),
                 ),
                 SizedBox(
                   height: 30 * ScaleUtils.verticalScale,
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 18.0 * ScaleUtils.horizontalScale),
-                  child: Card(
-                    elevation: 10,
-                    shadowColor: Colors.grey,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8.0 * ScaleUtils.horizontalScale,
-                            vertical: 12 * ScaleUtils.verticalScale),
-                        child: Column(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => AddMemberPage()));
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: UniversalVariables.bgColor,
-                                        ),
-                                        height: 40,
-                                        width: 40,
-                                        child: Center(
-                                            child: Icon(Icons.person_add))),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      'Add new Member',
-                                      style: TextStyle(
-                                          fontSize:
-                                              17 * ScaleUtils.scaleFactor),
-                                    ),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios_sharp)
-                                  ],
-                                ),
+                Column(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => AddMemberPage()));
+                      },
+                      child: Card(
+                        elevation: 10,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(18, 16, 18, 16),
+                          child: Row(
+                            children: [
+                              Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: HexColor('#DBEAFE'),
+                                  ),
+                                  height: 46,
+                                  width: 46,
+                                  child: Center(
+                                      child: Icon(
+                                    Icons.person_add,
+                                    color: HexColor('#2563EB'),
+                                  ))),
+                              SizedBox(
+                                width: 10,
                               ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            DisplayAllMembers()));
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: UniversalVariables.bgColor,
-                                        ),
-                                        height: 40,
-                                        width: 40,
-                                        child: Center(
-                                          child: FaIcon(
-                                              FontAwesomeIcons.addressCard),
-                                        )),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      'All Members',
-                                      style: TextStyle(
-                                          fontSize:
-                                              17 * ScaleUtils.scaleFactor),
-                                    ),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios_sharp)
-                                  ],
-                                ),
+                              Text(
+                                'Add new Member',
+                                style: TextStyle(
+                                    fontSize: 17 * ScaleUtils.scaleFactor,
+                                    fontWeight: FontWeight.w500),
                               ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            AddGymPlanPage()));
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: UniversalVariables.bgColor,
-                                        ),
-                                        height: 40,
-                                        width: 40,
-                                        child: Center(
-                                            child: Icon(Icons.add_card))),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      'Add Gym Plan',
-                                      style: TextStyle(
-                                          fontSize:
-                                              17 * ScaleUtils.scaleFactor),
-                                    ),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios_sharp)
-                                  ],
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => GymPlansPage()));
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: UniversalVariables.bgColor,
-                                        ),
-                                        height: 40,
-                                        width: 40,
-                                        child: Center(
-                                            child: Icon(Icons.fitness_center))),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      'All Gym Plans',
-                                      style: TextStyle(
-                                          fontSize:
-                                              17 * ScaleUtils.scaleFactor),
-                                    ),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios_sharp)
-                                  ],
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            RecycleBinPage()));
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: UniversalVariables.bgColor,
-                                        ),
-                                        height: 40,
-                                        width: 40,
-                                        child: Center(
-                                            child: Icon(Icons.delete_forever))),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      'Recycle Bin',
-                                      style: TextStyle(
-                                          fontSize:
-                                              17 * ScaleUtils.scaleFactor),
-                                    ),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios_sharp)
-                                  ],
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () async {
-                                final Uri url = Uri.parse(
-                                    'https://sahilpotdukhe.github.io/Portfolio-website/');
-                                try {
-                                  await launchUrl(url);
-                                } catch (e) {
-                                  print(e.toString());
-                                }
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: UniversalVariables.bgColor,
-                                        ),
-                                        height: 40,
-                                        width: 40,
-                                        child: Center(child: Icon(Icons.code))),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      'About Developer',
-                                      style: TextStyle(
-                                          fontSize:
-                                              17 * ScaleUtils.scaleFactor),
-                                    ),
-                                    Spacer(),
-                                    Icon(Icons.arrow_forward_ios_sharp)
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                              Spacer(),
+                              Icon(
+                                Icons.arrow_forward_ios_sharp,
+                                color: Colors.grey,
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DisplayAllMembers()));
+                      },
+                      child: Card(
+                        elevation: 10,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(18, 14, 18, 14),
+                          child: Row(
+                            children: [
+                              Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: HexColor('#EDE9FE'),
+                                  ),
+                                  height: 46,
+                                  width: 46,
+                                  child: Center(
+                                    child: FaIcon(
+                                      FontAwesomeIcons.addressCard,
+                                      color: HexColor('#7C3AED'),
+                                    ),
+                                  )),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                'All Members',
+                                style: TextStyle(
+                                    fontSize: 17 * ScaleUtils.scaleFactor,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              Spacer(),
+                              Icon(
+                                Icons.arrow_forward_ios_sharp,
+                                color: Colors.grey,
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => AddGymPlanPage()));
+                      },
+                      child: Card(
+                        elevation: 10,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(18, 14, 18, 14),
+                          child: Row(
+                            children: [
+                              Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: HexColor('#D1FAE5'),
+                                  ),
+                                  height: 46,
+                                  width: 46,
+                                  child: Center(
+                                      child: Icon(
+                                    Icons.add_card,
+                                    color: HexColor('#059669'),
+                                  ))),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                'Add Gym Plan',
+                                style: TextStyle(
+                                    fontSize: 17 * ScaleUtils.scaleFactor,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              Spacer(),
+                              Icon(
+                                Icons.arrow_forward_ios_sharp,
+                                color: Colors.grey,
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => GymPlansPage()));
+                      },
+                      child: Card(
+                        elevation: 10,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(18, 14, 18, 14),
+                          child: Row(
+                            children: [
+                              Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: HexColor('#FEF3C7'),
+                                  ),
+                                  height: 46,
+                                  width: 46,
+                                  child: Center(
+                                      child: Icon(
+                                    Icons.fitness_center,
+                                    color: HexColor('#D97706'),
+                                  ))),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                'All Gym Plans',
+                                style: TextStyle(
+                                    fontSize: 17 * ScaleUtils.scaleFactor,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              Spacer(),
+                              Icon(
+                                Icons.arrow_forward_ios_sharp,
+                                color: Colors.grey,
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RecycleBinPage()));
+                      },
+                      child: Card(
+                        elevation: 10,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(18, 14, 18, 14),
+                          child: Row(
+                            children: [
+                              Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: HexColor('#FEE2E2'),
+                                  ),
+                                  height: 46,
+                                  width: 46,
+                                  child: Center(
+                                      child: Icon(
+                                    Icons.delete_forever,
+                                    color: HexColor('#DC2626'),
+                                  ))),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                'Recycle Bin',
+                                style: TextStyle(
+                                    fontSize: 17 * ScaleUtils.scaleFactor,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              Spacer(),
+                              Icon(Icons.arrow_forward_ios_sharp,
+                                  color: Colors.grey)
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        final Uri url = Uri.parse(
+                            'https://sahilpotdukhe.github.io/Portfolio-website/');
+                        try {
+                          await launchUrl(url);
+                        } catch (e) {
+                          print(e.toString());
+                        }
+                      },
+                      child: Card(
+                        elevation: 10,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(18, 10, 18, 10),
+                          child: Row(
+                            children: [
+                              Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: UniversalVariables.bgColor,
+                                  ),
+                                  height: 46,
+                                  width: 46,
+                                  child: Center(child: Icon(Icons.code))),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                'About Developer',
+                                style: TextStyle(
+                                    fontSize: 17 * ScaleUtils.scaleFactor,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              Spacer(),
+                              Icon(Icons.arrow_forward_ios_sharp,
+                                  color: Colors.grey)
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(
                   height: 30,
@@ -389,7 +411,8 @@ class _MenuPageState extends State<MenuPage>
                     onTap: () {
                       authMethods.logOut(context);
                       // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {return NewLoginScreen();}));
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Account Logging Out....")));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Account Logging Out....")));
                     },
                     child: Container(
                       decoration: BoxDecoration(
