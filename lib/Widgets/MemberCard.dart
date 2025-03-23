@@ -50,26 +50,30 @@ class _MemberCardState extends State<MemberCard> {
                   SizedBox(
                     width: 10 * ScaleUtils.horizontalScale,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.member.name,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 16 * ScaleUtils.scaleFactor,
-                            fontWeight: FontWeight.w700),
-                      ),
-                      Text(
-                        planName,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 13 * ScaleUtils.scaleFactor,
-                            color: HexColor('#6B7280')),
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.member.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 16 * ScaleUtils.scaleFactor,
+                              fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          planName,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 13 * ScaleUtils.scaleFactor,
+                              color: HexColor('#6B7280')),
+                        ),
+                      ],
+                    ),
                   ),
-                  Spacer(),
+                  SizedBox(
+                    width: 10,
+                  ),
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
