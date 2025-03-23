@@ -650,12 +650,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     items: plans
                         .map((plan) => DropdownMenuItem(
                               value: plan.id,
-                              child: Container(
-                                width: 40, // Adjust width
-                                height: 40, // Adjust height
-                                alignment: Alignment.centerLeft,
-                                child: Text(plan.name),
-                              ),
+                              child:
+                                  Text('${plan.name} (${plan.months} months)'),
                             ))
                         .toList(),
                     validator: (value) {
