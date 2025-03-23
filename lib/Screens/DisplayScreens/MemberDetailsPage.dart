@@ -62,78 +62,87 @@ class MemberDetailsPage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    InkWell(
-                      onTap: () {
-                        String message =
-                            "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}.  We invite you to renew your membership to continue enjoying our gym facilities.\n Best Regards,\n Arjuna Fitness Gym";
-                        sendSMS(member.mobileNumber, message);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                              20 * ScaleUtils.scaleFactor),
-                          color: HexColor("3957ED"),
-                        ),
-                        child: Padding(
-                          padding:
-                              EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
-                          child: Row(
-                            children: [
-                              Text(
-                                "Message",
-                                style: TextStyle(
-                                    fontSize: 16 * ScaleUtils.scaleFactor,
-                                    color: Colors.white),
-                              ),
-                              SizedBox(
-                                width: 8 * ScaleUtils.horizontalScale,
-                              ),
-                              Icon(
-                                Icons.message,
-                                color: Colors.white,
-                              )
-                            ],
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          String message =
+                              "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}.  We invite you to renew your membership to continue enjoying our gym facilities.\n Best Regards,\n Arjuna Fitness Gym";
+                          sendSMS(member.mobileNumber, message);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                                14 * ScaleUtils.scaleFactor),
+                            color: HexColor("3957ED"),
+                          ),
+                          child: Padding(
+                            padding:
+                                EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.message,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(
+                                  width: 8 * ScaleUtils.horizontalScale,
+                                ),
+                                Text(
+                                  "Message",
+                                  style: TextStyle(
+                                      fontSize: 16 * ScaleUtils.scaleFactor,
+                                      color: Colors.white),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                    InkWell(
-                      onTap: () async {
-                        final Uri callUrl = Uri(
-                          scheme: 'tel',
-                          path: '${member.mobileNumber}',
-                        );
-                        try {
-                          await launchUrl(callUrl);
-                        } catch (e) {
-                          print(e.toString());
-                        }
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                              20 * ScaleUtils.scaleFactor),
-                          color: HexColor("3957ED"),
-                        ),
-                        child: Padding(
-                          padding:
-                              EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
-                          child: Row(
-                            children: [
-                              Text(
-                                "Call",
-                                style: TextStyle(
-                                    fontSize: 16 * ScaleUtils.scaleFactor,
-                                    color: Colors.white),
-                              ),
-                              SizedBox(
-                                width: 8 * ScaleUtils.horizontalScale,
-                              ),
-                              Icon(
-                                Icons.call,
-                                color: Colors.white,
-                              )
-                            ],
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () async {
+                          final Uri callUrl = Uri(
+                            scheme: 'tel',
+                            path: member.mobileNumber,
+                          );
+                          try {
+                            await launchUrl(callUrl);
+                          } catch (e) {
+                            print(e.toString());
+                          }
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                                14 * ScaleUtils.scaleFactor),
+                            color: HexColor("3957ED"),
+                          ),
+                          child: Padding(
+                            padding:
+                                EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.call,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(
+                                  width: 8 * ScaleUtils.horizontalScale,
+                                ),
+                                Text(
+                                  "Call",
+                                  style: TextStyle(
+                                      fontSize: 16 * ScaleUtils.scaleFactor,
+                                      color: Colors.white),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -145,186 +154,214 @@ class MemberDetailsPage extends StatelessWidget {
                 height: 10 * ScaleUtils.verticalScale,
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Card(
-                  elevation: 10,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius:
-                            BorderRadius.circular(30 * ScaleUtils.scaleFactor),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 5,
-                            blurRadius: 7,
-                            offset: Offset(0, 3), // changes position of shadow
-                          ),
-                        ]),
-                    child: Padding(
-                      padding: EdgeInsets.all(18.0 * ScaleUtils.scaleFactor),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Name",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.name,
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Mobile Number",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.mobileNumber,
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Height",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.height.toString(),
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Weight",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.weight.toString(),
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Address",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.address,
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Gender",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.gender,
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Date of Birth",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            '${DateFormat('dd-MM-yyyy').format(member.dateOfBirth)}',
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Date of Admission",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            '${DateFormat('dd-MM-yyyy').format(member.dateOfAdmission)}',
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Renewal Date",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            '${DateFormat('dd-MM-yyyy').format(member.renewalDate)}',
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Check In Time",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.checkInTime.toString(),
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "CheckOutTime",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.checkOutTime.toString(),
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                          Divider(),
-                          Text(
-                            "Member Id",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18 * ScaleUtils.scaleFactor),
-                          ),
-                          Text(
-                            member.id,
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor),
-                          ),
-                        ],
-                      ),
+                padding: const EdgeInsets.all(4.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        BorderRadius.circular(30 * ScaleUtils.scaleFactor),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(18.0 * ScaleUtils.scaleFactor),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Full Name",
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16 * ScaleUtils.scaleFactor),
+                        ),
+                        Text(
+                          member.name,
+                          style:
+                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
+                        ),
+                        Divider(),
+                        Text(
+                          "Mobile Number",
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16 * ScaleUtils.scaleFactor),
+                        ),
+                        Text(
+                          member.mobileNumber,
+                          style:
+                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
+                        ),
+                        Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Height",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16 * ScaleUtils.scaleFactor),
+                                  ),
+                                  Text(
+                                    member.height.toString(),
+                                    style: TextStyle(
+                                        fontSize: 15 * ScaleUtils.scaleFactor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Weight",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16 * ScaleUtils.scaleFactor),
+                                  ),
+                                  Text(
+                                    member.weight.toString(),
+                                    style: TextStyle(
+                                        fontSize: 15 * ScaleUtils.scaleFactor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(),
+                        Text(
+                          "Address",
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16 * ScaleUtils.scaleFactor),
+                        ),
+                        Text(
+                          member.address,
+                          style:
+                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
+                        ),
+                        Divider(),
+                        Text(
+                          "Gender",
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16 * ScaleUtils.scaleFactor),
+                        ),
+                        Text(
+                          member.gender,
+                          style:
+                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
+                        ),
+                        Divider(),
+                        Text(
+                          "Date of Birth",
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16 * ScaleUtils.scaleFactor),
+                        ),
+                        Text(
+                          DateFormat('d MMM, yyyy').format(member.dateOfBirth),
+                          style:
+                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
+                        ),
+                        Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Admission Date",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16 * ScaleUtils.scaleFactor),
+                                  ),
+                                  Text(
+                                    DateFormat('d MMM, yyyy')
+                                        .format(member.dateOfAdmission),
+                                    style: TextStyle(
+                                        fontSize: 15 * ScaleUtils.scaleFactor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Divider(),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Renewal Date",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16 * ScaleUtils.scaleFactor),
+                                  ),
+                                  Text(
+                                    DateFormat('d MMM, yyyy')
+                                        .format(member.renewalDate),
+                                    style: TextStyle(
+                                        fontSize: 15 * ScaleUtils.scaleFactor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Check In Time",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16 * ScaleUtils.scaleFactor),
+                                  ),
+                                  Text(
+                                    member.checkInTime.toString(),
+                                    style: TextStyle(
+                                        fontSize: 15 * ScaleUtils.scaleFactor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Divider(),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "CheckOutTime",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16 * ScaleUtils.scaleFactor),
+                                  ),
+                                  Text(
+                                    member.checkOutTime.toString(),
+                                    style: TextStyle(
+                                        fontSize: 15 * ScaleUtils.scaleFactor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
               SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('Back'),
-                ),
-              ),
             ],
           ),
         ),
