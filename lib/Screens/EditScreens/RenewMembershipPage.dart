@@ -1,6 +1,6 @@
-import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class RenewMembershipPage extends StatefulWidget {
   final MemberModel member;
@@ -222,13 +222,13 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 Column(
                   children: [
                     SizedBox(height: 10),
-                    CachedImage(
-                        imageUrl: userModel!.qrImageUrl,
-                        isRound: false,
-                        radius: 0,
-                        height: 350,
-                        width: 350,
-                        fit: BoxFit.cover),
+                    Center(
+                      child: QrImageView(
+                        data:
+                            'upi://pay?pa=sahilpotdukhe@ibl&pn=Sahil Potdukhe&mc=0000&cu=INR&am=$_selectedPlanFee',
+                        size: 280,
+                      ),
+                    ),
                     SizedBox(height: 10),
                     Text('Scan the QR code to pay online'),
                   ],
