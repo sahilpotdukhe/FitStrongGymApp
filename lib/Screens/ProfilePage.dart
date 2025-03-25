@@ -209,6 +209,50 @@ class _ProfilePageState extends State<ProfilePage> {
                                     style: TextStyle(
                                         fontSize: 15 * ScaleUtils.scaleFactor),
                                   ),
+                                  (userModel.merchantName == '')
+                                      ? Container()
+                                      : Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Divider(),
+                                            Text(
+                                              "Merchant Name(Payment)",
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 16 *
+                                                      ScaleUtils.scaleFactor),
+                                            ),
+                                            Text(
+                                              userModel.merchantName,
+                                              style: TextStyle(
+                                                  fontSize: 15 *
+                                                      ScaleUtils.scaleFactor),
+                                            ),
+                                          ],
+                                        ),
+                                  (userModel.upiId == '')
+                                      ? Container()
+                                      : Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Divider(),
+                                            Text(
+                                              "UPI Id",
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 16 *
+                                                      ScaleUtils.scaleFactor),
+                                            ),
+                                            Text(
+                                              userModel.upiId,
+                                              style: TextStyle(
+                                                  fontSize: 15 *
+                                                      ScaleUtils.scaleFactor),
+                                            ),
+                                          ],
+                                        ),
                                   (userModel.phoneNumber == '')
                                       ? Container()
                                       : Column(

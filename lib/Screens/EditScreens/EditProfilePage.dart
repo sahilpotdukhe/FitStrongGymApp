@@ -13,6 +13,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
+  late TextEditingController _merchantNameController;
+  late TextEditingController _merchantUpiIdController;
 
   File? _imageFile;
   File? _qrImageFile;
@@ -25,6 +27,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _phoneController =
         TextEditingController(text: widget.userModel.phoneNumber);
     _addressController = TextEditingController(text: widget.userModel.address);
+    _merchantNameController =
+        TextEditingController(text: widget.userModel.merchantName);
+    _merchantUpiIdController =
+        TextEditingController(text: widget.userModel.upiId);
   }
 
   Future<void> _pickImage() async {
@@ -88,7 +94,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
           profilePhoto: profilePhotoUrl,
           qrImageUrl: qrImageUrl,
           address: _addressController.text,
-          signature: widget.userModel.signature);
+          signature: widget.userModel.signature,
+          merchantName: _merchantNameController.text,
+          upiId: _merchantUpiIdController.text);
 
       await AuthMethods().updateUser(updatedUser);
 
@@ -126,116 +134,56 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Stack(children: [
-                            Center(
-                              child: GestureDetector(
-                                onTap: _pickImage,
-                                child: CircleAvatar(
-                                  backgroundColor: Colors.grey,
-                                  radius: 60 * ScaleUtils.scaleFactor,
-                                  child: CircleAvatar(
-                                    radius: 54 * ScaleUtils.scaleFactor,
-                                    backgroundImage:
-                                        AssetImage('assets/user.jpg'),
-                                    foregroundImage: _imageFile != null
-                                        ? FileImage(_imageFile!)
-                                        : NetworkImage(
-                                                widget.userModel.profilePhoto)
-                                            as ImageProvider,
-                                  ),
-                                ),
+                      Stack(children: [
+                        Center(
+                          child: GestureDetector(
+                            onTap: _pickImage,
+                            child: CircleAvatar(
+                              backgroundColor: Colors.grey,
+                              radius: 60 * ScaleUtils.scaleFactor,
+                              child: CircleAvatar(
+                                radius: 54 * ScaleUtils.scaleFactor,
+                                backgroundImage: AssetImage('assets/user.jpg'),
+                                foregroundImage: _imageFile != null
+                                    ? FileImage(_imageFile!)
+                                    : NetworkImage(
+                                            widget.userModel.profilePhoto)
+                                        as ImageProvider,
                               ),
                             ),
-                            Center(
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    height: 84 * ScaleUtils.verticalScale,
-                                  ),
-                                  InkWell(
-                                    onTap: _pickImage,
-                                    child: Container(
-                                      margin: EdgeInsets.only(
-                                          right: 6 * ScaleUtils.horizontalScale,
-                                          top: 8 * ScaleUtils.verticalScale),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: HexColor("3B82F6"),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(
-                                            8.0 * ScaleUtils.scaleFactor),
-                                        child: Icon(
-                                          Icons.camera_alt,
-                                          size: 26 * ScaleUtils.scaleFactor,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ]),
-                          SizedBox(
-                            width: 25,
                           ),
-                          Stack(children: [
-                            Center(
-                              child: GestureDetector(
-                                onTap: _pickQrImage,
-                                child: CircleAvatar(
-                                  backgroundColor: Colors.grey,
-                                  radius: 60 * ScaleUtils.scaleFactor,
-                                  child: CircleAvatar(
-                                    radius: 54 * ScaleUtils.scaleFactor,
-                                    backgroundImage:
-                                        AssetImage('assets/user.jpg'),
-                                    foregroundImage: _qrImageFile != null
-                                        ? FileImage(_qrImageFile!)
-                                        : NetworkImage(
-                                                widget.userModel.qrImageUrl)
-                                            as ImageProvider,
+                        ),
+                        Center(
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 84 * ScaleUtils.verticalScale,
+                              ),
+                              InkWell(
+                                onTap: _pickImage,
+                                child: Container(
+                                  margin: EdgeInsets.only(
+                                      right: 6 * ScaleUtils.horizontalScale,
+                                      top: 8 * ScaleUtils.verticalScale),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: HexColor("3B82F6"),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(
+                                        8.0 * ScaleUtils.scaleFactor),
+                                    child: Icon(
+                                      Icons.camera_alt,
+                                      size: 26 * ScaleUtils.scaleFactor,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            Center(
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    height: 84 * ScaleUtils.verticalScale,
-                                  ),
-                                  InkWell(
-                                    onTap: _pickQrImage,
-                                    child: Container(
-                                      margin: EdgeInsets.only(
-                                          right: 6 * ScaleUtils.horizontalScale,
-                                          top: 8 * ScaleUtils.verticalScale),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: HexColor("3B82F6"),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(
-                                            8.0 * ScaleUtils.scaleFactor),
-                                        child: Icon(
-                                          Icons.camera_alt,
-                                          size: 26 * ScaleUtils.scaleFactor,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ]),
-                        ],
-                      ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ]),
                       SizedBox(height: 16),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -336,6 +284,78 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter an address';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Merchant Name(for Payment)',
+                          style: TextStyle(fontSize: 16),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _merchantNameController,
+                        decoration: InputDecoration(
+                          hintText: 'Merchant Name',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(
+                            Icons.person_pin_rounded,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                  color: HexColor('E5E7EB'), width: 2)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                BorderSide(color: HexColor('E5E7EB'), width: 2),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter Merchant\'s name';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'UPI Id',
+                          style: TextStyle(fontSize: 16),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _merchantUpiIdController,
+                        decoration: InputDecoration(
+                          hintText: 'Update UPI Id',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(
+                            Icons.payment,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                  color: HexColor('E5E7EB'), width: 2)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide:
+                                BorderSide(color: HexColor('E5E7EB'), width: 2),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter Upi Id';
                           }
                           return null;
                         },

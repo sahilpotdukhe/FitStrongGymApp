@@ -7,6 +7,8 @@ class UserModel {
   String qrImageUrl;
   String address;
   String signature;
+  String merchantName;
+  String upiId;
 
   UserModel(
       {required this.uid,
@@ -16,7 +18,9 @@ class UserModel {
       required this.phoneNumber,
       required this.qrImageUrl,
       required this.address,
-      required this.signature});
+      required this.signature,
+      required this.merchantName,
+      required this.upiId});
 
   /// Convert object to Map for Firestore or local storage
   Map<String, dynamic> toMap() {
@@ -28,7 +32,9 @@ class UserModel {
       'phone_Number': phoneNumber,
       'qrImageUrl': qrImageUrl,
       'address': address,
-      'signature': signature
+      'signature': signature,
+      'merchantName': merchantName,
+      'upiId': upiId
     };
   }
 
@@ -42,6 +48,8 @@ class UserModel {
         phoneNumber: mapData['phone_Number'],
         qrImageUrl: mapData['qrImageUrl'] ?? '',
         address: mapData['address'] ?? '',
-        signature: mapData['signature'] ?? '');
+        signature: mapData['signature'] ?? '',
+        merchantName: mapData['merchantName'] ?? '',
+        upiId: mapData['upiId'] ?? '');
   }
 }
