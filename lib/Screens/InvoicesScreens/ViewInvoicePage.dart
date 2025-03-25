@@ -40,50 +40,48 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: () async{
+              onPressed: () async {
                 final date = DateTime.now();
                 final dueDate = DateTime.now();
                 final invoice = Invoice(
                     owner: Owner(
-                        name:userModel!.name,
+                        name: userModel!.name,
                         address: userModel.address,
-                        mobileNumber: userModel.phoneNumber
-                    ),
+                        mobileNumber: userModel.phoneNumber),
                     customer: Customer(
                         name: widget.member.name,
                         address: widget.member.address,
-                        mobileNumber : widget.member.mobileNumber,
+                        mobileNumber: widget.member.mobileNumber,
                         dateOfAdmission: widget.member.dateOfAdmission,
                         expiryDate: widget.member.expiryDate,
-                        gender: widget.member.gender
-                    ),
+                        gender: widget.member.gender),
                     info: InvoiceInfo(
                         todayDate: date,
                         invoiceDate: dueDate,
-                        invoiceNumber:'${DateTime.now()}',
-                        transactionType: 'Cash'
-
-                    ),
-                    items:[
+                        invoiceNumber: '${DateTime.now()}',
+                        transactionType: 'Cash'),
+                    items: [
                       InvoiceItem(
                           description: plan?.name ?? 'Unknown Plan',
                           fees: '${plan!.fee}',
                           applied: 1,
                           total: '${plan.fee}',
-                          months:'${plan.months}'
-                      ),
-                    ]
-                );
-                final pdfFile = await PdfInvoiceApi.generate(invoice,userModel);
+                          months: '${plan.months}'),
+                    ]);
+                final pdfFile =
+                    await PdfInvoiceApi.generate(invoice, userModel);
+                print('Opening file: ${pdfFile.path}');
                 PdfApi.openFile(pdfFile);
               },
               child: Text('Generate Invoice'),
             ),
-            SizedBox(height: 30,),
+            SizedBox(
+              height: 30,
+            ),
             ElevatedButton(
-              onPressed: (){
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+              onPressed: () {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/home', (Route<dynamic> route) => false);
               },
               child: Text('Back to Homepage'),
             ),

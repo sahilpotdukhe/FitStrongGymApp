@@ -1,65 +1,78 @@
 import 'dart:io';
+
 import 'package:fitstrong_gym/Models/InvoiceModel.dart';
 import 'package:fitstrong_gym/Models/UserModel.dart';
 import 'package:fitstrong_gym/Resources/PdfApi.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
-import 'package:http/http.dart' as http;
 
 class PdfInvoiceApi {
-  static Future<File> generate(Invoice invoice,UserModel userModel) async {
+  static Future<File> generate(Invoice invoice, UserModel userModel) async {
     final pdf = Document();
+    final fontData = await rootBundle.load('assets/Roboto-Regular.ttf');
+    final ttf = Font.ttf(fontData);
 
     // Load images from the network
     final image1 = await _loadImageFromNetwork(userModel.profilePhoto);
-    final image2 = await _loadImageFromNetwork('https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/invoiceimage.png?alt=media&token=f01ad79e-1759-4887-b09a-1f7e513e57ac');
+    final image2 = await _loadImageFromNetwork(
+        'https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/invoiceimage.png?alt=media&token=f01ad79e-1759-4887-b09a-1f7e513e57ac');
     final image3 = await _loadImageFromNetwork(userModel.signature);
 
     pdf.addPage(MultiPage(
+        theme: ThemeData.withFont(
+          base: ttf,
+          bold: ttf,
+        ),
         build: (context) => [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-            Container(child: image1, height: 200, width: 300),
-            Container(child: image2, height: 200, width: 200),
-          ]),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(
-              'Address: ',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            Text(invoice.owner.address, style: TextStyle(fontSize: 16))
-          ]),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(
-              'Mobile Number: ',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            Text(invoice.owner.mobileNumber, style: TextStyle(fontSize: 16))
-          ]),
-          Divider(),
-          Center(
-              child: Text('Invoice',
-                  style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: PdfColors.red))),
-          SizedBox(height: 5),
-          buildInvoiceDetails(invoice),
-          Divider(),
-          buildTitle(invoice),
-          SizedBox(height: 0.6 * PdfPageFormat.cm),
-          buildTable(invoice),
-          Divider(),
-          buildTotal(invoice),
-          Spacer(),
-          buildSignature(invoice, image3),
-          Divider(),
-          buildFooter(),
-        ]));
-    return PdfApi.saveDocument(name: '${invoice.customer.name} ${DateFormat('dd-MM-yyyy').format(invoice.customer.dateOfAdmission)}.pdf', pdf: pdf);
+              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+                Container(child: image1, height: 200, width: 300),
+                Container(child: image2, height: 200, width: 200),
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(
+                  'Address: ',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Text(invoice.owner.address, style: TextStyle(fontSize: 16))
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(
+                  'Mobile Number: ',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Text(invoice.owner.mobileNumber, style: TextStyle(fontSize: 16))
+              ]),
+              Divider(),
+              Center(
+                  child: Text('Invoice',
+                      style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: PdfColors.red))),
+              SizedBox(height: 5),
+              buildInvoiceDetails(invoice),
+              Divider(),
+              buildTitle(invoice),
+              SizedBox(height: 0.6 * PdfPageFormat.cm),
+              buildTable(invoice),
+              Divider(),
+              buildTotal(invoice),
+              Spacer(),
+              buildSignature(invoice, image3),
+              Divider(),
+              buildFooter(),
+            ]));
+    final file = await PdfApi.saveDocument(
+      name:
+          '${invoice.customer.name} ${DateFormat('d MMM, yyyy').format(invoice.customer.dateOfAdmission)}.pdf',
+      pdf: pdf,
+    );
+
+    print('PDF generated at: ${file.path}');
+    return file;
   }
 
   static Future<Image> _loadImageFromNetwork(String url) async {
@@ -78,25 +91,31 @@ class PdfInvoiceApi {
         Row(children: [
           Text(
             'Name: ',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          Text(invoice.customer.name, style: TextStyle(fontSize: 15))
+          Text(
+            invoice.customer.name,
+          )
         ]),
         Row(children: [
           Text(
             'Mobile Number: ',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Text(invoice.customer.mobileNumber, style: TextStyle(fontSize: 15))
+          Text(invoice.customer.mobileNumber)
         ]),
         Row(children: [
           Text(
-            'Admission/Renewal Date: ',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            'Admission Date: ',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Text(
-              '${DateFormat('dd-MM-yyyy').format(invoice.customer.dateOfAdmission)}',
-              style: TextStyle(fontSize: 15))
+            DateFormat('d MMM, yyyy').format(invoice.customer.dateOfAdmission),
+          )
         ]),
       ]),
       Spacer(),
@@ -104,25 +123,35 @@ class PdfInvoiceApi {
         Row(children: [
           Text(
             'Gender: ',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Text(invoice.customer.gender, style: TextStyle(fontSize: 15))
+          Text(
+            invoice.customer.gender,
+          )
         ]),
         Row(children: [
           Text(
             'Address: ',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Text(invoice.customer.address, style: TextStyle(fontSize: 15))
+          Text(
+            invoice.customer.address,
+          )
         ]),
         Row(children: [
           Text(
             'Expiry Date: ',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Text(
-              '${DateFormat('dd-MM-yyyy').format(invoice.customer.expiryDate)}',
-              style: TextStyle(fontSize: 15))
+            DateFormat('d MMM, yyyy').format(invoice.customer.expiryDate),
+          )
         ]),
       ])
     ]);
@@ -199,17 +228,17 @@ class PdfInvoiceApi {
   static Widget buildFooter() {
     return Container(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold)),
-          Text('1. Amount Paid is non-refundable '),
-          Text(
-              '2. Memberships are non-transferable and cannot be assigned to friends or family members.')
-        ]));
+      Text('Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold)),
+      Text('1. Amount Paid is non-refundable '),
+      Text(
+          '2. Memberships are non-transferable and cannot be assigned to others.')
+    ]));
   }
 
   static Widget buildSignature(
-      Invoice invoice,
-      Image image3,
-      ) {
+    Invoice invoice,
+    Image image3,
+  ) {
     return Row(children: [
       Spacer(flex: 6),
       Column(children: [
@@ -238,7 +267,7 @@ class PdfInvoiceApi {
             'Invoice date: ',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          Text('${DateFormat('dd-MM-yyyy').format(invoice.info.invoiceDate)}')
+          Text(DateFormat('d MMM, yyyy').format(invoice.info.invoiceDate))
         ]),
       ]),
       Spacer(),
@@ -255,7 +284,7 @@ class PdfInvoiceApi {
             'Today date: ',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          Text('${DateFormat('dd-MM-yyyy').format(invoice.info.todayDate)}')
+          Text(DateFormat('d MMM, yyyy').format(invoice.info.todayDate))
         ]),
       ]),
     ]);
