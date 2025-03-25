@@ -66,32 +66,49 @@ class _AddMemberPageState extends State<AddMemberPage> {
           actions: [
             IconButton(
                 onPressed: () async {
-                  CollectionReference users =
-                      FirebaseFirestore.instance.collection('Users');
+                  User? currentUser = FirebaseAuth.instance.currentUser;
+                  if (currentUser != null) {
+                    CollectionReference membersCollection = FirebaseFirestore
+                        .instance
+                        .collection('Users')
+                        .doc(currentUser.uid)
+                        .collection('members');
 
-                  // Fetch all users
-                  QuerySnapshot usersSnapshot = await users.get();
+                    QuerySnapshot querySnapshot = await membersCollection.get();
 
-                  // Iterate through each user
-                  for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
-                    // Reference to the user's members subcollection
-                    CollectionReference gymplans =
-                        users.doc(userDoc.id).collection('gymPlans');
-
-                    // Fetch all documents from the user's members subcollection
-                    QuerySnapshot membersSnapshot = await gymplans.get();
-
-                    // Iterate through each document in the members subcollection and update it
-                    for (QueryDocumentSnapshot memberDoc
-                        in membersSnapshot.docs) {
-                      await gymplans
-                          .doc(memberDoc.id)
-                          .update({'days': 0}).catchError((error) {
-                        print(
-                            "Failed to update document ${memberDoc.id} for user ${userDoc.id}: $error");
+                    for (var doc in querySnapshot.docs) {
+                      await membersCollection.doc(doc.id).update({
+                        'renewalDate': doc[
+                            'expiryDate'], // Setting renewalDate same as expiryDate
                       });
                     }
                   }
+                  // CollectionReference users =
+                  //     FirebaseFirestore.instance.collection('Users');
+                  //
+                  // // Fetch all users
+                  // QuerySnapshot usersSnapshot = await users.get();
+                  //
+                  // // Iterate through each user
+                  // for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
+                  //   // Reference to the user's members subcollection
+                  //   CollectionReference gymplans =
+                  //       users.doc(userDoc.id).collection('gymPlans');
+                  //
+                  //   // Fetch all documents from the user's members subcollection
+                  //   QuerySnapshot membersSnapshot = await gymplans.get();
+                  //
+                  //   // Iterate through each document in the members subcollection and update it
+                  //   for (QueryDocumentSnapshot memberDoc
+                  //       in membersSnapshot.docs) {
+                  //     await gymplans
+                  //         .doc(memberDoc.id)
+                  //         .update({'days': 0}).catchError((error) {
+                  //       print(
+                  //           "Failed to update document ${memberDoc.id} for user ${userDoc.id}: $error");
+                  //     });
+                  //   }
+                  // }
                 },
                 icon: Icon(Icons.notifications))
           ],
@@ -650,8 +667,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     items: plans
                         .map((plan) => DropdownMenuItem(
                               value: plan.id,
-                              child:
-                                  Text('${plan.name} (${plan.months} months)'),
+                              child: Text(
+                                  '${plan.name} (${plan.months} months ${(plan.days != 0 ? plan.days : '')} ${(plan.days != 0 ? 'days' : '')})'),
                             ))
                         .toList(),
                     validator: (value) {

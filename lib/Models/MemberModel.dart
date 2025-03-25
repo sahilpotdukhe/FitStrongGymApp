@@ -17,68 +17,73 @@ class MemberModel {
   final String checkInTime; // Changed to String
   final String checkOutTime; // Changed to String
 
-  MemberModel({
-    required this.id,
-    required this.name,
-    required this.mobileNumber,
-    required this.dateOfBirth,
-    required this.height,
-    required this.weight,
-    required this.photoUrl,
-    required this.planId,
-    required this.dateOfAdmission,
-    required this.renewalDate,
-    required this.expiryDate, // Add this field
-    required this.address,
-    required this.gender,
-    required this.checkInTime,
-    required this.checkOutTime
-  });
+  MemberModel(
+      {required this.id,
+      required this.name,
+      required this.mobileNumber,
+      required this.dateOfBirth,
+      required this.height,
+      required this.weight,
+      required this.photoUrl,
+      required this.planId,
+      required this.dateOfAdmission,
+      required this.renewalDate,
+      required this.expiryDate, // Add this field
+      required this.address,
+      required this.gender,
+      required this.checkInTime,
+      required this.checkOutTime});
 
   MemberModel copyWith({String? id}) {
     return MemberModel(
-      id: id ?? this.id,
-      name: name,
-      mobileNumber: mobileNumber,
-      dateOfBirth: dateOfBirth,
-      height: height,
-      weight: weight,
-      photoUrl: photoUrl,
-      planId: planId,
-      dateOfAdmission: dateOfAdmission,
-      renewalDate: renewalDate,
-      expiryDate: expiryDate,
-      // Add this field
-      address: address,
-      gender: gender,
-      checkInTime: checkInTime,
-      checkOutTime: checkOutTime
-    );
+        id: id ?? this.id,
+        name: name,
+        mobileNumber: mobileNumber,
+        dateOfBirth: dateOfBirth,
+        height: height,
+        weight: weight,
+        photoUrl: photoUrl,
+        planId: planId,
+        dateOfAdmission: dateOfAdmission,
+        renewalDate: renewalDate,
+        expiryDate: expiryDate,
+        // Add this field
+        address: address,
+        gender: gender,
+        checkInTime: checkInTime,
+        checkOutTime: checkOutTime);
   }
 
   bool isExpired(List<GymPlanModel> plans) {
     return DateTime.now().isAfter(expiryDate);
   }
 
-  MemberModel renewMembership(GymPlanModel newPlan, DateTime newDateOfAdmission) {
+  MemberModel renewMembership(
+      GymPlanModel newPlan, DateTime newDateOfAdmission) {
     return MemberModel(
-      id: id,
-      name: name,
-      mobileNumber: mobileNumber,
-      dateOfBirth: dateOfBirth,
-      height: height,
-      weight: weight,
-      photoUrl: photoUrl,
-      planId: newPlan.id,
-      dateOfAdmission: dateOfAdmission,
-      renewalDate: newDateOfAdmission,
-      expiryDate: DateTime(newDateOfAdmission.year,
-          newDateOfAdmission.month + newPlan.months, newDateOfAdmission.day).add(Duration(days: newPlan.days)),
-      address: address,
-      gender: gender,
-      checkInTime: checkInTime,
-      checkOutTime: checkOutTime
-    );
+        id: id,
+        name: name,
+        mobileNumber: mobileNumber,
+        dateOfBirth: dateOfBirth,
+        height: height,
+        weight: weight,
+        photoUrl: photoUrl,
+        planId: newPlan.id,
+        dateOfAdmission: dateOfAdmission,
+        renewalDate: DateTime(
+                newDateOfAdmission.year,
+                newDateOfAdmission.month + newPlan.months,
+                newDateOfAdmission.day)
+            .add(Duration(days: newPlan.days)),
+        expiryDate: DateTime(
+                newDateOfAdmission.year,
+                newDateOfAdmission.month + newPlan.months,
+                newDateOfAdmission.day)
+            .add(Duration(days: newPlan.days)),
+        address: address,
+        gender: gender,
+        checkInTime: checkInTime,
+        checkOutTime: checkOutTime);
   }
 
   Map<String, dynamic> toMap() {
@@ -96,8 +101,8 @@ class MemberModel {
       'expiryDate': expiryDate,
       'address': address,
       'gender': gender,
-      'checkInTime' : checkInTime,
-      'checkOutTime' : checkOutTime,
+      'checkInTime': checkInTime,
+      'checkOutTime': checkOutTime,
     };
   }
 
