@@ -1,9 +1,11 @@
 import 'dart:io';
+
 // import 'package:open_file_plus/open_file_plus.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart';
 
-class PdfApi{
+class PdfApi {
   static Future<File> saveDocument({
     required String name,
     required Document pdf,
@@ -17,10 +19,9 @@ class PdfApi{
 
     return file;
   }
-  static Future openFile(File file) async{
-    final url = file.path;
 
-    // await OpenFile.open(url);
+  static Future<void> openFile(File file) async {
+    final result = await OpenFilex.open(file.path);
+    print('OpenFilex result: ${result.message}');
   }
 }
-
