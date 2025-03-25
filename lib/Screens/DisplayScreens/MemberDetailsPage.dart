@@ -12,6 +12,8 @@ class MemberDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    UserProvider userProvider = Provider.of<UserProvider>(context);
+    UserModel? userModel = userProvider.getUser;
     ScaleUtils.init(context);
     return Scaffold(
       appBar: AppBar(
@@ -67,7 +69,8 @@ class MemberDetailsPage extends StatelessWidget {
                         onTap: () {
                           String message =
                               "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}.  We invite you to renew your membership to continue enjoying our gym facilities.\n Best Regards,\n Arjuna Fitness Gym";
-                          sendSMS(member.mobileNumber, message);
+                          sendSMS(
+                              member.mobileNumber, message, userModel!.name);
                         },
                         child: Container(
                           decoration: BoxDecoration(
@@ -105,16 +108,9 @@ class MemberDetailsPage extends StatelessWidget {
                     ),
                     Expanded(
                       child: InkWell(
-                        onTap: () async {
-                          final Uri callUrl = Uri(
-                            scheme: 'tel',
-                            path: member.mobileNumber,
-                          );
-                          try {
-                            await launchUrl(callUrl);
-                          } catch (e) {
-                            print(e.toString());
-                          }
+                        onTap: () {
+                          openWhatsapp(
+                              context, member.mobileNumber, userModel!.name);
                         },
                         child: Container(
                           decoration: BoxDecoration(
@@ -129,14 +125,14 @@ class MemberDetailsPage extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.call,
+                                  FontAwesomeIcons.whatsapp,
                                   color: Colors.white,
                                 ),
                                 SizedBox(
                                   width: 8 * ScaleUtils.horizontalScale,
                                 ),
                                 Text(
-                                  "Call",
+                                  "WhatsApp",
                                   style: TextStyle(
                                       fontSize: 16 * ScaleUtils.scaleFactor,
                                       color: Colors.white),
@@ -148,6 +144,52 @@ class MemberDetailsPage extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+              InkWell(
+                onTap: () async {
+                  final Uri callUrl = Uri(
+                    scheme: 'tel',
+                    path: member.mobileNumber,
+                  );
+                  try {
+                    await launchUrl(callUrl);
+                  } catch (e) {
+                    print(e.toString());
+                  }
+                },
+                child: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.circular(14 * ScaleUtils.scaleFactor),
+                      color: HexColor("3957ED"),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 12.0 * ScaleUtils.scaleFactor,
+                          horizontal: 18 * ScaleUtils.scaleFactor),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.call,
+                            color: Colors.white,
+                          ),
+                          SizedBox(
+                            width: 8 * ScaleUtils.horizontalScale,
+                          ),
+                          Text(
+                            "Call",
+                            style: TextStyle(
+                                fontSize: 16 * ScaleUtils.scaleFactor,
+                                color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
               SizedBox(
@@ -378,7 +420,52 @@ class MemberDetailsPage extends StatelessWidget {
   //   // });
   //   // print(_result);
   // }
-  Future<void> sendSMS(String phoneNumber, String message) async {
+
+  // void openWhatsApp(String phoneNumber, String gymName) async {
+  //   var message =
+  //       "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities.Thanks ${gymName}";
+  //   final Uri whatsappUri =
+  //       Uri.parse("https://wa.me/$phoneNumber?text=${Uri.encodeFull(message)}");
+  //
+  //   if (await canLaunchUrl(whatsappUri)) {
+  //     await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+  //   } else {
+  //     print("Could not open WhatsApp");
+  //   }
+  // }
+
+  void openWhatsapp(
+      BuildContext context, String phoneNumber, String gymName) async {
+    var whatsapp = phoneNumber; //+92xx enter like this
+    var message =
+        "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities.Thanks ${gymName}";
+    var whatsappURlAndroid =
+        "whatsapp://send?phone=" + whatsapp + "&text=$message";
+    var whatsappURLIos =
+        "https://wa.me/$whatsapp?text=${Uri.tryParse(message)}";
+    if (Platform.isIOS) {
+      // for iOS phone only
+      if (await canLaunchUrl(Uri.parse(whatsappURLIos))) {
+        await launchUrl(Uri.parse(
+          whatsappURLIos,
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Whatsapp not installed")));
+      }
+    } else {
+      // android , web
+      if (await canLaunchUrl(Uri.parse(whatsappURlAndroid))) {
+        await launchUrl(Uri.parse(whatsappURlAndroid));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Whatsapp not installed")));
+      }
+    }
+  }
+
+  Future<void> sendSMS(
+      String phoneNumber, String message, String gymName) async {
     // String encodedMessage = Uri.encodeComponent(message);
 
     print("Sending SMS to: $phoneNumber");
@@ -390,7 +477,7 @@ class MemberDetailsPage extends StatelessWidget {
       await _telephonySMS.sendSMS(
           phone: phoneNumber.toString(),
           message:
-              "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities.Thanks arjuna gym");
+              "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities.Thanks ${gymName}");
       print("SMS sent successfully to $phoneNumber");
     } catch (e) {
       print("SMS error: " + e.toString());
