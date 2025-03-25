@@ -98,7 +98,9 @@ class AuthMethods {
       String? authType,
       var qrImageUrl,
       var address,
-      var signature}) async {
+      var signature,
+      var merchantName,
+      var upiId}) async {
     await fireStore.collection("Users").doc(_auth.currentUser!.uid).set({
       "name": name,
       "email": email,
@@ -107,7 +109,9 @@ class AuthMethods {
       "phone_Number": mobilenumber,
       "qrImageUrl": qrImageUrl,
       "address": address,
-      "signature": signature
+      "signature": signature,
+      "merchantName": merchantName,
+      "upiId": upiId
     });
   }
 
@@ -118,7 +122,9 @@ class AuthMethods {
       'profile_photo': user.profilePhoto,
       'qrImageUrl': user.qrImageUrl,
       'address': user.address,
-      'signature': user.signature
+      'signature': user.signature,
+      'merchantName': user.merchantName,
+      'upiId': user.upiId,
     });
   }
 

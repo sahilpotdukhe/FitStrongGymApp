@@ -215,7 +215,7 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            'Height ',
+                            'Height (in feet)',
                             style: TextStyle(fontSize: 16),
                             textAlign: TextAlign.start,
                           ),
@@ -262,7 +262,7 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            'Weight ',
+                            'Weight (in Kg)',
                             style: TextStyle(fontSize: 16),
                             textAlign: TextAlign.start,
                           ),

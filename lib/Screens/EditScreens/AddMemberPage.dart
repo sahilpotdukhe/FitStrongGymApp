@@ -313,7 +313,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                'Height ',
+                                'Height (in feet)',
                                 style: TextStyle(fontSize: 16),
                                 textAlign: TextAlign.start,
                               ),
@@ -361,7 +361,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                'Weight',
+                                'Weight (in Kg)',
                                 style: TextStyle(fontSize: 16),
                                 textAlign: TextAlign.start,
                               ),
@@ -742,7 +742,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         Center(
                           child: QrImageView(
                             data:
-                                'upi://pay?pa=sahilpotdukhe@ibl&pn=Sahil Potdukhe&mc=0000&cu=INR&am=$_selectedPlanFee',
+                                'upi://pay?pa=${userModel?.upiId}&pn=${userModel?.merchantName}&mc=0000&cu=INR&am=$_selectedPlanFee',
                             size: 280,
                             embeddedImageStyle: QrEmbeddedImageStyle(
                               size: const Size(
