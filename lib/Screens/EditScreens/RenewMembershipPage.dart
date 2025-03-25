@@ -26,6 +26,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
   @override
   void initState() {
     super.initState();
+    print(widget.member.id);
+    print("Member expiry:" + widget.member.expiryDate.toString());
+    print("Member renewal:" + widget.member.renewalDate.toString());
     _renewalDateController = TextEditingController(
         text: DateFormat('dd-MM-yyyy').format(widget.member.renewalDate));
     _cashAmountController = TextEditingController();
@@ -151,9 +154,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 },
                 items: plans
                     .map((plan) => DropdownMenuItem(
-                          child: Text(plan.name),
-                          value:
-                              plan.id, // Using plan.id as the unique identifier
+                          value: plan.id,
+                          child: Text(
+                              '${plan.name} (${plan.months} months ${(plan.days != 0 ? plan.days : '')} ${(plan.days != 0 ? 'days' : '')})'), // Using plan.id as the unique identifier
                         ))
                     .toList(),
                 validator: (value) {
@@ -238,7 +241,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 child: ElevatedButton(
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: _renewMembership,
+                  onPressed: (widget.member.renewalDate.isAfter(DateTime.now()))
+                      ? null
+                      : _renewMembership,
                   child: Text(
                     'Renew Membership',
                     style: TextStyle(color: Colors.white),
@@ -280,10 +285,10 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
     });
 
     try {
-      final newDateOfRenewal =
+      final newDateOfAdmission =
           DateFormat('dd-MM-yyyy').parse(_renewalDateController.text);
       final renewedMember =
-          widget.member.renewMembership(_selectedPlan!, newDateOfRenewal);
+          widget.member.renewMembership(_selectedPlan!, newDateOfAdmission);
       await Provider.of<MemberProvider>(context, listen: false)
           .updateMember(renewedMember);
 

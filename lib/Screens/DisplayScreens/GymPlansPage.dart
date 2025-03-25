@@ -195,7 +195,7 @@ class _GymPlansPageState extends State<GymPlansPage> {
                                         width: 10 * ScaleUtils.horizontalScale,
                                       ),
                                       Text(
-                                        '${plan.months} months ${(plan.days != 0 ? plan.days : '')}',
+                                        '${plan.months} months ${(plan.days != 0 ? plan.days : '')} ${(plan.days != 0 ? 'days' : '')}',
                                         style: TextStyle(
                                             fontSize:
                                                 14 * ScaleUtils.scaleFactor,
