@@ -81,7 +81,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if ((width < targetWidth - tolerance || width > targetWidth + tolerance) ||
         (height < targetHeight - tolerance ||
             height > targetHeight + tolerance)) {
-      // ❌ Show error if dimensions are not within the range
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -125,18 +124,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     int height = image.height;
 
     // Define acceptable range (±20 pixels)
-    const int targetWidth = 341;
+    const int targetWidth = 340;
     const int targetHeight = 270;
     const int tolerance = 20; // Allow slight variation
 
     if ((width < targetWidth - tolerance || width > targetWidth + tolerance) ||
         (height < targetHeight - tolerance ||
             height > targetHeight + tolerance)) {
-      // ❌ Show error if dimensions are not within the range
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              "Invalid image size! Please select an image close to 470x265."),
+              "Invalid image size! Please select an image close to 340x270."),
           backgroundColor: Colors.red,
         ),
       );
