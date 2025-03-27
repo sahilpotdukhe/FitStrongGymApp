@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:fitstrong_gym/src/custom_import.dart';
+import 'package:image/image.dart' as img;
 
 class EditProfilePage extends StatefulWidget {
   final UserModel userModel;
@@ -17,7 +20,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _merchantUpiIdController;
 
   File? _imageFile;
-  File? _qrImageFile;
+  File? _signatureImageFile;
   bool _isLoading = false;
 
   @override
@@ -33,26 +36,115 @@ class _EditProfilePageState extends State<EditProfilePage> {
         TextEditingController(text: widget.userModel.upiId);
   }
 
-  Future<void> _pickImage() async {
+  // Future<void> _pickImage() async {
+  //   final pickedFile =
+  //       await ImagePicker().pickImage(source: ImageSource.gallery);
+  //
+  //   if (pickedFile != null) {
+  //     setState(() {
+  //       _imageFile = File(pickedFile.path);
+  //     });
+  //   }
+  // }
+
+  Future<void> _pickImage(BuildContext context) async {
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+    if (pickedFile == null) return; // No image selected
+
+    File file = File(pickedFile.path);
+
+    // Read image bytes
+    Uint8List imageBytes = await file.readAsBytes();
+
+    // Decode image to get dimensions
+    img.Image? image = img.decodeImage(imageBytes);
+    if (image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Invalid image file. Please try again."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
+
+    int width = image.width;
+    int height = image.height;
+
+    // Define acceptable range (±20 pixels)
+    const int targetWidth = 470;
+    const int targetHeight = 265;
+    const int tolerance = 20; // Allow slight variation
+
+    if ((width < targetWidth - tolerance || width > targetWidth + tolerance) ||
+        (height < targetHeight - tolerance ||
+            height > targetHeight + tolerance)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              "Invalid image size! Please select an image close to 470x265."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // ✅ Image is valid, update the state
+    setState(() {
+      _imageFile = file;
+    });
   }
 
-  Future<void> _pickQrImage() async {
+  Future<void> _pickSignatureImage(BuildContext context) async {
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      setState(() {
-        _qrImageFile = File(pickedFile.path);
-      });
+    if (pickedFile == null) return; // No image selected
+
+    File file = File(pickedFile.path);
+
+    // Read image bytes
+    Uint8List imageBytes = await file.readAsBytes();
+
+    // Decode image to get dimensions
+    img.Image? image = img.decodeImage(imageBytes);
+    if (image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Invalid image file. Please try again."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
+
+    int width = image.width;
+    int height = image.height;
+
+    // Define acceptable range (±20 pixels)
+    const int targetWidth = 340;
+    const int targetHeight = 270;
+    const int tolerance = 20; // Allow slight variation
+
+    if ((width < targetWidth - tolerance || width > targetWidth + tolerance) ||
+        (height < targetHeight - tolerance ||
+            height > targetHeight + tolerance)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              "Invalid image size! Please select an image close to 340x270."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // ✅ Image is valid, update the state
+    setState(() {
+      _signatureImageFile = file;
+    });
   }
 
   Future<void> _updateProfile() async {
@@ -62,7 +154,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       });
 
       String? profilePhotoUrl = widget.userModel.profilePhoto;
-      String? qrImageUrl = widget.userModel.qrImageUrl;
+      String? signatureImageUrl = widget.userModel.signatureImageUrl;
 
       if (_imageFile != null) {
         final storageRef = FirebaseStorage.instance
@@ -75,15 +167,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
         profilePhotoUrl = await storageRef.getDownloadURL();
       }
 
-      if (_qrImageFile != null) {
+      if (_signatureImageFile != null) {
         final storageRef = FirebaseStorage.instance
             .ref()
-            .child('OwnerPhotos')
+            .child('Signature')
             .child(widget.userModel.name)
-            .child('QR ${widget.userModel.uid}.jpg');
+            .child('Sign ${widget.userModel.uid}.jpg');
 
-        await storageRef.putFile(_qrImageFile!);
-        qrImageUrl = await storageRef.getDownloadURL();
+        await storageRef.putFile(_signatureImageFile!);
+        signatureImageUrl = await storageRef.getDownloadURL();
       }
 
       UserModel updatedUser = UserModel(
@@ -92,9 +184,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
           name: _nameController.text,
           phoneNumber: _phoneController.text,
           profilePhoto: profilePhotoUrl,
-          qrImageUrl: qrImageUrl,
           address: _addressController.text,
-          signature: widget.userModel.signature,
+          signatureImageUrl: signatureImageUrl,
           merchantName: _merchantNameController.text,
           upiId: _merchantUpiIdController.text);
 
@@ -134,56 +225,116 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Stack(children: [
-                        Center(
-                          child: GestureDetector(
-                            onTap: _pickImage,
-                            child: CircleAvatar(
-                              backgroundColor: Colors.grey,
-                              radius: 60 * ScaleUtils.scaleFactor,
-                              child: CircleAvatar(
-                                radius: 54 * ScaleUtils.scaleFactor,
-                                backgroundImage: AssetImage('assets/user.jpg'),
-                                foregroundImage: _imageFile != null
-                                    ? FileImage(_imageFile!)
-                                    : NetworkImage(
-                                            widget.userModel.profilePhoto)
-                                        as ImageProvider,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Center(
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                height: 84 * ScaleUtils.verticalScale,
-                              ),
-                              InkWell(
-                                onTap: _pickImage,
-                                child: Container(
-                                  margin: EdgeInsets.only(
-                                      right: 6 * ScaleUtils.horizontalScale,
-                                      top: 8 * ScaleUtils.verticalScale),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: HexColor("3B82F6"),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(
-                                        8.0 * ScaleUtils.scaleFactor),
-                                    child: Icon(
-                                      Icons.camera_alt,
-                                      size: 26 * ScaleUtils.scaleFactor,
-                                      color: Colors.white,
-                                    ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Stack(children: [
+                            Center(
+                              child: GestureDetector(
+                                onTap: () => _pickImage(context),
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.grey,
+                                  radius: 60 * ScaleUtils.scaleFactor,
+                                  child: CircleAvatar(
+                                    radius: 54 * ScaleUtils.scaleFactor,
+                                    backgroundImage:
+                                        AssetImage('assets/user.jpg'),
+                                    foregroundImage: _imageFile != null
+                                        ? FileImage(_imageFile!)
+                                        : NetworkImage(
+                                                widget.userModel.profilePhoto)
+                                            as ImageProvider,
                                   ),
                                 ),
-                              )
-                            ],
+                              ),
+                            ),
+                            Center(
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 84 * ScaleUtils.verticalScale,
+                                  ),
+                                  InkWell(
+                                    onTap: () => _pickImage(context),
+                                    child: Container(
+                                      margin: EdgeInsets.only(
+                                          right: 6 * ScaleUtils.horizontalScale,
+                                          top: 8 * ScaleUtils.verticalScale),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: HexColor("3B82F6"),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(
+                                            8.0 * ScaleUtils.scaleFactor),
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          size: 26 * ScaleUtils.scaleFactor,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ]),
+                          SizedBox(
+                            width: 25,
                           ),
-                        ),
-                      ]),
+                          Stack(children: [
+                            Center(
+                              child: GestureDetector(
+                                onTap: () => _pickSignatureImage(context),
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.grey,
+                                  radius: 60 * ScaleUtils.scaleFactor,
+                                  child: CircleAvatar(
+                                    radius: 54 * ScaleUtils.scaleFactor,
+                                    backgroundImage:
+                                        AssetImage('assets/user.jpg'),
+                                    foregroundImage: _signatureImageFile != null
+                                        ? FileImage(_signatureImageFile!)
+                                        : NetworkImage(widget
+                                                .userModel.signatureImageUrl)
+                                            as ImageProvider,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 84 * ScaleUtils.verticalScale,
+                                  ),
+                                  InkWell(
+                                    onTap: () => _pickSignatureImage(context),
+                                    child: Container(
+                                      margin: EdgeInsets.only(
+                                          right: 6 * ScaleUtils.horizontalScale,
+                                          top: 8 * ScaleUtils.verticalScale),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: HexColor("3B82F6"),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(
+                                            8.0 * ScaleUtils.scaleFactor),
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          size: 26 * ScaleUtils.scaleFactor,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ]),
+                        ],
+                      ),
                       SizedBox(height: 16),
                       Padding(
                         padding: const EdgeInsets.all(8.0),

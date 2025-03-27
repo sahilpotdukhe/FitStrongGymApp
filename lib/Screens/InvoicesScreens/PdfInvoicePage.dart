@@ -19,7 +19,7 @@ class PdfInvoiceApi {
     final image1 = await _loadImageFromNetwork(userModel.profilePhoto);
     final image2 = await _loadImageFromNetwork(
         'https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/invoiceimage.png?alt=media&token=f01ad79e-1759-4887-b09a-1f7e513e57ac');
-    final image3 = await _loadImageFromNetwork(userModel.signature);
+    final image3 = await _loadImageFromNetwork(userModel.signatureImageUrl);
 
     pdf.addPage(MultiPage(
         theme: ThemeData.withFont(

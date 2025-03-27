@@ -4,9 +4,8 @@ class UserModel {
   String email;
   String profilePhoto;
   String phoneNumber;
-  String qrImageUrl;
   String address;
-  String signature;
+  String signatureImageUrl;
   String merchantName;
   String upiId;
 
@@ -16,9 +15,8 @@ class UserModel {
       required this.email,
       required this.profilePhoto,
       required this.phoneNumber,
-      required this.qrImageUrl,
       required this.address,
-      required this.signature,
+      required this.signatureImageUrl,
       required this.merchantName,
       required this.upiId});
 
@@ -30,9 +28,8 @@ class UserModel {
       'email': email,
       'profile_photo': profilePhoto,
       'phone_Number': phoneNumber,
-      'qrImageUrl': qrImageUrl,
       'address': address,
-      'signature': signature,
+      'signatureImageUrl': signatureImageUrl,
       'merchantName': merchantName,
       'upiId': upiId
     };
@@ -46,9 +43,8 @@ class UserModel {
         email: mapData['email'],
         profilePhoto: mapData['profile_photo'],
         phoneNumber: mapData['phone_Number'],
-        qrImageUrl: mapData['qrImageUrl'] ?? '',
         address: mapData['address'] ?? '',
-        signature: mapData['signature'] ?? '',
+        signatureImageUrl: mapData['signatureImageUrl'] ?? '',
         merchantName: mapData['merchantName'] ?? '',
         upiId: mapData['upiId'] ?? '');
   }
