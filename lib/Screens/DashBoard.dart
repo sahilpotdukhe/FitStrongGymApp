@@ -1,3 +1,4 @@
+import 'package:fitstrong_gym/Screens/BMICalculator.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class DashBoard extends StatefulWidget {
@@ -309,6 +310,44 @@ class _DashBoardState extends State<DashBoard> {
                   ],
                 ),
               ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(28.0),
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => BMICalculator()));
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(20 * ScaleUtils.scaleFactor),
+                    color: HexColor("EE3427"),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "BMI Calculator",
+                          style: TextStyle(
+                              fontSize: 16 * ScaleUtils.scaleFactor,
+                              color: Colors.white),
+                        ),
+                        SizedBox(
+                          width: 8 * ScaleUtils.horizontalScale,
+                        ),
+                        Icon(
+                          Icons.fitness_center,
+                          color: Colors.white,
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
