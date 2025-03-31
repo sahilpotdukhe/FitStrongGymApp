@@ -23,21 +23,49 @@ class _RecycleBinPageState extends State<RecycleBinPage> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: UniversalVariables.appThemeColor,
-        title: Text('Recycle Bin Members',style: TextStyle(color: Colors.white)),
+        title:
+            Text('Recycle Bin Members', style: TextStyle(color: Colors.white)),
         leading: IconButton(
           onPressed: () {
             Navigator.popAndPushNamed(context, '/home');
           },
           icon: Icon(Icons.arrow_back_outlined),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.search,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => SearchScreen(
+                            screen: 'RecycleBin',
+                          )));
+            },
+          )
+        ],
       ),
       body: recycleBinMembers.isEmpty
-          ? MembersQuietBox(screen: 'recycle',)
+          ? MembersQuietBox(
+              screen: 'recycle',
+            )
           : ListView.builder(
               itemCount: recycleBinMembers.length,
               itemBuilder: (context, index) {
                 final recycleBinMember = recycleBinMembers[index];
-                return RecycleMemberCard(recycleBinMember: recycleBinMember);
+                return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  MemberDetailsPage(member: recycleBinMember)));
+                    },
+                    child:
+                        RecycleMemberCard(recycleBinMember: recycleBinMember));
               },
             ),
     );

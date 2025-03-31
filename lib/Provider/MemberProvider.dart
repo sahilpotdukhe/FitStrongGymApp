@@ -44,7 +44,7 @@ class MemberProvider with ChangeNotifier {
     }
   }
 
-  Future<void> fetchRecycleBinMembers() async {
+  Future<List<MemberModel>> fetchRecycleBinMembers() async {
     try {
       User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
@@ -56,9 +56,13 @@ class MemberProvider with ChangeNotifier {
         _recycleBinMembers =
             querySnapshot.docs.map((doc) => _memberFromSnapshot(doc)).toList();
         notifyListeners();
+        return _recycleBinMembers;
+      } else {
+        return [];
       }
     } catch (error) {
       print('Error fetching recycle bin members: $error');
+      return [];
     }
   }
 

@@ -6,21 +6,17 @@ class DisplayAllMembers extends StatefulWidget {
 }
 
 class _DisplayAllMembersState extends State<DisplayAllMembers> {
-  String selectedPlanId = 'All'; // Initialize with 'All' to show all members
+  String selectedPlanId = 'All';
+  String selectedGender = 'All';
 
   @override
   void initState() {
     super.initState();
-    // Fetch members and plans when the page is initialized
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
     final planProvider = Provider.of<GymPlanProvider>(context, listen: false);
 
-    memberProvider.getAllMembers().then((_) {
-      setState(() {}); // Rebuild the widget after fetching members
-    });
-    planProvider.fetchPlans().then((_) {
-      setState(() {}); // Rebuild the widget after fetching plans
-    });
+    memberProvider.getAllMembers();
+    planProvider.fetchPlans();
   }
 
   @override
@@ -30,10 +26,13 @@ class _DisplayAllMembersState extends State<DisplayAllMembers> {
     final members = memberProvider.members;
     final plans = planProvider.plans;
 
-    // Filter members based on the selected plan
-    final filteredMembers = selectedPlanId == 'All'
-        ? members
-        : members.where((member) => member.planId == selectedPlanId).toList();
+    final filteredMembers = members.where((member) {
+      final matchesPlan =
+          selectedPlanId == 'All' || member.planId == selectedPlanId;
+      final matchesGender =
+          selectedGender == 'All' || member.gender == selectedGender;
+      return matchesPlan && matchesGender;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -44,59 +43,133 @@ class _DisplayAllMembersState extends State<DisplayAllMembers> {
           style: TextStyle(color: Colors.white),
         ),
         actions: [
-          // DropdownButton for selecting plan
-          DropdownButton<String>(
-            value: selectedPlanId,
-            icon: Icon(Icons.filter_list, color: Colors.white),
-            dropdownColor: UniversalVariables.appThemeColor,
-            underline: SizedBox(),
-            items: ['All', ...plans.map((plan) => plan.id)]
-                .map((planId) => DropdownMenuItem<String>(
-              value: planId,
-              child: Text(
-                planId == 'All'
-                    ? 'All'
-                    : plans.firstWhere((plan) => plan.id == planId).name,
-                style: TextStyle(color: Colors.white),
-              ),
-            ))
-                .toList(),
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedPlanId = newValue!;
-              });
-            },
-          ),
           IconButton(
-            icon: Icon(
-              Icons.search,
-              color: Colors.white,
-            ),
+            icon: Icon(Icons.search, color: Colors.white),
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SearchScreen(screen: 'All',)));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => SearchScreen(screen: 'All')),
+              );
             },
           )
         ],
       ),
-      body: filteredMembers.isEmpty
-          ? MembersQuietBox(screen: 'nomembers',)
-          : ListView.builder(
-        itemCount: filteredMembers.length,
-        itemBuilder: (context, index) {
-          final member = filteredMembers[index];
-          return InkWell(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            MemberDetailsPage(member: member)));
-              },
-              child: MemberCard(
-                member: member,
-              ));
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                    child: DropdownButtonHideUnderline(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: UniversalVariables.appThemeColor, width: 1.5),
+                    ),
+                    child: DropdownButton<String>(
+                      value: selectedPlanId,
+                      isExpanded: true,
+                      icon: Icon(Icons.filter_list_outlined,
+                          color: UniversalVariables.appThemeColor),
+                      dropdownColor: Colors.white,
+                      style: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.w500),
+                      items: ['All', ...plans.map((plan) => plan.id)]
+                          .map((planId) {
+                        final planName = planId == 'All'
+                            ? 'Sort by Plan'
+                            : plans
+                                .firstWhere((plan) => plan.id == planId)
+                                .name;
+                        return DropdownMenuItem<String>(
+                          value: planId,
+                          child: Text(
+                            planName,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: UniversalVariables.appThemeColor),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedPlanId = newValue!;
+                        });
+                      },
+                    ),
+                  ),
+                )),
+                SizedBox(width: 10),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: UniversalVariables.appThemeColor,
+                            width: 1.5),
+                      ),
+                      child: DropdownButton<String>(
+                        value: selectedGender,
+                        isExpanded: true,
+                        icon: Icon(Icons.person,
+                            color: UniversalVariables.appThemeColor),
+                        dropdownColor: Colors.white,
+                        style: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.w500),
+                        items: ['All', 'Male', 'Female'].map((gender) {
+                          return DropdownMenuItem<String>(
+                            value: gender,
+                            child: Text(
+                              gender == 'All' ? 'Sort by Gender' : gender,
+                              style: TextStyle(
+                                  color: UniversalVariables.appThemeColor),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedGender = newValue!;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: filteredMembers.isEmpty
+                ? MembersQuietBox(screen: 'nomembers')
+                : ListView.builder(
+                    itemCount: filteredMembers.length,
+                    itemBuilder: (context, index) {
+                      final member = filteredMembers[index];
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  MemberDetailsPage(member: member),
+                            ),
+                          );
+                        },
+                        child: MemberCard(member: member),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }

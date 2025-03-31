@@ -160,8 +160,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('OwnerPhotos')
-            .child(widget.userModel.name)
-            .child('ProfilePic ${widget.userModel.uid}.jpg');
+            .child('${widget.userModel.name} ${widget.userModel.uid}.jpg');
 
         await storageRef.putFile(_imageFile!);
         profilePhotoUrl = await storageRef.getDownloadURL();
@@ -171,8 +170,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('Signature')
-            .child(widget.userModel.name)
-            .child('Sign ${widget.userModel.uid}.jpg');
+            .child('${widget.userModel.name} ${widget.userModel.uid}.jpg');
 
         await storageRef.putFile(_signatureImageFile!);
         signatureImageUrl = await storageRef.getDownloadURL();
@@ -228,111 +226,138 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Stack(children: [
-                            Center(
-                              child: GestureDetector(
-                                onTap: () => _pickImage(context),
-                                child: CircleAvatar(
-                                  backgroundColor: Colors.grey,
-                                  radius: 60 * ScaleUtils.scaleFactor,
-                                  child: CircleAvatar(
-                                    radius: 54 * ScaleUtils.scaleFactor,
-                                    backgroundImage:
-                                        AssetImage('assets/user.jpg'),
-                                    foregroundImage: _imageFile != null
-                                        ? FileImage(_imageFile!)
-                                        : NetworkImage(
-                                                widget.userModel.profilePhoto)
-                                            as ImageProvider,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Center(
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    height: 84 * ScaleUtils.verticalScale,
-                                  ),
-                                  InkWell(
+                          Column(
+                            children: [
+                              Stack(children: [
+                                Center(
+                                  child: GestureDetector(
                                     onTap: () => _pickImage(context),
-                                    child: Container(
-                                      margin: EdgeInsets.only(
-                                          right: 6 * ScaleUtils.horizontalScale,
-                                          top: 8 * ScaleUtils.verticalScale),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: HexColor("3B82F6"),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(
-                                            8.0 * ScaleUtils.scaleFactor),
-                                        child: Icon(
-                                          Icons.camera_alt,
-                                          size: 26 * ScaleUtils.scaleFactor,
-                                          color: Colors.white,
-                                        ),
+                                    child: CircleAvatar(
+                                      backgroundColor: Colors.grey,
+                                      radius: 60 * ScaleUtils.scaleFactor,
+                                      child: CircleAvatar(
+                                        radius: 54 * ScaleUtils.scaleFactor,
+                                        backgroundImage:
+                                            AssetImage('assets/user.jpg'),
+                                        foregroundImage: _imageFile != null
+                                            ? FileImage(_imageFile!)
+                                            : NetworkImage(widget.userModel
+                                                .profilePhoto) as ImageProvider,
                                       ),
                                     ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ]),
+                                  ),
+                                ),
+                                Center(
+                                  child: Column(
+                                    children: [
+                                      SizedBox(
+                                        width: 126 * ScaleUtils.horizontalScale,
+                                        height: 84 * ScaleUtils.verticalScale,
+                                      ),
+                                      InkWell(
+                                        onTap: () => _pickImage(context),
+                                        child: Container(
+                                          margin: EdgeInsets.only(
+                                              right: 6 *
+                                                  ScaleUtils.horizontalScale,
+                                              top:
+                                                  8 * ScaleUtils.verticalScale),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: HexColor("3B82F6"),
+                                          ),
+                                          child: Padding(
+                                            padding: EdgeInsets.all(
+                                                8.0 * ScaleUtils.scaleFactor),
+                                            child: Icon(
+                                              Icons.camera_alt,
+                                              size: 26 * ScaleUtils.scaleFactor,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ]),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Profile Image',
+                                  style: TextStyle(fontSize: 16),
+                                  textAlign: TextAlign.start,
+                                ),
+                              )
+                            ],
+                          ),
                           SizedBox(
                             width: 25,
                           ),
-                          Stack(children: [
-                            Center(
-                              child: GestureDetector(
-                                onTap: () => _pickSignatureImage(context),
-                                child: CircleAvatar(
-                                  backgroundColor: Colors.grey,
-                                  radius: 60 * ScaleUtils.scaleFactor,
-                                  child: CircleAvatar(
-                                    radius: 54 * ScaleUtils.scaleFactor,
-                                    backgroundImage:
-                                        AssetImage('assets/user.jpg'),
-                                    foregroundImage: _signatureImageFile != null
-                                        ? FileImage(_signatureImageFile!)
-                                        : NetworkImage(widget
-                                                .userModel.signatureImageUrl)
-                                            as ImageProvider,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Center(
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    height: 84 * ScaleUtils.verticalScale,
-                                  ),
-                                  InkWell(
+                          Column(
+                            children: [
+                              Stack(children: [
+                                Center(
+                                  child: GestureDetector(
                                     onTap: () => _pickSignatureImage(context),
-                                    child: Container(
-                                      margin: EdgeInsets.only(
-                                          right: 6 * ScaleUtils.horizontalScale,
-                                          top: 8 * ScaleUtils.verticalScale),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: HexColor("3B82F6"),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(
-                                            8.0 * ScaleUtils.scaleFactor),
-                                        child: Icon(
-                                          Icons.camera_alt,
-                                          size: 26 * ScaleUtils.scaleFactor,
-                                          color: Colors.white,
-                                        ),
+                                    child: CircleAvatar(
+                                      backgroundColor: Colors.grey,
+                                      radius: 60 * ScaleUtils.scaleFactor,
+                                      child: CircleAvatar(
+                                        radius: 54 * ScaleUtils.scaleFactor,
+                                        backgroundImage:
+                                            AssetImage('assets/user.jpg'),
+                                        foregroundImage: _signatureImageFile !=
+                                                null
+                                            ? FileImage(_signatureImageFile!)
+                                            : NetworkImage(widget.userModel
+                                                    .signatureImageUrl)
+                                                as ImageProvider,
                                       ),
                                     ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ]),
+                                  ),
+                                ),
+                                Column(
+                                  children: [
+                                    SizedBox(
+                                      width: 126 * ScaleUtils.horizontalScale,
+                                      height: 84 * ScaleUtils.verticalScale,
+                                    ),
+                                    InkWell(
+                                      onTap: () => _pickSignatureImage(context),
+                                      child: Container(
+                                        margin: EdgeInsets.only(
+                                            right:
+                                                6 * ScaleUtils.horizontalScale,
+                                            top: 8 * ScaleUtils.verticalScale),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: HexColor("3B82F6"),
+                                        ),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(
+                                              8.0 * ScaleUtils.scaleFactor),
+                                          child: Icon(
+                                            Icons.camera_alt,
+                                            size: 26 * ScaleUtils.scaleFactor,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ]),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Signature',
+                                  style: TextStyle(fontSize: 16),
+                                  textAlign: TextAlign.start,
+                                ),
+                              )
+                            ],
+                          ),
                         ],
                       ),
                       SizedBox(height: 16),

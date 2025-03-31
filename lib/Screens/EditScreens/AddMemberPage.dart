@@ -63,55 +63,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
             },
             icon: Icon(Icons.arrow_back_outlined),
           ),
-          actions: [
-            IconButton(
-                onPressed: () async {
-                  User? currentUser = FirebaseAuth.instance.currentUser;
-                  if (currentUser != null) {
-                    CollectionReference membersCollection = FirebaseFirestore
-                        .instance
-                        .collection('Users')
-                        .doc(currentUser.uid)
-                        .collection('members');
-
-                    QuerySnapshot querySnapshot = await membersCollection.get();
-
-                    for (var doc in querySnapshot.docs) {
-                      await membersCollection.doc(doc.id).update({
-                        'renewalDate': doc[
-                            'expiryDate'], // Setting renewalDate same as expiryDate
-                      });
-                    }
-                  }
-                  // CollectionReference users =
-                  //     FirebaseFirestore.instance.collection('Users');
-                  //
-                  // // Fetch all users
-                  // QuerySnapshot usersSnapshot = await users.get();
-                  //
-                  // // Iterate through each user
-                  // for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
-                  //   // Reference to the user's members subcollection
-                  //   CollectionReference gymplans =
-                  //       users.doc(userDoc.id).collection('gymPlans');
-                  //
-                  //   // Fetch all documents from the user's members subcollection
-                  //   QuerySnapshot membersSnapshot = await gymplans.get();
-                  //
-                  //   // Iterate through each document in the members subcollection and update it
-                  //   for (QueryDocumentSnapshot memberDoc
-                  //       in membersSnapshot.docs) {
-                  //     await gymplans
-                  //         .doc(memberDoc.id)
-                  //         .update({'days': 0}).catchError((error) {
-                  //       print(
-                  //           "Failed to update document ${memberDoc.id} for user ${userDoc.id}: $error");
-                  //     });
-                  //   }
-                  // }
-                },
-                icon: Icon(Icons.notifications))
-          ],
+          // actions: [
+          //   IconButton(
+          //       onPressed: () async {
+          //         await fillMissingCheckInOutTimes();
+          //       },
+          //       icon: Icon(Icons.notifications))
+          // ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
