@@ -18,20 +18,26 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
-    if(widget.screen == 'All'){
+    if (widget.screen == 'All') {
       memberProvider.getAllMembers().then((list) {
         setState(() {
           memberList = list;
         });
       });
-    }else if(widget.screen == 'Active'){
+    } else if (widget.screen == 'Active') {
       memberProvider.fetchActiveMembers().then((list) {
         setState(() {
           memberList = list;
         });
       });
-    }else{
+    } else if (widget.screen == 'Expired') {
       memberProvider.fetchExpiredMembers().then((list) {
+        setState(() {
+          memberList = list;
+        });
+      });
+    } else {
+      memberProvider.fetchRecycleBinMembers().then((list) {
         setState(() {
           memberList = list;
         });
@@ -120,7 +126,9 @@ class _SearchScreenState extends State<SearchScreen> {
                             builder: (context) =>
                                 MemberDetailsPage(member: searchedMember)));
                   },
-                  child: MemberCard(member: searchedMember));
+                  child: widget.screen == 'RecycleBin'
+                      ? RecycleMemberCard(recycleBinMember: searchedMember)
+                      : MemberCard(member: searchedMember));
             },
           );
   }
