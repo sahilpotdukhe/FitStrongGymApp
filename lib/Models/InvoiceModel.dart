@@ -27,14 +27,14 @@ class InvoiceInfo {
 
 class InvoiceItem {
   final String description;
-  final int applied;
+  final String days;
   final String months;
   final String fees;
   final String total;
 
   const InvoiceItem(
       {required this.description,
-      required this.applied,
+      required this.days,
       required this.months,
       required this.fees,
       required this.total});

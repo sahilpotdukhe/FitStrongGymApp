@@ -18,7 +18,7 @@ class PdfInvoiceApi {
     // Load images from the network
     final image1 = await _loadImageFromNetwork(userModel.profilePhoto);
     final image2 = await _loadImageFromNetwork(
-        'https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/invoiceimage.png?alt=media&token=f01ad79e-1759-4887-b09a-1f7e513e57ac');
+        'https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/general_Images%2Finvoiceimage.png?alt=media&token=1c656f32-4db5-41e4-89db-7e260d88b0eb');
     final image3 = await _loadImageFromNetwork(userModel.signatureImageUrl);
 
     pdf.addPage(MultiPage(
@@ -158,15 +158,9 @@ class PdfInvoiceApi {
   }
 
   static Widget buildTable(Invoice invoice) {
-    final tableheaders = ['Description', 'Months', 'Quantity', 'Fees', 'Total'];
+    final tableheaders = ['Description', 'Months', 'Days', 'Fees', 'Total'];
     final data = invoice.items.map((item) {
-      return [
-        item.description,
-        item.months,
-        item.applied,
-        item.fees,
-        item.total
-      ];
+      return [item.description, item.months, item.days, item.fees, item.total];
     }).toList();
     return Table.fromTextArray(
         data: data,

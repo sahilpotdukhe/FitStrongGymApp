@@ -241,7 +241,7 @@ class MemberDetailsPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Height",
+                                    "Height(in feet)",
                                     style: TextStyle(
                                         color: Colors.grey,
                                         fontSize: 16 * ScaleUtils.scaleFactor),
@@ -259,7 +259,7 @@ class MemberDetailsPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Weight",
+                                    "Weight(in kg)",
                                     style: TextStyle(
                                         color: Colors.grey,
                                         fontSize: 16 * ScaleUtils.scaleFactor),
@@ -473,11 +473,12 @@ class MemberDetailsPage extends StatelessWidget {
     // String message =
     //     ;
     await _telephonySMS.requestPermission();
+    print("Name" + gymName);
     try {
       await _telephonySMS.sendSMS(
           phone: phoneNumber.toString(),
           message:
-              "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities.Thanks ${gymName}");
+              "Hi ${member.name}, your gym membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. Renew now to keep enjoying our facilities. - $gymName");
       print("SMS sent successfully to $phoneNumber");
     } catch (e) {
       print("SMS error: " + e.toString());

@@ -1,4 +1,5 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
+import 'package:uuid/uuid.dart';
 
 class ViewInvoicePage extends StatefulWidget {
   final MemberModel member;
@@ -9,6 +10,8 @@ class ViewInvoicePage extends StatefulWidget {
 }
 
 class _ViewInvoicePageState extends State<ViewInvoicePage> {
+  var uuid = Uuid();
+
   @override
   void initState() {
     // TODO: implement initState
@@ -58,13 +61,13 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                     info: InvoiceInfo(
                         todayDate: date,
                         invoiceDate: dueDate,
-                        invoiceNumber: '${DateTime.now()}',
+                        invoiceNumber: uuid.v4().substring(0, 15),
                         transactionType: 'Cash'),
                     items: [
                       InvoiceItem(
                           description: plan?.name ?? 'Unknown Plan',
                           fees: '${plan!.fee}',
-                          applied: 1,
+                          days: '${plan.days}',
                           total: '${plan.fee}',
                           months: '${plan.months}'),
                     ]);
