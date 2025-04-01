@@ -14,7 +14,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     userProvider.refreshUser();
-    Future.delayed(Duration(seconds: 5), () {
+    Future.delayed(Duration(seconds: 3), () {
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) => CustomBottomNavigationBar()));
     });
