@@ -228,7 +228,7 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                     Center(
                       child: QrImageView(
                         data:
-                            'upi://pay?pa=sahilpotdukhe@ibl&pn=Sahil Potdukhe&mc=0000&cu=INR&am=$_selectedPlanFee',
+                        'upi://pay?pa=${userModel?.upiId}&pn=${userModel?.merchantName}&mc=0000&cu=INR&am=$_selectedPlanFee',
                         size: 280,
                       ),
                     ),
