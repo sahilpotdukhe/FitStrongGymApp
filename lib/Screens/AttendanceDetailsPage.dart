@@ -1,40 +1,17 @@
-import 'package:fitstrong_gym/Widgets/AttendanceQuietPage.dart';
-import 'package:fitstrong_gym/src/custom_import.dart';
-import 'package:intl/intl.dart';
+import 'package:fitstrong_gym/Widgets/UniversalVariables.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class AttendanceDetailPage extends StatefulWidget {
+import '../Provider/AttendanceProvider.dart';
+
+class AttendanceDetailPage extends StatelessWidget {
   final String date;
-
-  AttendanceDetailPage({required this.date});
-
-  @override
-  _AttendanceDetailPageState createState() => _AttendanceDetailPageState();
-}
-
-class _AttendanceDetailPageState extends State<AttendanceDetailPage> {
-  @override
-  void initState() {
-    super.initState();
-    // Fetch attendance data for the specific date when the page is initialized
-    final attendanceProvider =
-    Provider.of<AttendanceProvider>(context, listen: false);
-    attendanceProvider.fetchAttendanceByDate(widget.date).then((_) {
-      setState(() {}); // Rebuild the widget after fetching data
-    });
-  }
+  const AttendanceDetailPage({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {
-    final attendanceProvider = Provider.of<AttendanceProvider>(context);
-    final attendanceList = attendanceProvider.attendanceList;
-
-    // Separate morning and evening attendances
-    final morningAttendances = attendanceList
-        .where((attendance) => DateFormat('h:mm a').parse(attendance.time).hour < 12)
-        .toList();
-    final eveningAttendances = attendanceList
-        .where((attendance) => DateFormat('h:mm a').parse(attendance.time).hour >= 12)
-        .toList();
+    final provider = Provider.of<AttendanceProvider>(context);
+    final attendanceList = provider.getByDate(date);
 
     return Scaffold(
       appBar: AppBar(
@@ -44,73 +21,70 @@ class _AttendanceDetailPageState extends State<AttendanceDetailPage> {
           color: Colors.white, //change your color here
         ),
         title: Text(
-          widget.date,
+          _formatReadableDate(date),
           style: TextStyle(color: Colors.white),
         ),
       ),
       body: attendanceList.isEmpty
-          ? AttendanceQuietBox()
-          : ListView(
-        children: [
-          if (morningAttendances.isNotEmpty)
-            _buildSection('Morning', morningAttendances),
-          if (eveningAttendances.isNotEmpty)
-            _buildSection('Evening', eveningAttendances),
-        ],
-      ),
+          ? const Center(
+              child: Text("No records found.",
+                  style: TextStyle(color: Colors.white)))
+          : ListView.builder(
+              itemCount: attendanceList.length,
+              itemBuilder: (context, index) {
+                final a = attendanceList[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 5.0, horizontal: 8.0),
+                  child: Card(
+                    color: Colors.yellow[700],
+                    elevation: 10,
+                    child: Padding(
+                      padding: const EdgeInsets.all(18.0),
+                      child: Row(
+                        children: [
+                          Text('${index + 1}.  ',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500)),
+                          Text(a.name,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w500, fontSize: 15)),
+                          const Spacer(),
+                          Text(a.time),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 
-  Widget _buildSection(String title, List<Attendance> attendances) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 10),
-          ...attendances.asMap().entries.map((entry) {
-            int index = entry.key;
-            Attendance attendance = entry.value;
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5.0),
-              child: Card(
-                color: HexColor('FFDE03'),
-                elevation: 20,
-                shadowColor: Colors.black,
-                child: Padding(
-                  padding: const EdgeInsets.all(18.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        '${index + 1}.  ',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        attendance.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                        ),
-                      ),
-                      Spacer(),
-                      Text(attendance.time),
-                      SizedBox(width: 10),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ],
-      ),
-    );
+  String _formatReadableDate(String date) {
+    try {
+      final parts = date.split('-'); // "2024-11-25"
+      final day = int.parse(parts[2]);
+      final month = int.parse(parts[1]);
+      final year = parts[0];
+      const monthNames = [
+        '',
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+      ];
+      return '$day ${monthNames[month]}, $year';
+    } catch (_) {
+      return date;
+    }
   }
 }
