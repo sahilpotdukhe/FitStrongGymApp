@@ -30,6 +30,7 @@ class MemberProvider with ChangeNotifier {
             .collection('Users')
             .doc(currentUser.uid)
             .collection('members')
+            .orderBy('name')
             .get();
         _members =
             querySnapshot.docs.map((doc) => _memberFromSnapshot(doc)).toList();
@@ -52,6 +53,7 @@ class MemberProvider with ChangeNotifier {
             .collection('Users')
             .doc(currentUser.uid)
             .collection('recyclebin')
+            .orderBy('name')
             .get();
         _recycleBinMembers =
             querySnapshot.docs.map((doc) => _memberFromSnapshot(doc)).toList();
@@ -162,6 +164,7 @@ class MemberProvider with ChangeNotifier {
             .doc(currentUser.uid)
             .collection('members')
             .where('expiryDate', isGreaterThan: Timestamp.now())
+            .orderBy('name')
             .get();
         _activeMembers =
             querySnapshot.docs.map((doc) => _memberFromSnapshot(doc)).toList();
@@ -185,6 +188,7 @@ class MemberProvider with ChangeNotifier {
             .doc(currentUser.uid)
             .collection('members')
             .where('expiryDate', isLessThanOrEqualTo: Timestamp.now())
+            .orderBy('name')
             .get();
         _expiredMembers =
             querySnapshot.docs.map((doc) => _memberFromSnapshot(doc)).toList();

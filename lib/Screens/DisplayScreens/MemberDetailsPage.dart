@@ -1,9 +1,7 @@
 import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
+import 'package:flutter_sms/flutter_sms.dart';
 import 'package:intl/intl.dart';
-import 'package:telephony_sms/telephony_sms.dart';
-
-final TelephonySMS _telephonySMS = TelephonySMS();
 
 class MemberDetailsPage extends StatelessWidget {
   final MemberModel member;
@@ -69,8 +67,7 @@ class MemberDetailsPage extends StatelessWidget {
                         onTap: () {
                           String message =
                               "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}.  We invite you to renew your membership to continue enjoying our gym facilities.\n Best Regards,\n Arjuna Fitness Gym";
-                          sendSMS(
-                              member.mobileNumber, message, userModel!.name);
+                          _sendSMS(message, [member.mobileNumber]);
                         },
                         child: Container(
                           decoration: BoxDecoration(
@@ -436,7 +433,7 @@ class MemberDetailsPage extends StatelessWidget {
 
   void openWhatsapp(
       BuildContext context, String phoneNumber, String gymName) async {
-    var whatsapp = phoneNumber; //+92xx enter like this
+    var whatsapp = "+91" + phoneNumber; //+92xx enter like this
     var message =
         "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities.Thanks ${gymName}";
     var whatsappURlAndroid =
@@ -464,24 +461,33 @@ class MemberDetailsPage extends StatelessWidget {
     }
   }
 
-  Future<void> sendSMS(
-      String phoneNumber, String message, String gymName) async {
-    // String encodedMessage = Uri.encodeComponent(message);
-
-    print("Sending SMS to: $phoneNumber");
-    // print("Message: $encodedMessage");
-    // String message =
-    //     ;
-    await _telephonySMS.requestPermission();
-    print("Name" + gymName);
-    try {
-      await _telephonySMS.sendSMS(
-          phone: phoneNumber.toString(),
-          message:
-              "Hi ${member.name}, your gym membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. Renew now to keep enjoying our facilities. - $gymName");
-      print("SMS sent successfully to $phoneNumber");
-    } catch (e) {
-      print("SMS error: " + e.toString());
-    }
+  void _sendSMS(String message, List<String> recipents) async {
+    String _result = await sendSMS(message: message, recipients: recipents)
+        .catchError((onError) {
+      print(onError);
+      return 'Error';
+    });
+    print(_result);
   }
+
+  // Future<void> sendSMS(
+  //     String phoneNumber, String message, String gymName) async {
+  //   // String encodedMessage = Uri.encodeComponent(message);
+  //
+  //   print("Sending SMS to: $phoneNumber");
+  //   // print("Message: $encodedMessage");
+  //   // String message =
+  //   //     ;
+  //   await _telephonySMS.requestPermission();
+  //   print("Name" + gymName);
+  //   try {
+  //     await _telephonySMS.sendSMS(
+  //         phone: phoneNumber.toString(),
+  //         message:
+  //             "Hi ${member.name}, your gym membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. Renew now to keep enjoying our facilities. - $gymName");
+  //     print("SMS sent successfully to $phoneNumber");
+  //   } catch (e) {
+  //     print("SMS error: " + e.toString());
+  //   }
+  // }
 }
