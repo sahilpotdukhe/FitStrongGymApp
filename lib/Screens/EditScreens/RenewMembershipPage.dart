@@ -89,14 +89,14 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                     borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
                   ),
                 ),
-                readOnly: true,
+                readOnly: false,
                 onTap: () async {
                   try {
                     DateTime? pickedDate = await showDatePicker(
                       context: context,
                       initialDate: widget.member.renewalDate,
                       firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
+                      lastDate: DateTime(2100),
                     );
                     if (pickedDate != null) {
                       setState(() {
@@ -106,11 +106,6 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                     }
                   } catch (e) {
                     print(e);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                          "The plan is not expired yet so you can't renew the membership!"),
-                      backgroundColor: Colors.red,
-                    ));
                   }
                 },
               ),
@@ -241,9 +236,7 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 child: ElevatedButton(
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: (widget.member.renewalDate.isAfter(DateTime.now()))
-                      ? null
-                      : _renewMembership,
+                  onPressed: _renewMembership,
                   child: Text(
                     'Renew Membership',
                     style: TextStyle(color: Colors.white),
