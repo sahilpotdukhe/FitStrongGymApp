@@ -15,11 +15,10 @@ class PdfInvoiceApi {
     final fontData = await rootBundle.load('assets/Roboto-Regular.ttf');
     final ttf = Font.ttf(fontData);
 
-    // Load images from the network
-    final image1 = await _loadImageFromNetwork(userModel.profilePhoto);
-    final image2 = await _loadImageFromNetwork(
-        'https://firebasestorage.googleapis.com/v0/b/fitstrong-gym.appspot.com/o/general_Images%2Finvoiceimage.png?alt=media&token=1c656f32-4db5-41e4-89db-7e260d88b0eb');
-    final image3 = await _loadImageFromNetwork(userModel.signatureImageUrl);
+    // Load images from assets
+    final image1 = await _loadImageFromAsset('assets/arjunalogo.jpg');
+    final image2 = await _loadImageFromAsset('assets/invoiceimage.png');
+    final image3 = await _loadImageFromAsset('assets/demosign.jpg');
 
     pdf.addPage(MultiPage(
         theme: ThemeData.withFont(
@@ -83,6 +82,11 @@ class PdfInvoiceApi {
     } else {
       throw Exception('Failed to load image from network');
     }
+  }
+
+  static Future<Image> _loadImageFromAsset(String assetPath) async {
+    final bytes = (await rootBundle.load(assetPath)).buffer.asUint8List();
+    return Image(MemoryImage(bytes));
   }
 
   static Widget buildTitle(Invoice invoice) {
