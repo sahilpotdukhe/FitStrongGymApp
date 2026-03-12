@@ -1,6 +1,6 @@
 import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
-import 'package:flutter_sms/flutter_sms.dart';
+// import 'package:flutter_sms/flutter_sms.dart';
 import 'package:intl/intl.dart';
 
 class MemberDetailsPage extends StatelessWidget {
@@ -62,74 +62,77 @@ class MemberDetailsPage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          String message =
-                              "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}.  We invite you to renew your membership to continue enjoying our gym facilities.\n Best Regards,\n Arjuna Fitness Gym";
-                          _sendSMS(message, [member.mobileNumber]);
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                                14 * ScaleUtils.scaleFactor),
-                            color: HexColor("3957ED"),
-                          ),
-                          child: Padding(
-                            padding:
-                                EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.message,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(
-                                  width: 8 * ScaleUtils.horizontalScale,
-                                ),
-                                Text(
-                                  "Message",
-                                  style: TextStyle(
-                                      fontSize: 16 * ScaleUtils.scaleFactor,
-                                      color: Colors.white),
-                                ),
-                              ],
-                            ),
+                    InkWell(
+                      onTap: () {
+                        openWhatsapp(
+                            context, member.mobileNumber, userModel!.name);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                              14 * ScaleUtils.scaleFactor),
+                          color: HexColor("3957ED"),
+                        ),
+                        child: Padding(
+                          padding:
+                              EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                FontAwesomeIcons.whatsapp,
+                                color: Colors.white,
+                              ),
+                              SizedBox(
+                                width: 8 * ScaleUtils.horizontalScale,
+                              ),
+                              Text(
+                                "WhatsApp",
+                                style: TextStyle(
+                                    fontSize: 16 * ScaleUtils.scaleFactor,
+                                    color: Colors.white),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(
-                      width: 20,
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          openWhatsapp(
-                              context, member.mobileNumber, userModel!.name);
-                        },
+                    InkWell(
+                      onTap: () async {
+                        final Uri callUrl = Uri(
+                          scheme: 'tel',
+                          path: member.mobileNumber,
+                        );
+                        try {
+                          await launchUrl(callUrl);
+                        } catch (e) {
+                          print(e.toString());
+                        }
+                      },
+                      child: Center(
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                                14 * ScaleUtils.scaleFactor),
+                            borderRadius:
+                            BorderRadius.circular(14 * ScaleUtils.scaleFactor),
                             color: HexColor("3957ED"),
                           ),
                           child: Padding(
-                            padding:
-                                EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 12.0 * ScaleUtils.scaleFactor,
+                                horizontal: 18 * ScaleUtils.scaleFactor),
                             child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  FontAwesomeIcons.whatsapp,
+                                  Icons.call,
                                   color: Colors.white,
                                 ),
                                 SizedBox(
                                   width: 8 * ScaleUtils.horizontalScale,
                                 ),
                                 Text(
-                                  "WhatsApp",
+                                  "Call",
                                   style: TextStyle(
                                       fontSize: 16 * ScaleUtils.scaleFactor,
                                       color: Colors.white),
@@ -143,52 +146,7 @@ class MemberDetailsPage extends StatelessWidget {
                   ],
                 ),
               ),
-              InkWell(
-                onTap: () async {
-                  final Uri callUrl = Uri(
-                    scheme: 'tel',
-                    path: member.mobileNumber,
-                  );
-                  try {
-                    await launchUrl(callUrl);
-                  } catch (e) {
-                    print(e.toString());
-                  }
-                },
-                child: Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(14 * ScaleUtils.scaleFactor),
-                      color: HexColor("3957ED"),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                          vertical: 12.0 * ScaleUtils.scaleFactor,
-                          horizontal: 18 * ScaleUtils.scaleFactor),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.call,
-                            color: Colors.white,
-                          ),
-                          SizedBox(
-                            width: 8 * ScaleUtils.horizontalScale,
-                          ),
-                          Text(
-                            "Call",
-                            style: TextStyle(
-                                fontSize: 16 * ScaleUtils.scaleFactor,
-                                color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+
               SizedBox(
                 height: 10 * ScaleUtils.verticalScale,
               ),
@@ -395,6 +353,12 @@ class MemberDetailsPage extends StatelessWidget {
                             ),
                           ],
                         ),
+                        Text(
+                          "Id: ${member.id}",
+                          style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16 * ScaleUtils.scaleFactor),
+                        ),
                       ],
                     ),
                   ),
@@ -461,14 +425,14 @@ class MemberDetailsPage extends StatelessWidget {
     }
   }
 
-  void _sendSMS(String message, List<String> recipents) async {
-    String _result = await sendSMS(message: message, recipients: recipents)
-        .catchError((onError) {
-      print(onError);
-      return 'Error';
-    });
-    print(_result);
-  }
+  // void _sendSMS(String message, List<String> recipents) async {
+  //   String _result = await sendSMS(message: message, recipients: recipents)
+  //       .catchError((onError) {
+  //     print(onError);
+  //     return 'Error';
+  //   });
+  //   print(_result);
+  // }
 
   // Future<void> sendSMS(
   //     String phoneNumber, String message, String gymName) async {
