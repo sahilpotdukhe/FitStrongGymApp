@@ -50,7 +50,7 @@ export 'package:fitstrong_gym/Widgets/globals.dart';
 export 'package:flutter/material.dart';
 export 'package:cloud_firestore/cloud_firestore.dart';
 export 'package:firebase_auth/firebase_auth.dart';
-export 'package:firebase_storage/firebase_storage.dart';
+export 'package:supabase_flutter/supabase_flutter.dart' hide OAuthProvider, User;
 export 'dart:io';
 export 'package:image_picker/image_picker.dart';
 export 'package:curved_navigation_bar/curved_navigation_bar.dart';

@@ -2,6 +2,10 @@ import 'package:fitstrong_gym/src/custom_import.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://dkjdxyevbvisszhbrojt.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRramR4eWV2YnZpc3N6aGJyb2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3OTE5MTUsImV4cCI6MjA5MDM2NzkxNX0.vrt2V5xUyoRLtMXIUCQt_4EskMsEd7sZpmPMHzQ215A', // Check your Supabase project settings for this key
+  );
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
