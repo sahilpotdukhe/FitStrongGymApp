@@ -121,11 +121,18 @@ class MemberProvider with ChangeNotifier {
       final result = await FlutterImageCompress.compressAndGetFile(
           photo.path, newPath,
           quality: 40, format: CompressFormat.jpeg);
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('member_photos/${currentUser.uid}/${member.name}.jpg');
-      final uploadTask = storageRef.putFile(File(result!.path));
-      final downloadUrl = await (await uploadTask).ref.getDownloadURL();
+      final supabase = Supabase.instance.client;
+      final fileName = '${member.name}.jpg';
+      final path = 'uploads/member_photos/${currentUser.uid}/$fileName';
+
+      await supabase.storage.from('fitstrong photos').upload(
+            path,
+            File(result!.path),
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      final downloadUrl =
+          supabase.storage.from('fitstrong photos').getPublicUrl(path);
 
       final memberData = {
         'name': member.name,

@@ -157,23 +157,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
       String? signatureImageUrl = widget.userModel.signatureImageUrl;
 
       if (_imageFile != null) {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('OwnerPhotos')
-            .child('${widget.userModel.name} ${widget.userModel.uid}.jpg');
+        final supabase = Supabase.instance.client;
+        final fileName = '${widget.userModel.name} ${widget.userModel.uid}.jpg';
+        final path = 'uploads/OwnerPhotos/$fileName';
 
-        await storageRef.putFile(_imageFile!);
-        profilePhotoUrl = await storageRef.getDownloadURL();
+        await supabase.storage.from('fitstrong photos').upload(
+              path,
+              _imageFile!,
+              fileOptions: const FileOptions(upsert: true),
+            );
+        profilePhotoUrl =
+            supabase.storage.from('fitstrong photos').getPublicUrl(path);
       }
 
       if (_signatureImageFile != null) {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('Signature')
-            .child('${widget.userModel.name} ${widget.userModel.uid}.jpg');
+        final supabase = Supabase.instance.client;
+        final fileName = '${widget.userModel.name} ${widget.userModel.uid}.jpg';
+        final path = 'uploads/Signature/$fileName';
 
-        await storageRef.putFile(_signatureImageFile!);
-        signatureImageUrl = await storageRef.getDownloadURL();
+        await supabase.storage.from('fitstrong photos').upload(
+              path,
+              _signatureImageFile!,
+              fileOptions: const FileOptions(upsert: true),
+            );
+        signatureImageUrl =
+            supabase.storage.from('fitstrong photos').getPublicUrl(path);
       }
 
       UserModel updatedUser = UserModel(
