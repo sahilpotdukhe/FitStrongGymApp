@@ -235,24 +235,12 @@ class _AddGymPlanPageState extends State<AddGymPlanPage> {
 
       await Provider.of<GymPlanProvider>(context, listen: false)
           .addPlan(newPlan);
-      AwesomeDialog(
+      showSuccessDialog(
         context: context,
-        animType: AnimType.leftSlide,
-        headerAnimationLoop: true,
-        dialogType: DialogType.success,
-        showCloseIcon: true,
-        //autoHide: Duration(seconds: 6),
         title: 'Added!',
         desc:
             'You have successfully added a Gym Plan.\n Please wait you will be redirected to the Gym Plans Screen.',
-        btnOkOnPress: () {
-          debugPrint('OnClcik');
-        },
-        btnOkIcon: Icons.check_circle,
-        onDismissCallback: (type) {
-          debugPrint('Dialog Dissmiss from callback $type');
-        },
-      ).show();
+      );
       await Future.delayed(Duration(seconds: 4));
       setState(() {
         _isLoading = false;

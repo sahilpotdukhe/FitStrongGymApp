@@ -79,7 +79,7 @@ class MemberDetailsPage extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              FaIcon(
                                 FontAwesomeIcons.whatsapp,
                                 color: Colors.white,
                               ),

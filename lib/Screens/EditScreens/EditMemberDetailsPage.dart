@@ -470,24 +470,12 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
           'checkInTime': _checkInTimeController.text,
           'checkOutTime': _checkOutTimeController.text
         });
-        AwesomeDialog(
+        showSuccessDialog(
           context: context,
-          animType: AnimType.leftSlide,
-          headerAnimationLoop: true,
-          dialogType: DialogType.success,
-          showCloseIcon: true,
-          //autoHide: Duration(seconds: 6),
           title: 'Updated!',
           desc:
               'You have successfully updated the details.\n Please wait you will be redirected to the HomePage.',
-          btnOkOnPress: () {
-            debugPrint('OnClcik');
-          },
-          btnOkIcon: Icons.check_circle,
-          onDismissCallback: (type) {
-            debugPrint('Dialog Dissmiss from callback $type');
-          },
-        ).show();
+        );
         await Future.delayed(Duration(seconds: 4));
         Navigator.popAndPushNamed(context, '/home');
       }

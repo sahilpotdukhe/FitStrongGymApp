@@ -55,7 +55,7 @@ export 'dart:io';
 export 'package:image_picker/image_picker.dart';
 export 'package:curved_navigation_bar/curved_navigation_bar.dart';
 export 'package:lottie/lottie.dart';
-export 'package:awesome_dialog/awesome_dialog.dart';
+export 'package:fitstrong_gym/Widgets/SuccessDialog.dart';
 export 'package:provider/provider.dart';
 export 'package:cached_network_image/cached_network_image.dart';
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';

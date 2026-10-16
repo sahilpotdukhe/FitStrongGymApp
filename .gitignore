@@ -46,3 +46,4 @@ app.*.map.json
 env/*.json
 !env/*.json.example
 android/app/.cxx/
+android/build/
