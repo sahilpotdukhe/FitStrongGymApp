@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// Every gym's data lives under Users/{uid}. A signed-in owner may only ever
+// touch the document tree whose {uid} matches their own auth token, so one
+// gym can never read or write another gym's members, plans or attendance.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /Users/{uid} {
+      allow read, write: if isOwner(uid);
+
+      match /members/{memberId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      match /recyclebin/{memberId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      match /gymPlans/{planId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      match /attendance/{attendanceId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

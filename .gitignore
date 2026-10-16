@@ -41,3 +41,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local environment config (real keys) and native build output
+env/*.json
+!env/*.json.example
+android/app/.cxx/

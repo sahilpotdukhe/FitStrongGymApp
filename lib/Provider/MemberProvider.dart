@@ -2,6 +2,7 @@ import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 class MemberProvider with ChangeNotifier {
   List<MemberModel> _members = [];
@@ -122,13 +123,14 @@ class MemberProvider with ChangeNotifier {
           photo.path, newPath,
           quality: 40, format: CompressFormat.jpeg);
       final supabase = Supabase.instance.client;
-      final fileName = '${member.name}.jpg';
+      // Named by a generated id, not the member's name: two members sharing a
+      // name would otherwise upload to the same path and overwrite each other.
+      final fileName = '${const Uuid().v4()}.jpg';
       final path = 'uploads/member_photos/${currentUser.uid}/$fileName';
 
       await supabase.storage.from('fitstrong photos').upload(
             path,
             File(result!.path),
-            fileOptions: const FileOptions(upsert: true),
           );
 
       final downloadUrl =

@@ -125,28 +125,4 @@ class AuthMethods {
     });
   }
 
-  Future<bool> checkAlreadyRegistered(String email) async {
-    QuerySnapshot result = await fireStore
-        .collection("Users")
-        .where("email", isEqualTo: email)
-        .get();
-    final List<DocumentSnapshot> docs = result.docs;
-    // If user is already registered means it has entry in the firestore database so the doc length will be equal to or greater than 1
-    return docs.isNotEmpty ? true : false;
-  }
-
-  Future<List<UserModel>> fetchAllUsers(User currentUser) async {
-    List<UserModel> userList = [];
-    QuerySnapshot querySnapshot = await fireStore.collection("Users").get();
-    for (var i = 0; i < querySnapshot.docs.length; i++) {
-      if (querySnapshot.docs[i].id != currentUser.uid) {
-        userList.add(UserModel.fromMap(
-            querySnapshot.docs[i].data() as Map<String, dynamic>));
-      }
-    }
-    return userList;
-  }
-
-  Stream<DocumentSnapshot> getUserStream({required String uid}) =>
-      fireStore.collection("Users").doc(uid).snapshots();
 }

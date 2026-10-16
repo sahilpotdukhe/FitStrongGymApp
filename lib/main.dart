@@ -1,10 +1,17 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    throw StateError(
+        'Missing SUPABASE_URL / SUPABASE_ANON_KEY. Pass them with --dart-define-from-file=env/dev.json');
+  }
   await Supabase.initialize(
-    url: 'https://dkjdxyevbvisszhbrojt.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRramR4eWV2YnZpc3N6aGJyb2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3OTE5MTUsImV4cCI6MjA5MDM2NzkxNX0.vrt2V5xUyoRLtMXIUCQt_4EskMsEd7sZpmPMHzQ215A', // Check your Supabase project settings for this key
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
   );
   await Firebase.initializeApp();
   runApp(const MyApp());

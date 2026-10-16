@@ -147,6 +147,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
   }
 
+  Future<String> _uploadOwnerImage(String path, File file) async {
+    final supabase = Supabase.instance.client;
+    await supabase.storage.from('fitstrong photos').upload(
+          path,
+          file,
+          fileOptions: const FileOptions(upsert: true),
+        );
+    final url = supabase.storage.from('fitstrong photos').getPublicUrl(path);
+    // The path is reused on every edit, so a version marker is needed or the
+    // image cache keeps serving the previous picture.
+    return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+  }
+
   Future<void> _updateProfile() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -156,32 +169,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
       String? profilePhotoUrl = widget.userModel.profilePhoto;
       String? signatureImageUrl = widget.userModel.signatureImageUrl;
 
+      // Keyed on uid alone. Including the owner's name published it in a public
+      // URL and orphaned the old file whenever they renamed themselves.
       if (_imageFile != null) {
-        final supabase = Supabase.instance.client;
-        final fileName = '${widget.userModel.name} ${widget.userModel.uid}.jpg';
-        final path = 'uploads/OwnerPhotos/$fileName';
-
-        await supabase.storage.from('fitstrong photos').upload(
-              path,
-              _imageFile!,
-              fileOptions: const FileOptions(upsert: true),
-            );
-        profilePhotoUrl =
-            supabase.storage.from('fitstrong photos').getPublicUrl(path);
+        profilePhotoUrl = await _uploadOwnerImage(
+            'uploads/OwnerPhotos/${widget.userModel.uid}.jpg', _imageFile!);
       }
 
       if (_signatureImageFile != null) {
-        final supabase = Supabase.instance.client;
-        final fileName = '${widget.userModel.name} ${widget.userModel.uid}.jpg';
-        final path = 'uploads/Signature/$fileName';
-
-        await supabase.storage.from('fitstrong photos').upload(
-              path,
-              _signatureImageFile!,
-              fileOptions: const FileOptions(upsert: true),
-            );
-        signatureImageUrl =
-            supabase.storage.from('fitstrong photos').getPublicUrl(path);
+        signatureImageUrl = await _uploadOwnerImage(
+            'uploads/Signature/${widget.userModel.uid}.jpg',
+            _signatureImageFile!);
       }
 
       UserModel updatedUser = UserModel(

@@ -53,10 +53,11 @@ android {
 
     buildTypes {
         release {
+            // Deliberately no debug fallback: without key.properties this leaves
+            // the release unsigned, which fails visibly instead of silently
+            // shipping a debug-signed build that no device should trust.
             if (keystoreProperties['storeFile'] != null) {
                 signingConfig = signingConfigs.release
-            } else {
-                signingConfig = signingConfigs.debug
             }
             minifyEnabled = true
             shrinkResources true
