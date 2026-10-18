@@ -1,10 +1,16 @@
-
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class GymPlanProvider with ChangeNotifier {
   List<GymPlanModel> _plans = [];
 
   List<GymPlanModel> get plans => _plans;
+
+  /// Drops the cached plans on sign out, so one gym's plans can never show up
+  /// under another gym's login on the same phone.
+  void clear() {
+    _plans = [];
+    notifyListeners();
+  }
 
   Future<void> fetchPlans() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
@@ -20,7 +26,9 @@ class GymPlanProvider with ChangeNotifier {
                 name: doc['name'],
                 months: doc['months'],
                 days: doc['days'],
-                fee: (doc['fee'] is int) ? (doc['fee'] as int).toDouble() : doc['fee'],
+                fee: (doc['fee'] is int)
+                    ? (doc['fee'] as int).toDouble()
+                    : doc['fee'],
               ))
           .toList();
       notifyListeners();
@@ -52,7 +60,8 @@ class GymPlanProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updatePlan(String id, String name, int months,int days, double fee) async {
+  Future<void> updatePlan(
+      String id, String name, int months, int days, double fee) async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       await FirebaseFirestore.instance
@@ -63,7 +72,7 @@ class GymPlanProvider with ChangeNotifier {
           .update({
         'name': name,
         'months': months,
-        'days' : days,
+        'days': days,
         'fee': fee,
       });
 

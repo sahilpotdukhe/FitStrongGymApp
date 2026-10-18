@@ -10,8 +10,8 @@ class Authenticate extends StatelessWidget {
           .authStateChanges(), //Listens to Firebase Auth changes in real-time (e.g., user logs in or out).
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-              child: CircularProgressIndicator()); // Show loading spinner
+          // Themed, so the hand-off from splash to home doesn't flash white.
+          return const Scaffold(body: Loading());
         } else if (snapshot.hasData) {
           return CustomBottomNavigationBar(); // User logged in
         } else {
@@ -25,6 +25,41 @@ class Authenticate extends StatelessWidget {
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseFirestore fireStore = FirebaseFirestore.instance;
+
+  /// Why the last sign in or sign up attempt failed, in words a gym owner can
+  /// act on. Previously every failure looked identical on screen, so a typo in
+  /// the password and a dead internet connection gave the same message.
+  String? lastErrorMessage;
+
+  /// Turns Firebase's error codes into plain English.
+  static String describeAuthError(Object error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'invalid-email':
+          return 'That email address does not look right. Please check it and try again.';
+        case 'user-not-found':
+          return 'No account exists for this email address. Please sign up first.';
+        case 'wrong-password':
+        case 'invalid-credential':
+          return 'The email or password is incorrect. Please try again.';
+        case 'user-disabled':
+          return 'This account has been disabled. Please contact support.';
+        case 'email-already-in-use':
+          return 'An account already exists for this email address. Try signing in instead.';
+        case 'weak-password':
+          return 'That password is too weak. Please use at least six characters.';
+        case 'too-many-requests':
+          return 'Too many attempts. Please wait a few minutes and try again.';
+        case 'network-request-failed':
+          return 'No internet connection. Please check your network and try again.';
+        case 'operation-not-allowed':
+          return 'Email sign in is turned off for this app. Please contact support.';
+        default:
+          return error.message ?? 'Something went wrong. Please try again.';
+      }
+    }
+    return 'Something went wrong. Please try again.';
+  }
 
   Future<User?> getCurrentUser() async {
     User? currentUser = _auth.currentUser;
@@ -40,37 +75,35 @@ class AuthMethods {
 
   Future<User?> createAccountByEmail(
       String email, String password, BuildContext context) async {
+    lastErrorMessage = null;
     try {
       User? user = (await _auth.createUserWithEmailAndPassword(
               email: email, password: password))
           .user;
-      if (user != null) {
-        print("User Created Successfully");
-        return user;
-      } else {
-        print("Account creation failed");
-        return user;
+      if (user == null) {
+        lastErrorMessage = 'Account creation failed. Please try again.';
       }
+      return user;
     } catch (e) {
       print(e);
+      lastErrorMessage = describeAuthError(e);
       return null;
     }
   }
 
   Future<User?> logInByEmail(String email, String password) async {
+    lastErrorMessage = null;
     try {
       User? user = (await _auth.signInWithEmailAndPassword(
               email: email, password: password))
           .user;
-      if (user != null) {
-        print("Login Successful");
-        return user;
-      } else {
-        print("Login failed");
-        return user;
+      if (user == null) {
+        lastErrorMessage = 'Login failed. Please try again.';
       }
+      return user;
     } catch (e) {
       print(e);
+      lastErrorMessage = describeAuthError(e);
       return null;
     }
   }
@@ -124,29 +157,4 @@ class AuthMethods {
       'upiId': user.upiId,
     });
   }
-
-  Future<bool> checkAlreadyRegistered(String email) async {
-    QuerySnapshot result = await fireStore
-        .collection("Users")
-        .where("email", isEqualTo: email)
-        .get();
-    final List<DocumentSnapshot> docs = result.docs;
-    // If user is already registered means it has entry in the firestore database so the doc length will be equal to or greater than 1
-    return docs.isNotEmpty ? true : false;
-  }
-
-  Future<List<UserModel>> fetchAllUsers(User currentUser) async {
-    List<UserModel> userList = [];
-    QuerySnapshot querySnapshot = await fireStore.collection("Users").get();
-    for (var i = 0; i < querySnapshot.docs.length; i++) {
-      if (querySnapshot.docs[i].id != currentUser.uid) {
-        userList.add(UserModel.fromMap(
-            querySnapshot.docs[i].data() as Map<String, dynamic>));
-      }
-    }
-    return userList;
-  }
-
-  Stream<DocumentSnapshot> getUserStream({required String uid}) =>
-      fireStore.collection("Users").doc(uid).snapshots();
 }

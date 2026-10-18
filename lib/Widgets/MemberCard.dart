@@ -1,428 +1,245 @@
-import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
 
+/// A member in a list: photo, name, plan, status, key dates and the three
+/// actions a gym owner reaches for — edit, renew, delete.
 class MemberCard extends StatefulWidget {
+  const MemberCard({super.key, required this.member, this.onTap});
+
   final MemberModel member;
 
-  const MemberCard({super.key, required this.member});
+  /// Opens the member's full details. Optional so the card still works in
+  /// places where tapping it should do nothing.
+  final VoidCallback? onTap;
 
   @override
   State<MemberCard> createState() => _MemberCardState();
 }
 
 class _MemberCardState extends State<MemberCard> {
+  bool _deleting = false;
+
+  Future<void> _confirmDelete() async {
+    final t = context.shadcn;
+    final confirmed = await showShadcnAlertDialog(
+      context,
+      icon: ShadcnIconBadge(
+        Icons.delete_outline_rounded,
+        color: t.destructive,
+      ),
+      title: 'Delete ${widget.member.name}?',
+      // Says where the record actually goes — the old copy implied the data
+      // was gone for good, when it is recoverable from the recycle bin.
+      description:
+          'They move to the recycle bin, so you can restore them later if '
+          'this was a mistake.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _deleting = true);
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    try {
+      // Goes through the provider, which moves the member into the recycle
+      // bin and removes them from the member list in a single batch.
+      await memberProvider.deleteMember(widget.member);
+      if (!mounted) return;
+      showSuccessToast(
+        context,
+        'Member deleted',
+        description: '${widget.member.name} moved to the recycle bin',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showErrorToast(
+        context,
+        'Could not delete member',
+        description: 'Check your connection and try again.',
+      );
+    } finally {
+      if (mounted) setState(() => _deleting = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    ScaleUtils.init(context);
+    final t = context.shadcn;
     final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
     final plan = GymPlanModel.findById(plans, widget.member.planId);
-    final planName = plan?.name ?? 'Unknown Plan';
-    final isExpired = widget.member.isExpired(plans);
+    final planName = plan?.name ?? 'Unknown plan';
+    final member = widget.member;
 
     return Padding(
-      padding: EdgeInsets.all(8.0 * ScaleUtils.scaleFactor),
-      child: Card(
-        elevation: 15,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30 * ScaleUtils.scaleFactor),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  SizedBox(
-                    width: 10 * ScaleUtils.horizontalScale,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(8.0 * ScaleUtils.scaleFactor),
-                    child: CachedImage(
-                        imageUrl: widget.member.photoUrl,
-                        isRound: true,
-                        radius: 60,
-                        height: 0,
-                        width: 0,
-                        fit: BoxFit.cover),
-                  ),
-                  SizedBox(
-                    width: 10 * ScaleUtils.horizontalScale,
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.member.name,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 16 * ScaleUtils.scaleFactor,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        Text(
-                          planName,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 13 * ScaleUtils.scaleFactor,
-                              color: HexColor('#6B7280')),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color:
-                          isExpired ? HexColor('#FEE2E2') : HexColor('#8ceaba'),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      child: Text(
-                        isExpired ? "Expired" : "Active",
-                        style: TextStyle(
-                            color: isExpired ? Colors.red : HexColor('#047857'),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 20 * ScaleUtils.horizontalScale,
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 10 * ScaleUtils.horizontalScale,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Gender: ',
-                              style: TextStyle(
-                                  color: HexColor('#6B7280'),
-                                  fontSize: 13 * ScaleUtils.scaleFactor),
-                            ),
-                            SizedBox(width: 30),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                widget.member.gender,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 13 * ScaleUtils.scaleFactor),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              'Mobile: ',
-                              style: TextStyle(
-                                  color: HexColor('#6B7280'),
-                                  fontSize: 13 * ScaleUtils.scaleFactor),
-                            ),
-                            SizedBox(width: 30),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                widget.member.mobileNumber,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 13 * ScaleUtils.scaleFactor),
-                              ),
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              'Joined: ',
-                              style: TextStyle(
-                                  color: HexColor('#6B7280'),
-                                  fontSize: 13 * ScaleUtils.scaleFactor),
-                            ),
-                            SizedBox(width: 30),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                DateFormat('d MMM, yyyy')
-                                    .format(widget.member.dateOfAdmission),
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 13 * ScaleUtils.scaleFactor),
-                              ),
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              'Expires:',
-                              style: TextStyle(
-                                  color: HexColor('#6B7280'),
-                                  fontSize: 13 * ScaleUtils.scaleFactor),
-                            ),
-                            SizedBox(width: 30),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                DateFormat('d MMM, yyyy')
-                                    .format(widget.member.expiryDate),
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 13 * ScaleUtils.scaleFactor),
-                              ),
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+      padding: const EdgeInsets.only(bottom: ShadcnSpacing.md),
+      child: ShadcnCard(
+        onTap: widget.onTap,
+        padding: const EdgeInsets.all(ShadcnSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShadcnAvatar(
+                  member.photoUrl,
+                  size: 52,
+                  placeholder: const ShadcnSkeleton.circle(size: 52),
+                  initials: member.name,
+                  backgroundColor: t.secondary,
                 ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              EditMemberDetailsPage(member: widget.member),
+                const ShadcnGap(ShadcnSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        member.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: t.cardForeground,
                         ),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: HexColor('#d5d9e0'),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.edit),
-                            SizedBox(
-                              width: 6 * ScaleUtils.horizontalScale,
-                            ),
-                            Text(
-                              'Edit',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                      const SizedBox(height: 2),
+                      Text(
+                        planName,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: t.mutedForeground,
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                const ShadcnGap(ShadcnSpacing.sm),
+                MembershipBadge(member: member),
+              ],
+            ),
+            const ShadcnGap(ShadcnSpacing.lg),
+            // A two-column grid of facts. The old version used a fixed 30px
+            // gap between label and value, so longer values pushed out of
+            // alignment from row to row.
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Fact(label: 'Mobile', value: member.mobileNumber),
+                      const ShadcnGap(ShadcnSpacing.sm),
+                      _Fact(label: 'Gender', value: member.gender),
+                    ],
+                  ),
+                ),
+                const ShadcnGap(ShadcnSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Fact(
+                        label: 'Joined',
+                        value: DateFormat('d MMM yyyy')
+                            .format(member.dateOfAdmission),
+                      ),
+                      const ShadcnGap(ShadcnSpacing.sm),
+                      _Fact(
+                        label: 'Expires',
+                        value:
+                            DateFormat('d MMM yyyy').format(member.expiryDate),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const ShadcnGap(ShadcnSpacing.lg),
+            const ShadcnSeparator(),
+            const ShadcnGap(ShadcnSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: ShadcnButton(
+                    variant: ShadcnButtonVariant.outline,
+                    size: ShadcnButtonSize.sm,
+                    leading: const Icon(Icons.edit_outlined, size: 16),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EditMemberDetailsPage(member: member),
                       ),
                     ),
+                    child: const Text('Edit'),
                   ),
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              RenewMembershipPage(member: widget.member),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: HexColor('#DBEAFE'),
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.autorenew,
-                              color: HexColor('#1D69E3'),
-                            ),
-                            SizedBox(
-                              width: 6 * ScaleUtils.horizontalScale,
-                            ),
-                            Text(
-                              'Renew',
-                              style: TextStyle(
-                                  color: HexColor('#1D69E3'),
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
+                ),
+                const ShadcnGap(ShadcnSpacing.sm),
+                Expanded(
+                  child: ShadcnButton(
+                    size: ShadcnButtonSize.sm,
+                    leading: const Icon(Icons.autorenew_rounded, size: 16),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RenewMembershipPage(member: member),
                       ),
                     ),
+                    child: const Text('Renew'),
                   ),
-                  InkWell(
-                    onTap: () async {
-                      bool confirmDelete = await showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return Dialog(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.white,
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.warning_amber_rounded,
-                                      color: Colors.red, size: 50),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    'Confirm Deletion',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    'Are you sure you want to delete this member?',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.black54),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.grey[300],
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                        ),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(false),
-                                        child: Text(
-                                          'Cancel',
-                                          style: TextStyle(color: Colors.black),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                        ),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(true),
-                                        child: Text(
-                                          'Delete',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-
-                      if (confirmDelete == true) {
-                        try {
-                          User? currentUser = FirebaseAuth.instance.currentUser;
-                          if (currentUser != null) {
-                            // Delete the member from the user's members subCollection
-                            await FirebaseFirestore.instance
-                                .collection('Users')
-                                .doc(currentUser.uid)
-                                .collection('members')
-                                .doc(widget.member.id)
-                                .delete();
-
-                            // Move the member to the user's recycleBin subCollection
-                            await FirebaseFirestore.instance
-                                .collection('Users')
-                                .doc(currentUser.uid)
-                                .collection('recyclebin')
-                                .doc(widget.member.id)
-                                .set(widget.member.toMap());
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text('Member deleted successfully')),
-                            );
-
-                            // Refresh the member list
-                            Provider.of<MemberProvider>(context, listen: false)
-                                .getAllMembers();
-                          }
-                        } catch (error) {
-                          print('Error deleting member: $error');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to delete member')),
-                          );
-                        }
-                      }
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: HexColor('#FEE2E2'),
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.delete,
-                              color: HexColor('#B91C3C'),
-                            ),
-                            SizedBox(
-                              width: 6 * ScaleUtils.horizontalScale,
-                            ),
-                            Text(
-                              'Delete',
-                              style: TextStyle(
-                                  color: HexColor('#B91C3C'),
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
-            ],
-          ),
+                ),
+                const ShadcnGap(ShadcnSpacing.sm),
+                ShadcnButton(
+                  variant: ShadcnButtonVariant.ghost,
+                  size: ShadcnButtonSize.icon,
+                  loading: _deleting,
+                  foregroundColor: t.destructive,
+                  onPressed: _confirmDelete,
+                  child: const Icon(Icons.delete_outline_rounded, size: 18),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+/// One label/value pair inside a card.
+class _Fact extends StatelessWidget {
+  const _Fact({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.shadcn;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 10,
+            letterSpacing: 0.6,
+            fontWeight: FontWeight.w600,
+            color: t.mutedForeground,
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          value.isEmpty ? '—' : value,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 13.5, color: t.cardForeground),
+        ),
+      ],
     );
   }
 }

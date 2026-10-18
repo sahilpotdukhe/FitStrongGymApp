@@ -1,264 +1,183 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// Create a membership plan — a name, how long it lasts, and what it costs.
 class AddGymPlanPage extends StatefulWidget {
+  const AddGymPlanPage({super.key});
+
   @override
-  _AddGymPlanPageState createState() => _AddGymPlanPageState();
+  State<AddGymPlanPage> createState() => _AddGymPlanPageState();
 }
 
 class _AddGymPlanPageState extends State<AddGymPlanPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _monthsController = TextEditingController();
-  final _daysController = TextEditingController(); // New controller for days
-
+  final _daysController = TextEditingController(text: '0');
   final _feeController = TextEditingController();
   bool _isLoading = false;
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _monthsController.dispose();
+    _daysController.dispose();
+    _feeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    ScaleUtils.init(context);
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: UniversalVariables.appThemeColor,
-        iconTheme: IconThemeData(
-          color: Colors.white, //change your color here
-        ),
-        title: Text(
-          'Add Gym Plan',
-          style: TextStyle(color: Colors.white),
-        ),
-        leading: IconButton(
-          onPressed: () {
-            Navigator.popAndPushNamed(context, '/home');
-          },
-          icon: Icon(Icons.arrow_back_outlined),
-        ),
-      ),
-      body: Stack(children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
+    return Stack(
+      children: [
+        AppScaffold(
+          title: 'New plan',
+          leading: ShadcnButton(
+            variant: ShadcnButtonVariant.ghost,
+            size: ShadcnButtonSize.icon,
+            onPressed: () => Navigator.popAndPushNamed(context, '/home'),
+            child: const Icon(Icons.arrow_back_rounded, size: 20),
+          ),
+          bottomBar: ShadcnButton(
+            fullWidth: true,
+            size: ShadcnButtonSize.lg,
+            loading: _isLoading,
+            leading: const Icon(Icons.check_rounded, size: 18),
+            onPressed: _saveForm,
+            child: const Text('Create plan'),
+          ),
+          body: Form(
             key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl,
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl2,
+              ),
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Plan name',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-                TextFormField(
+                ShadcnInput(
                   controller: _nameController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter Plan Name',
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2),
+                  label: 'Plan name',
+                  placeholder: 'e.g. Quarterly',
+                  textCapitalization: TextCapitalization.words,
+                  leading: const Icon(Icons.card_membership_outlined, size: 18),
+                  validator:
+                      ShadcnValidators.required('Please enter a plan name'),
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ShadcnInput(
+                        controller: _monthsController,
+                        label: 'Months',
+                        placeholder: '3',
+                        keyboardType: TextInputType.number,
+                        validator: ShadcnValidators.combine([
+                          ShadcnValidators.required('Required'),
+                          ShadcnValidators.pattern(
+                            RegExp(r'^\d+$'),
+                            'Whole numbers only',
+                          ),
+                        ]),
+                      ),
                     ),
-                    suffixIcon: Icon(Icons.card_membership),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter plan name';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Months',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-                TextFormField(
-                  controller: _monthsController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter Months',
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    Expanded(
+                      child: ShadcnInput(
+                        controller: _daysController,
+                        label: 'Extra days',
+                        placeholder: '0',
+                        keyboardType: TextInputType.number,
+                        validator: ShadcnValidators.combine([
+                          ShadcnValidators.required('Required'),
+                          ShadcnValidators.pattern(
+                            RegExp(r'^\d+$'),
+                            'Whole numbers only',
+                          ),
+                        ]),
+                      ),
                     ),
-                    suffixIcon: Icon(
-                      Icons.calendar_month_sharp,
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null ||
-                        value.isEmpty ||
-                        int.tryParse(value) == null) {
-                      return 'Please enter a valid number of months';
-                    }
-                    return null;
-                  },
+                  ],
                 ),
-                SizedBox(
-                  height: 10,
+                const ShadcnGap(ShadcnSpacing.sm),
+                ShadcnText(
+                  'A plan can be months, days, or both — 1 month plus 15 days, for example.',
+                  variant: ShadcnTextVariant.small,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Days',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-                TextFormField(
-                  controller: _daysController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter Days',
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2),
-                    ),
-                    suffixIcon: Icon(
-                      Icons.calendar_today,
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null ||
-                        value.isEmpty ||
-                        int.tryParse(value) == null) {
-                      return 'Please enter a valid number of days';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Fees',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-                TextFormField(
+                const ShadcnGap(ShadcnSpacing.lg),
+                ShadcnInput(
                   controller: _feeController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter Fees',
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2),
-                    ),
-                    suffixIcon: Icon(
-                      Icons.attach_money,
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null ||
-                        value.isEmpty ||
-                        double.tryParse(value) == null) {
-                      return 'Please enter a valid fee';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _saveForm,
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    child: Text(
-                      'Add Plan',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+                  label: 'Fee',
+                  placeholder: '0',
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  leading: const Text('₹'),
+                  validator: ShadcnValidators.combine([
+                    ShadcnValidators.required('Please enter the fee'),
+                    ShadcnValidators.numeric('Numbers only'),
+                  ]),
                 ),
               ],
             ),
           ),
         ),
-        if (_isLoading)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.5),
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          ),
-      ]),
+        if (_isLoading) const AppSavingOverlay(message: 'Creating plan…'),
+      ],
     );
   }
 
   void _saveForm() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-      final newPlan = GymPlanModel(
-        id: '',
-        // ID will be generated by Firestore
-        name: _nameController.text,
-        months: int.parse(_monthsController.text),
-        days: int.parse(_daysController.text),
-        fee: double.parse(_feeController.text),
-      );
+    if (!_formKey.currentState!.validate()) return;
 
+    // A plan of zero length would make every membership expire the day it
+    // starts, and the plans list would divide by zero working out its
+    // monthly price.
+    final months = int.parse(_monthsController.text);
+    final days = int.parse(_daysController.text);
+    if (months == 0 && days == 0) {
+      showErrorToast(
+        context,
+        'Plan has no length',
+        description: 'Set at least one month or one day.',
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final newPlan = GymPlanModel(
+      id: '',
+      // ID will be generated by Firestore
+      name: _nameController.text,
+      months: months,
+      days: days,
+      fee: double.parse(_feeController.text),
+    );
+
+    try {
       await Provider.of<GymPlanProvider>(context, listen: false)
           .addPlan(newPlan);
-      AwesomeDialog(
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      showErrorDialog(
         context: context,
-        animType: AnimType.leftSlide,
-        headerAnimationLoop: true,
-        dialogType: DialogType.success,
-        showCloseIcon: true,
-        //autoHide: Duration(seconds: 6),
-        title: 'Added!',
-        desc:
-            'You have successfully added a Gym Plan.\n Please wait you will be redirected to the Gym Plans Screen.',
-        btnOkOnPress: () {
-          debugPrint('OnClcik');
-        },
-        btnOkIcon: Icons.check_circle,
-        onDismissCallback: (type) {
-          debugPrint('Dialog Dissmiss from callback $type');
-        },
-      ).show();
-      await Future.delayed(Duration(seconds: 4));
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.pop(context);
-      Navigator.popAndPushNamed(context, 'gym-plans');
+        title: 'Could not create plan',
+        desc: 'Check your connection and try again.',
+      );
+      return;
     }
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    await showSuccessDialog(
+      context: context,
+      title: 'Plan created',
+      desc: '${newPlan.name} can now be assigned to members.',
+    );
+    if (!mounted) return;
+    Navigator.pop(context);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// The gym owner's own profile — what's on file, and the way out of the app.
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -8,306 +9,161 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  AuthMethods authMethods = AuthMethods();
+  final AuthMethods authMethods = AuthMethods();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    userProvider.refreshUser();
+    Provider.of<UserProvider>(context, listen: false).refreshUser();
+  }
+
+  Future<void> _confirmLogout() async {
+    final t = context.shadcn;
+    final confirmed = await showShadcnAlertDialog(
+      context,
+      icon: ShadcnIconBadge(Icons.logout_rounded, color: t.destructive),
+      title: 'Sign out?',
+      description: 'You will need your email and password to get back in.',
+      confirmLabel: 'Sign out',
+      destructive: true,
+    );
+    if (confirmed != true || !mounted) return;
+
+    // Matches the menu page: nothing from this gym is left in memory for the
+    // next person who signs in on this phone.
+    Provider.of<MemberProvider>(context, listen: false).clear();
+    Provider.of<GymPlanProvider>(context, listen: false).clear();
+    Provider.of<UserProvider>(context, listen: false).clear();
+    Provider.of<AttendanceProvider>(context, listen: false).clear();
+    Provider.of<InvoiceProvider>(context, listen: false).clear();
+    Provider.of<TrainerProvider>(context, listen: false).clear();
+
+    authMethods.logOut(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    ScaleUtils.init(context);
-    UserProvider userProvider = Provider.of<UserProvider>(context);
-    UserModel? userModel = userProvider.getUser;
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: UniversalVariables.appThemeColor,
-        iconTheme: IconThemeData(
-          color: Colors.white, //change your color here
-        ),
-        title: Text('Profile', style: TextStyle(color: Colors.white)),
-      ),
-      backgroundColor: Colors.white,
-      body: userModel == null
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Container(
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(height: 70 * ScaleUtils.verticalScale),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (_) {
-                            return FullImageWidget(
-                              imageUrl: userModel!.profilePhoto,
-                            );
-                          }));
-                        },
-                        child: CircleAvatar(
-                          radius: 65 * ScaleUtils.scaleFactor,
-                          child: CircleAvatar(
-                            radius: 60 * ScaleUtils.scaleFactor,
-                            backgroundColor: Colors.transparent,
-                            backgroundImage: AssetImage('assets/user.jpg'),
-                            foregroundImage:
-                                NetworkImage(userModel!.profilePhoto),
-                          ),
-                        ),
-                      ),
+    final t = context.shadcn;
+    final UserModel? userModel = Provider.of<UserProvider>(context).getUser;
 
-                      SizedBox(
-                        height: 10 * ScaleUtils.verticalScale,
-                      ),
-                      Text(
-                        userModel.name,
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 25 * ScaleUtils.scaleFactor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Padding(
-                            padding:
-                                EdgeInsets.all(8.0 * ScaleUtils.scaleFactor),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditProfilePage(
-                                                    userModel: userModel)));
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(
-                                          20 * ScaleUtils.scaleFactor),
-                                      color: HexColor("3957ED"),
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(
-                                          12.0 * ScaleUtils.scaleFactor),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            "Edit Profile",
-                                            style: TextStyle(
-                                                fontSize:
-                                                    14 * ScaleUtils.scaleFactor,
-                                                color: Colors.white),
-                                          ),
-                                          SizedBox(
-                                            width: 8 * ScaleUtils.verticalScale,
-                                          ),
-                                          Icon(
-                                            Icons.edit,
-                                            color: Colors.white,
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              authMethods.logOut(context);
-                              // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {return NewLoginScreen();}));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content:
-                                          Text("Account Logging Out....")));
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(
-                                    20 * ScaleUtils.scaleFactor),
-                                color: HexColor("EE3427"),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(
-                                    12.0 * ScaleUtils.scaleFactor),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      "Logout",
-                                      style: TextStyle(
-                                          fontSize: 16 * ScaleUtils.scaleFactor,
-                                          color: Colors.white),
-                                    ),
-                                    SizedBox(
-                                      width: 8 * ScaleUtils.horizontalScale,
-                                    ),
-                                    Icon(
-                                      Icons.logout,
-                                      color: Colors.white,
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      // SizedBox(
-                      //   height: 20*ScaleUtils.verticalScale,
-                      // ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 10 * ScaleUtils.horizontalScale,
-                            vertical: 20 * ScaleUtils.verticalScale),
-                        child: Card(
-                          elevation: 10,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(
-                                  18 * ScaleUtils.scaleFactor),
-                            ),
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.all(18.0 * ScaleUtils.scaleFactor),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Name",
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Text(
-                                    userModel.name,
-                                    style: TextStyle(
-                                        fontSize: 15 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Divider(),
-                                  Text(
-                                    "Email",
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Text(
-                                    userModel.email,
-                                    style: TextStyle(
-                                        fontSize: 15 * ScaleUtils.scaleFactor),
-                                  ),
-                                  (userModel.merchantName == '')
-                                      ? Container()
-                                      : Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Divider(),
-                                            Text(
-                                              "Merchant Name(Payment)",
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 16 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                            Text(
-                                              userModel.merchantName,
-                                              style: TextStyle(
-                                                  fontSize: 15 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                          ],
-                                        ),
-                                  (userModel.upiId == '')
-                                      ? Container()
-                                      : Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Divider(),
-                                            Text(
-                                              "UPI Id",
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 16 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                            Text(
-                                              userModel.upiId,
-                                              style: TextStyle(
-                                                  fontSize: 15 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                          ],
-                                        ),
-                                  (userModel.phoneNumber == '')
-                                      ? Container()
-                                      : Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Divider(),
-                                            Text(
-                                              "Phone number",
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 16 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                            Text(
-                                              userModel.phoneNumber,
-                                              style: TextStyle(
-                                                  fontSize: 15 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                          ],
-                                        ),
-                                  (userModel.address == '')
-                                      ? Container()
-                                      : Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Divider(),
-                                            Text(
-                                              "Address",
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 16 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                            Text(
-                                              userModel.address,
-                                              style: TextStyle(
-                                                  fontSize: 15 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                          ],
-                                        ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+    if (userModel == null) {
+      return const AppScaffold(title: 'Profile', body: Loading());
+    }
+
+    return AppScaffold(
+      title: 'Profile',
+      actions: [
+        ShadcnButton(
+          variant: ShadcnButtonVariant.ghost,
+          size: ShadcnButtonSize.icon,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditProfilePage(userModel: userModel),
+            ),
+          ),
+          child: const Icon(Icons.edit_outlined, size: 20),
+        ),
+      ],
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          ShadcnSpacing.lg,
+          ShadcnSpacing.xl,
+          ShadcnSpacing.lg,
+          ShadcnSpacing.xl2,
+        ),
+        children: [
+          Center(
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          FullImageWidget(imageUrl: userModel.profilePhoto),
+                    ),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: t.border, width: 2),
+                    ),
+                    child: ShadcnAvatar(
+                      userModel.profilePhoto,
+                      size: 104,
+                      placeholder: const ShadcnSkeleton.circle(size: 104),
+                      initials: userModel.name,
+                      backgroundColor: t.secondary,
+                    ),
                   ),
                 ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                ShadcnText(userModel.name, variant: ShadcnTextVariant.h2),
+                const ShadcnGap(ShadcnSpacing.xs),
+                ShadcnText(userModel.email, variant: ShadcnTextVariant.muted),
+              ],
+            ),
+          ),
+          const ShadcnGap(ShadcnSpacing.xl2),
+          AppDetailSection(
+            title: 'Contact',
+            children: [
+              AppInfoRow(
+                label: 'Phone',
+                value: userModel.phoneNumber,
+                icon: Icons.phone_outlined,
+              ),
+              AppInfoRow(
+                label: 'Address',
+                value: userModel.address,
+                icon: Icons.place_outlined,
+                last: true,
+              ),
+            ],
+          ),
+          const ShadcnGap(ShadcnSpacing.xl),
+          AppDetailSection(
+            title: 'Payments',
+            children: [
+              AppInfoRow(
+                label: 'Merchant name',
+                value: userModel.merchantName,
+                icon: Icons.storefront_outlined,
+              ),
+              AppInfoRow(
+                label: 'UPI ID',
+                value: userModel.upiId,
+                icon: Icons.qr_code_rounded,
+                last: true,
+              ),
+            ],
+          ),
+          const ShadcnGap(ShadcnSpacing.xl2),
+          ShadcnButton(
+            fullWidth: true,
+            variant: ShadcnButtonVariant.outline,
+            leading: const Icon(Icons.edit_outlined, size: 18),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditProfilePage(userModel: userModel),
               ),
             ),
+            child: const Text('Edit profile'),
+          ),
+          const ShadcnGap(ShadcnSpacing.md),
+          ShadcnButton(
+            fullWidth: true,
+            variant: ShadcnButtonVariant.ghost,
+            foregroundColor: t.destructive,
+            leading: const Icon(Icons.logout_rounded, size: 18),
+            onPressed: _confirmLogout,
+            child: const Text('Sign out'),
+          ),
+        ],
+      ),
     );
   }
 }

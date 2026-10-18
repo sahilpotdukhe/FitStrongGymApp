@@ -1,8 +1,10 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// Name search over whichever member list the user came from.
 class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key, required this.screen});
+
   final String screen;
-  const SearchScreen({Key? key, required this.screen}) : super(key: key);
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -11,40 +13,26 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   List<MemberModel> memberList = [];
   String query = "";
-  TextEditingController searchController = TextEditingController();
-  FocusNode searchFocusNode = FocusNode();
+  final TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
-    if (widget.screen == 'All') {
-      memberProvider.getAllMembers().then((list) {
-        setState(() {
-          memberList = list;
-        });
-      });
-    } else if (widget.screen == 'Active') {
-      memberProvider.fetchActiveMembers().then((list) {
-        setState(() {
-          memberList = list;
-        });
-      });
-    } else if (widget.screen == 'Expired') {
-      memberProvider.fetchExpiredMembers().then((list) {
-        setState(() {
-          memberList = list;
-        });
-      });
-    } else {
-      memberProvider.fetchRecycleBinMembers().then((list) {
-        setState(() {
-          memberList = list;
-        });
-      });
-    }
+    final Future<List<MemberModel>> source = switch (widget.screen) {
+      'All' => memberProvider.getAllMembers(),
+      'Active' => memberProvider.fetchActiveMembers(),
+      'Expired' => memberProvider.fetchExpiredMembers(),
+      _ => memberProvider.fetchRecycleBinMembers(),
+    };
+    source.then((list) {
+      if (!mounted) return;
+      setState(() => memberList = list);
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(searchFocusNode);
+      if (mounted) FocusScope.of(context).requestFocus(searchFocusNode);
     });
   }
 
@@ -57,79 +45,69 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
-        backgroundColor: UniversalVariables.appThemeColor,
-        title: TextField(
-          style: TextStyle(color: Colors.white),
+    final t = context.shadcn;
+
+    return AppScaffold(
+      // Expanded because the app bar lays its title out in a Row — an
+      // unbounded text field there would overflow.
+      titleWidget: Expanded(
+        child: ShadcnInput(
           controller: searchController,
           focusNode: searchFocusNode,
+          placeholder: 'Search by name',
           textInputAction: TextInputAction.search,
-          decoration: InputDecoration(
-            hintText: 'Search',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white),
-          ),
-          onChanged: (val) {
-            setState(() {
-              query = val;
-            });
-          },
+          leading: const Icon(Icons.search_rounded, size: 18),
+          trailing: query.isEmpty
+              ? null
+              : GestureDetector(
+                  onTap: () {
+                    searchController.clear();
+                    setState(() => query = "");
+                  },
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: t.mutedForeground,
+                  ),
+                ),
+          onChanged: (val) => setState(() => query = val),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.close,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              WidgetsBinding.instance
-                  .addPostFrameCallback((_) => searchController.clear());
-              setState(() {
-                query = "";
-              });
-            },
-          ),
-        ],
       ),
       body: query.isEmpty
-          ? SearchQuietBox(
-              screen: "search",
-            )
+          ? const SearchQuietBox(screen: "search")
           : buildSuggestions(query),
     );
   }
 
-  buildSuggestions(String query) {
-    final List<MemberModel> suggestionList = query.isEmpty
-        ? []
-        : memberList.where((MemberModel member) {
-            String getName = member.name.toLowerCase();
-            String queryLower = query.toLowerCase();
-            return getName.contains(queryLower);
-          }).toList();
+  Widget buildSuggestions(String query) {
+    final queryLower = query.toLowerCase().trim();
+    final suggestionList = queryLower.isEmpty
+        ? <MemberModel>[]
+        : memberList
+            .where((member) => member.name.toLowerCase().contains(queryLower))
+            .toList();
 
-    return suggestionList.isEmpty
-        ? SearchQuietBox(
-            screen: "empty",
-          )
-        : ListView.builder(
-            itemCount: suggestionList.length,
-            itemBuilder: (context, index) {
-              MemberModel searchedMember = suggestionList[index];
-              return InkWell(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                MemberDetailsPage(member: searchedMember)));
-                  },
-                  child: widget.screen == 'RecycleBin'
-                      ? RecycleMemberCard(recycleBinMember: searchedMember)
-                      : MemberCard(member: searchedMember));
-            },
-          );
+    if (suggestionList.isEmpty) return const SearchQuietBox(screen: "empty");
+
+    // The recycle bin needs its own card — restore/delete-forever rather than
+    // edit/renew — so it keeps a separate list here.
+    if (widget.screen == 'RecycleBin') {
+      return ListView.builder(
+        padding: const EdgeInsets.fromLTRB(
+          ShadcnSpacing.lg,
+          ShadcnSpacing.md,
+          ShadcnSpacing.lg,
+          ShadcnSpacing.xl4,
+        ),
+        itemCount: suggestionList.length,
+        itemBuilder: (context, index) =>
+            RecycleMemberCard(recycleBinMember: suggestionList[index]),
+      );
+    }
+
+    return MemberListView(
+      members: suggestionList,
+      empty: const SearchQuietBox(screen: "empty"),
+    );
   }
 }

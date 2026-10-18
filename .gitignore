@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -41,3 +43,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local environment config (real keys) and native build output
+env/*.json
+!env/*.json.example
+android/app/.cxx/
+android/build/
+
+# Local-only package overrides (see pubspec_overrides.yaml)
+pubspec_overrides.yaml
