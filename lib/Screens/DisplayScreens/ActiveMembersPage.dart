@@ -1,71 +1,57 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// Members whose membership is still running.
 class ActiveMembersPage extends StatefulWidget {
   const ActiveMembersPage({super.key});
 
   @override
-  _ActiveMembersPageState createState() => _ActiveMembersPageState();
+  State<ActiveMembersPage> createState() => _ActiveMembersPageState();
 }
 
 class _ActiveMembersPageState extends State<ActiveMembersPage> {
   @override
   void initState() {
     super.initState();
-    // Fetch members when the page is initialized
+    _load();
+  }
+
+  Future<void> _load() async {
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
-    memberProvider.fetchActiveMembers().then((_) {
-      setState(() {}); // Rebuild the widget after fetching members
-    });
+    await memberProvider.fetchActiveMembers();
+    // The provider notifies its listeners, so no manual setState is needed
+    // here any more.
   }
 
   @override
   Widget build(BuildContext context) {
-    final memberProvider = Provider.of<MemberProvider>(context);
-    final activeMembers = memberProvider.activeMembers;
+    final activeMembers = Provider.of<MemberProvider>(context).activeMembers;
 
-    return Scaffold(
-      backgroundColor: UniversalVariables.bgColor,
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Colors.white, //change your color here
-        ),
-        backgroundColor: UniversalVariables.appThemeColor,
-        title: Text(
-          'Active Members',
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.search,
-              color: Colors.white,
+    return AppScaffold(
+      title: 'Active members',
+      actions: [
+        ShadcnButton(
+          variant: ShadcnButtonVariant.ghost,
+          size: ShadcnButtonSize.icon,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SearchScreen(screen: 'Active'),
             ),
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SearchScreen(screen: 'Active',)));
-            },
-          )
-        ],
+          ),
+          child: const Icon(Icons.search_rounded, size: 20),
+        ),
+      ],
+      body: MemberListView(
+        members: activeMembers,
+        onRefresh: _load,
+        empty: const AppEmptyState(
+          icon: Icons.person_off_outlined,
+          title: 'No active members',
+          description:
+              'Nobody has a running membership right now. Renew a membership '
+              'or add a new member to see them here.',
+        ),
       ),
-      body: activeMembers.isEmpty
-          ? MembersQuietBox(screen: 'nomembers',)
-          : ListView.builder(
-              itemCount: activeMembers.length,
-              itemBuilder: (context, index) {
-                final activeMember = activeMembers[index];
-                return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  MemberDetailsPage(member: activeMember)));
-                    },
-                    child: MemberCard(
-                      member: activeMember,
-                    ));
-              },
-            ),
     );
   }
 }

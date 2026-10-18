@@ -1,457 +1,342 @@
-import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
-// import 'package:flutter_sms/flutter_sms.dart';
 import 'package:intl/intl.dart';
 
+/// Everything recorded about one member, plus the actions you take on them:
+/// message, call, mark present, edit and renew.
 class MemberDetailsPage extends StatelessWidget {
+  const MemberDetailsPage({required this.member, super.key});
+
   final MemberModel member;
 
-  const MemberDetailsPage({required this.member, Key? key}) : super(key: key);
+  /// Records today's check in for this member. Marking the same person twice
+  /// in one day does nothing beyond saying so.
+  Future<void> _markAttendance(BuildContext context) async {
+    final attendanceProvider =
+        Provider.of<AttendanceProvider>(context, listen: false);
+    try {
+      final marked = await attendanceProvider.markAttendance(member.name);
+      if (!context.mounted) return;
+      if (marked) {
+        showSuccessToast(
+          context,
+          'Marked present',
+          description: '${member.name} is checked in for today',
+        );
+      } else {
+        showShadcnToast(
+          context,
+          title: 'Already checked in',
+          description: '${member.name} was marked present earlier today',
+        );
+      }
+    } catch (_) {
+      if (!context.mounted) return;
+      showErrorToast(
+        context,
+        'Could not mark attendance',
+        description: 'Check your connection and try again.',
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    UserProvider userProvider = Provider.of<UserProvider>(context);
-    UserModel? userModel = userProvider.getUser;
-    ScaleUtils.init(context);
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: UniversalVariables.appThemeColor,
-        iconTheme: IconThemeData(
-          color: Colors.white, //change your color here
+    final t = context.shadcn;
+    final userProvider = Provider.of<UserProvider>(context);
+    final UserModel? userModel = userProvider.getUser;
+    final plans = Provider.of<GymPlanProvider>(context).plans;
+    final plan = GymPlanModel.findById(plans, member.planId);
+    final trainer =
+        Provider.of<TrainerProvider>(context).byId(member.trainerId);
+
+    return AppScaffold(
+      title: 'Member details',
+      actions: [
+        // This member's own receipt book: every payment they have made,
+        // each one re-printable as a PDF.
+        ShadcnButton(
+          variant: ShadcnButtonVariant.ghost,
+          size: ShadcnButtonSize.icon,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MemberInvoicesPage(member: member),
+            ),
+          ),
+          child: const Icon(Icons.receipt_long_outlined, size: 20),
         ),
-        title: Text('Member Details', style: TextStyle(color: Colors.white)),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0 * ScaleUtils.scaleFactor),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) {
-                      return FullImageWidget(
-                        imageUrl: member.photoUrl,
-                      );
-                    }));
-                  },
-                  child: CachedImage(
-                      imageUrl: member.photoUrl,
-                      isRound: true,
-                      radius: 120,
-                      height: 0,
-                      width: 0,
-                      fit: BoxFit.cover),
-                  // CircleAvatar(
-                  //   radius: 70,
-                  //   backgroundImage:AssetImage('assets/user.jpg'),
-                  //   foregroundImage: NetworkImage(
-                  //     member.photoUrl.isNotEmpty
-                  //         ? member.photoUrl
-                  //         : 'https://icons.veryicon.com/png/o/miscellaneous/administration/person-16.png',
-                  //   ),
-                  // ),
+        ShadcnButton(
+          variant: ShadcnButtonVariant.ghost,
+          size: ShadcnButtonSize.icon,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditMemberDetailsPage(member: member),
+            ),
+          ),
+          child: const Icon(Icons.edit_outlined, size: 20),
+        ),
+      ],
+      bottomBar: Row(
+        children: [
+          Expanded(
+            child: ShadcnButton(
+              variant: ShadcnButtonVariant.outline,
+              leading: const Icon(Icons.how_to_reg_rounded, size: 18),
+              onPressed: () => _markAttendance(context),
+              child: const Text('Mark present'),
+            ),
+          ),
+          const ShadcnGap(ShadcnSpacing.md),
+          Expanded(
+            child: ShadcnButton(
+              leading: const Icon(Icons.autorenew_rounded, size: 18),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RenewMembershipPage(member: member),
                 ),
               ),
-              SizedBox(
-                height: 10 * ScaleUtils.verticalScale,
+              child: const Text('Renew'),
+            ),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          ShadcnSpacing.lg,
+          ShadcnSpacing.lg,
+          ShadcnSpacing.lg,
+          ShadcnSpacing.xl2,
+        ),
+        children: [
+          _Header(member: member, planName: plan?.name ?? 'Unknown plan'),
+          const ShadcnGap(ShadcnSpacing.xl),
+          Row(
+            children: [
+              Expanded(
+                child: ShadcnButton(
+                  variant: ShadcnButtonVariant.outline,
+                  leading: const FaIcon(FontAwesomeIcons.whatsapp, size: 16),
+                  onPressed: () => openWhatsapp(
+                    context,
+                    member.mobileNumber,
+                    userModel?.name ?? 'your gym',
+                  ),
+                  child: const Text('WhatsApp'),
+                ),
               ),
-              Padding(
-                padding: EdgeInsets.all(8.0 * ScaleUtils.scaleFactor),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        openWhatsapp(
-                            context, member.mobileNumber, userModel!.name);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                              14 * ScaleUtils.scaleFactor),
-                          color: HexColor("3957ED"),
-                        ),
-                        child: Padding(
-                          padding:
-                              EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
+              const ShadcnGap(ShadcnSpacing.md),
+              Expanded(
+                child: ShadcnButton(
+                  variant: ShadcnButtonVariant.outline,
+                  leading: const Icon(Icons.call_outlined, size: 16),
+                  onPressed: () => _call(context),
+                  child: const Text('Call'),
+                ),
+              ),
+            ],
+          ),
+          const ShadcnGap(ShadcnSpacing.xl2),
+          AppDetailSection(
+            title: 'Membership',
+            children: [
+              AppInfoRow(
+                label: 'Status',
+                value: '',
+                valueWidget: Align(
+                  alignment: Alignment.centerRight,
+                  child: MembershipBadge(member: member),
+                ),
+              ),
+              AppInfoRow(label: 'Plan', value: plan?.name ?? 'Unknown plan'),
+              AppInfoRow(
+                label: 'Admission date',
+                value: DateFormat('d MMM yyyy').format(member.dateOfAdmission),
+              ),
+              AppInfoRow(
+                label: 'Last renewal',
+                value: DateFormat('d MMM yyyy').format(member.renewalDate),
+              ),
+              AppInfoRow(
+                label: 'Expires on',
+                value: DateFormat('d MMM yyyy').format(member.expiryDate),
+              ),
+              AppInfoRow(
+                label: 'Trainer',
+                value: trainer?.name ?? 'Not assigned',
+                valueWidget: trainer == null
+                    ? null
+                    : Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  TrainerDetailsPage(trainer: trainer),
+                            ),
+                          ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              FaIcon(
-                                FontAwesomeIcons.whatsapp,
-                                color: Colors.white,
-                              ),
-                              SizedBox(
-                                width: 8 * ScaleUtils.horizontalScale,
-                              ),
                               Text(
-                                "WhatsApp",
+                                trainer.name,
                                 style: TextStyle(
-                                    fontSize: 16 * ScaleUtils.scaleFactor,
-                                    color: Colors.white),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: t.primary,
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                size: 18,
+                                color: t.primary,
                               ),
                             ],
                           ),
                         ),
                       ),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        final Uri callUrl = Uri(
-                          scheme: 'tel',
-                          path: member.mobileNumber,
-                        );
-                        try {
-                          await launchUrl(callUrl);
-                        } catch (e) {
-                          print(e.toString());
-                        }
-                      },
-                      child: Center(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius:
-                            BorderRadius.circular(14 * ScaleUtils.scaleFactor),
-                            color: HexColor("3957ED"),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 12.0 * ScaleUtils.scaleFactor,
-                                horizontal: 18 * ScaleUtils.scaleFactor),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.call,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(
-                                  width: 8 * ScaleUtils.horizontalScale,
-                                ),
-                                Text(
-                                  "Call",
-                                  style: TextStyle(
-                                      fontSize: 16 * ScaleUtils.scaleFactor,
-                                      color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                last: true,
               ),
-
-              SizedBox(
-                height: 10 * ScaleUtils.verticalScale,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius:
-                        BorderRadius.circular(30 * ScaleUtils.scaleFactor),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(18.0 * ScaleUtils.scaleFactor),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Full Name",
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16 * ScaleUtils.scaleFactor),
-                        ),
-                        Text(
-                          member.name,
-                          style:
-                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
-                        ),
-                        Divider(),
-                        Text(
-                          "Mobile Number",
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16 * ScaleUtils.scaleFactor),
-                        ),
-                        Text(
-                          member.mobileNumber,
-                          style:
-                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
-                        ),
-                        Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Height(in feet)",
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Text(
-                                    member.height.toString(),
-                                    style: TextStyle(
-                                        fontSize: 15 * ScaleUtils.scaleFactor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Weight(in kg)",
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Text(
-                                    member.weight.toString(),
-                                    style: TextStyle(
-                                        fontSize: 15 * ScaleUtils.scaleFactor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Divider(),
-                        Text(
-                          "Address",
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16 * ScaleUtils.scaleFactor),
-                        ),
-                        Text(
-                          member.address,
-                          style:
-                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
-                        ),
-                        Divider(),
-                        Text(
-                          "Gender",
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16 * ScaleUtils.scaleFactor),
-                        ),
-                        Text(
-                          member.gender,
-                          style:
-                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
-                        ),
-                        Divider(),
-                        Text(
-                          "Date of Birth",
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16 * ScaleUtils.scaleFactor),
-                        ),
-                        Text(
-                          DateFormat('d MMM, yyyy').format(member.dateOfBirth),
-                          style:
-                              TextStyle(fontSize: 15 * ScaleUtils.scaleFactor),
-                        ),
-                        Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Admission Date",
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Text(
-                                    DateFormat('d MMM, yyyy')
-                                        .format(member.dateOfAdmission),
-                                    style: TextStyle(
-                                        fontSize: 15 * ScaleUtils.scaleFactor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Divider(),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Renewal Date",
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Text(
-                                    DateFormat('d MMM, yyyy')
-                                        .format(member.renewalDate),
-                                    style: TextStyle(
-                                        fontSize: 15 * ScaleUtils.scaleFactor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Check In Time",
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Text(
-                                    member.checkInTime.toString(),
-                                    style: TextStyle(
-                                        fontSize: 15 * ScaleUtils.scaleFactor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Divider(),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "CheckOutTime",
-                                    style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16 * ScaleUtils.scaleFactor),
-                                  ),
-                                  Text(
-                                    member.checkOutTime.toString(),
-                                    style: TextStyle(
-                                        fontSize: 15 * ScaleUtils.scaleFactor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          "Id: ${member.id}",
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16 * ScaleUtils.scaleFactor),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
             ],
           ),
-        ),
+          const ShadcnGap(ShadcnSpacing.xl),
+          AppDetailSection(
+            title: 'Personal',
+            children: [
+              AppInfoRow(label: 'Full name', value: member.name),
+              AppInfoRow(label: 'Mobile number', value: member.mobileNumber),
+              AppInfoRow(label: 'Gender', value: member.gender),
+              AppInfoRow(
+                label: 'Date of birth',
+                value: DateFormat('d MMM yyyy').format(member.dateOfBirth),
+              ),
+              AppInfoRow(
+                label: 'Height',
+                value: '${member.height} ft',
+              ),
+              AppInfoRow(
+                label: 'Weight',
+                value: '${member.weight} kg',
+              ),
+              AppInfoRow(
+                label: 'Address',
+                value: member.address,
+                last: true,
+              ),
+            ],
+          ),
+          const ShadcnGap(ShadcnSpacing.xl),
+          AppDetailSection(
+            title: 'Gym timings',
+            children: [
+              AppInfoRow(
+                label: 'Check in',
+                value: member.checkInTime,
+                icon: Icons.login_rounded,
+              ),
+              AppInfoRow(
+                label: 'Check out',
+                value: member.checkOutTime,
+                icon: Icons.logout_rounded,
+                last: true,
+              ),
+            ],
+          ),
+          const ShadcnGap(ShadcnSpacing.xl),
+          Center(
+            child: Text(
+              'Member ID · ${member.id}',
+              style: TextStyle(fontSize: 11, color: t.mutedForeground),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // void _sendSMS(String message, List<String> recipents) async {
-  //   // String _result = await sendSMS(message: message, recipients: recipents)
-  //   //     .catchError((onError) {
-  //   //   print(onError);
-  //   //       return 'Error';
-  //   //
-  //   // });
-  //   // print(_result);
-  // }
-
-  // void openWhatsApp(String phoneNumber, String gymName) async {
-  //   var message =
-  //       "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities.Thanks ${gymName}";
-  //   final Uri whatsappUri =
-  //       Uri.parse("https://wa.me/$phoneNumber?text=${Uri.encodeFull(message)}");
-  //
-  //   if (await canLaunchUrl(whatsappUri)) {
-  //     await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-  //   } else {
-  //     print("Could not open WhatsApp");
-  //   }
-  // }
-
-  void openWhatsapp(
-      BuildContext context, String phoneNumber, String gymName) async {
-    var whatsapp = "+91" + phoneNumber; //+92xx enter like this
-    var message =
-        "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities.Thanks ${gymName}";
-    var whatsappURlAndroid =
-        "whatsapp://send?phone=" + whatsapp + "&text=$message";
-    var whatsappURLIos =
-        "https://wa.me/$whatsapp?text=${Uri.tryParse(message)}";
-    if (Platform.isIOS) {
-      // for iOS phone only
-      if (await canLaunchUrl(Uri.parse(whatsappURLIos))) {
-        await launchUrl(Uri.parse(
-          whatsappURLIos,
-        ));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Whatsapp not installed")));
-      }
-    } else {
-      // android , web
-      if (await canLaunchUrl(Uri.parse(whatsappURlAndroid))) {
-        await launchUrl(Uri.parse(whatsappURlAndroid));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Whatsapp not installed")));
-      }
+  Future<void> _call(BuildContext context) async {
+    final Uri callUrl = Uri(scheme: 'tel', path: member.mobileNumber);
+    try {
+      await launchUrl(callUrl);
+    } catch (_) {
+      if (!context.mounted) return;
+      showErrorToast(context, 'Could not start the call');
     }
   }
 
-  // void _sendSMS(String message, List<String> recipents) async {
-  //   String _result = await sendSMS(message: message, recipients: recipents)
-  //       .catchError((onError) {
-  //     print(onError);
-  //     return 'Error';
-  //   });
-  //   print(_result);
-  // }
+  void openWhatsapp(
+      BuildContext context, String phoneNumber, String gymName) async {
+    final whatsapp = "+91$phoneNumber"; //+92xx enter like this
+    final message =
+        "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities. Thanks $gymName";
+    final whatsappUrlAndroid =
+        "whatsapp://send?phone=$whatsapp&text=${Uri.encodeComponent(message)}";
+    // The iOS link previously used `Uri.tryParse(message)`, which stringifies
+    // to the whole Uri object and sent a broken message body.
+    final whatsappUrlIos =
+        "https://wa.me/$whatsapp?text=${Uri.encodeComponent(message)}";
 
-  // Future<void> sendSMS(
-  //     String phoneNumber, String message, String gymName) async {
-  //   // String encodedMessage = Uri.encodeComponent(message);
-  //
-  //   print("Sending SMS to: $phoneNumber");
-  //   // print("Message: $encodedMessage");
-  //   // String message =
-  //   //     ;
-  //   await _telephonySMS.requestPermission();
-  //   print("Name" + gymName);
-  //   try {
-  //     await _telephonySMS.sendSMS(
-  //         phone: phoneNumber.toString(),
-  //         message:
-  //             "Hi ${member.name}, your gym membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. Renew now to keep enjoying our facilities. - $gymName");
-  //     print("SMS sent successfully to $phoneNumber");
-  //   } catch (e) {
-  //     print("SMS error: " + e.toString());
-  //   }
-  // }
+    final target = Platform.isIOS ? whatsappUrlIos : whatsappUrlAndroid;
+    if (await canLaunchUrl(Uri.parse(target))) {
+      await launchUrl(Uri.parse(target), mode: LaunchMode.externalApplication);
+    } else {
+      if (!context.mounted) return;
+      showErrorToast(
+        context,
+        'WhatsApp not installed',
+        description: 'Install WhatsApp, or call the member instead.',
+      );
+    }
+  }
+}
+
+/// Photo, name, plan and status, sitting on a tinted panel.
+class _Header extends StatelessWidget {
+  const _Header({required this.member, required this.planName});
+
+  final MemberModel member;
+  final String planName;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.shadcn;
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => FullImageWidget(imageUrl: member.photoUrl),
+            ),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: t.border, width: 2),
+            ),
+            child: ShadcnAvatar(
+              member.photoUrl,
+              size: 104,
+              placeholder: const ShadcnSkeleton.circle(size: 104),
+              initials: member.name,
+              backgroundColor: t.secondary,
+            ),
+          ),
+        ),
+        const ShadcnGap(ShadcnSpacing.lg),
+        ShadcnText(
+          member.name,
+          variant: ShadcnTextVariant.h2,
+          textAlign: TextAlign.center,
+        ),
+        const ShadcnGap(ShadcnSpacing.xs),
+        ShadcnText(planName, variant: ShadcnTextVariant.muted),
+        const ShadcnGap(ShadcnSpacing.md),
+        MembershipBadge(member: member),
+      ],
+    );
+  }
 }

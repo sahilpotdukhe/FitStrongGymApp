@@ -1,28 +1,30 @@
-import 'package:fitstrong_gym/Widgets/CachedImage.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// Correct a member's recorded details. Plan and dates are not editable
+/// here — those change through renewal.
 class EditMemberDetailsPage extends StatefulWidget {
+  const EditMemberDetailsPage({required this.member, super.key});
+
   final MemberModel member;
 
-  const EditMemberDetailsPage({required this.member});
-
   @override
-  _EditMemberDetailsPageState createState() => _EditMemberDetailsPageState();
+  State<EditMemberDetailsPage> createState() => _EditMemberDetailsPageState();
 }
 
 class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
+  // The form had no key at all before, so its validators never ran and a
+  // blank name or a letter in the weight field went straight to Firestore.
+  final _formKey = GlobalKey<FormState>();
+
   late TextEditingController _nameController;
   late TextEditingController _mobileNumberController;
   late TextEditingController _heightController;
   late TextEditingController _weightController;
   late TextEditingController _addressController;
-  late TextEditingController _genderController;
-  bool _loading = false;
-  String? _gender;
-  String? displayName;
-  String? phoneNumber;
   late TextEditingController _checkInTimeController;
   late TextEditingController _checkOutTimeController;
+  bool _loading = false;
+  late String _trainerId;
 
   @override
   void initState() {
@@ -35,423 +37,197 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
     _weightController =
         TextEditingController(text: widget.member.weight.toString());
     _addressController = TextEditingController(text: widget.member.address);
-    _genderController = TextEditingController(text: widget.member.gender);
     _checkInTimeController =
         TextEditingController(text: widget.member.checkInTime);
     _checkOutTimeController =
         TextEditingController(text: widget.member.checkOutTime);
+    _trainerId = widget.member.trainerId;
+    // Loaded here so the trainer picker has something to show straight away.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<TrainerProvider>(context, listen: false).fetchTrainers();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _mobileNumberController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    _addressController.dispose();
+    _checkInTimeController.dispose();
+    _checkOutTimeController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    ScaleUtils.init(context);
-    return Stack(children: [
-      Scaffold(
-        appBar: AppBar(
-          iconTheme: IconThemeData(color: Colors.white),
-          backgroundColor: UniversalVariables.appThemeColor,
-          title: Text(
-            'Edit Member Details',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              CircleAvatar(
-                radius: 62,
-                backgroundColor: Colors.grey,
-                child: CachedImage(
-                    imageUrl: widget.member.photoUrl,
-                    isRound: true,
-                    radius: 118,
-                    height: 0,
-                    width: 0,
-                    fit: BoxFit.cover),
-              ),
-              // Center(
-              //   child: Container(
-              //     height: 100,
-              //     width: 100,
-              //     decoration: BoxDecoration(
-              //       image: DecorationImage(
-              //           image: CachedNetworkImageProvider(
-              //               widget.member.photoUrl),
-              //           fit: BoxFit.cover),
-              //       shape: BoxShape.circle,
-              //     ),
-              //   ),
-              // ),
-              SizedBox(
-                height: 20,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Name ',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  hintText: 'Update Your Name',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
-                  ),
-                  suffixIcon: Icon(Icons.person),
-                ),
-                onSaved: (value) {
-                  displayName = value;
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Mobile number ',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              TextFormField(
-                controller: _mobileNumberController,
-                decoration: InputDecoration(
-                  hintText: 'Update Phone number',
-                  counterText: "",
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(
-                    Icons.phone_android_outlined,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
-                  ),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    phoneNumber = value;
-                  });
-                },
-                onSaved: (value) {
-                  phoneNumber = value;
-                },
-                keyboardType: TextInputType.phone,
-                maxLength: 10,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please Enter Phone No';
-                  } else if (value.length < 10) {
-                    return 'Enter 10 digit Phone number';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Address ',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              TextFormField(
-                controller: _addressController,
-                decoration: InputDecoration(
-                  hintText: 'Update Address',
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(
-                    Icons.place,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an address';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                children: [
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'Height (in feet)',
-                            style: TextStyle(fontSize: 16),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 50,
-                          child: TextFormField(
-                            controller: _heightController,
-                            decoration: InputDecoration(
-                              hintText: 'Update Height',
-                              border: OutlineInputBorder(),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(
-                                      color: HexColor('E5E7EB'), width: 2)),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                    color: HexColor('E5E7EB'), width: 2),
-                              ),
-                              suffixIcon: Icon(
-                                Icons.height,
-                              ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a height';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'Weight (in Kg)',
-                            style: TextStyle(fontSize: 16),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 50,
-                          child: TextFormField(
-                            controller: _weightController,
-                            decoration: InputDecoration(
-                              hintText: 'Update Your Weight',
-                              border: OutlineInputBorder(),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(
-                                      color: HexColor('E5E7EB'), width: 2)),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                    color: HexColor('E5E7EB'), width: 2),
-                              ),
-                              suffixIcon: Icon(
-                                Icons.monitor_weight,
-                              ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a weight';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
+    final t = context.shadcn;
+    final trainers = Provider.of<TrainerProvider>(context).activeTrainers;
 
-              Row(
-                children: [
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'Check-in Time ',
-                            style: TextStyle(fontSize: 16),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 50,
-                          child: TextFormField(
-                            controller: _checkInTimeController,
-                            decoration: InputDecoration(
-                              hintText: 'Update Check-in Time',
-                              border: OutlineInputBorder(),
-                              suffixIcon: Icon(Icons.access_time),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(
-                                      color: HexColor('E5E7EB'), width: 2)),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                    color: HexColor('E5E7EB'), width: 2),
-                              ),
-                            ),
-                            onTap: () async {
-                              final TimeOfDay? pickedTime =
-                                  await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                setState(() {
-                                  _checkInTimeController.text =
-                                      pickedTime.format(context);
-                                });
-                              }
-                            },
-                            readOnly: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a check-in time';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'Check-out Time ',
-                            style: TextStyle(fontSize: 16),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 50,
-                          child: TextFormField(
-                            controller: _checkOutTimeController,
-                            decoration: InputDecoration(
-                              hintText: 'Update CheckOut Time',
-                              border: OutlineInputBorder(),
-                              suffixIcon: Icon(Icons.access_time),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(
-                                      color: HexColor('E5E7EB'), width: 2)),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                    color: HexColor('E5E7EB'), width: 2),
-                              ),
-                            ),
-                            onTap: () async {
-                              final TimeOfDay? pickedTime =
-                                  await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                setState(() {
-                                  _checkOutTimeController.text =
-                                      pickedTime.format(context);
-                                });
-                              }
-                            },
-                            readOnly: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a check-out time';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    return Stack(
+      children: [
+        AppScaffold(
+          title: 'Edit member',
+          bottomBar: ShadcnButton(
+            fullWidth: true,
+            size: ShadcnButtonSize.lg,
+            loading: _loading,
+            leading: const Icon(Icons.check_rounded, size: 18),
+            onPressed: _updateMemberDetails,
+            child: const Text('Save changes'),
+          ),
+          body: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl,
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl2,
               ),
-              SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: _updateMemberDetails,
-                  child: Text(
-                    'Update Details',
-                    style: TextStyle(color: Colors.white),
+              children: [
+                Center(
+                  child: Column(
+                    children: [
+                      ShadcnAvatar(
+                        widget.member.photoUrl,
+                        size: 96,
+                        placeholder: const ShadcnSkeleton.circle(size: 96),
+                        initials: widget.member.name,
+                        backgroundColor: t.secondary,
+                      ),
+                      const ShadcnGap(ShadcnSpacing.sm),
+                      // Says why there is no camera badge here, rather than
+                      // leaving people tapping a photo that cannot change.
+                      ShadcnText(
+                        'Photos are set when the member is added',
+                        variant: ShadcnTextVariant.small,
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      if (_loading)
-        Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: CircularProgressIndicator(),
+                const ShadcnGap(ShadcnSpacing.xl2),
+                ShadcnInput(
+                  controller: _nameController,
+                  label: 'Full name',
+                  textCapitalization: TextCapitalization.words,
+                  leading: const Icon(Icons.person_outline_rounded, size: 18),
+                  validator: ShadcnValidators.required('Please enter a name'),
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                ShadcnInput(
+                  controller: _mobileNumberController,
+                  label: 'Mobile number',
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  leading: const Icon(Icons.phone_outlined, size: 18),
+                  validator: ShadcnValidators.combine([
+                    ShadcnValidators.required('Please enter a mobile number'),
+                    ShadcnValidators.pattern(
+                      RegExp(r'^[0-9]{10}$'),
+                      'Enter a 10 digit mobile number',
+                    ),
+                  ]),
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ShadcnInput(
+                        controller: _heightController,
+                        label: 'Height (ft)',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: ShadcnValidators.combine([
+                          ShadcnValidators.required('Required'),
+                          ShadcnValidators.numeric('Numbers only'),
+                        ]),
+                      ),
+                    ),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    Expanded(
+                      child: ShadcnInput(
+                        controller: _weightController,
+                        label: 'Weight (kg)',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: ShadcnValidators.combine([
+                          ShadcnValidators.required('Required'),
+                          ShadcnValidators.numeric('Numbers only'),
+                        ]),
+                      ),
+                    ),
+                  ],
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                ShadcnInput(
+                  controller: _addressController,
+                  label: 'Address',
+                  maxLines: 2,
+                  textCapitalization: TextCapitalization.sentences,
+                  validator:
+                      ShadcnValidators.required('Please enter an address'),
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                AppTrainerSelect(
+                  trainers: trainers,
+                  value: _trainerId,
+                  onChanged: (value) => setState(() => _trainerId = value),
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppPickerField(
+                        label: 'Check in',
+                        icon: Icons.schedule_rounded,
+                        value: _checkInTimeController.text,
+                        placeholder: 'Select time',
+                        onTap: () => _pickTime(_checkInTimeController),
+                      ),
+                    ),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    Expanded(
+                      child: AppPickerField(
+                        label: 'Check out',
+                        icon: Icons.schedule_rounded,
+                        value: _checkOutTimeController.text,
+                        placeholder: 'Select time',
+                        onTap: () => _pickTime(_checkOutTimeController),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
-    ]);
+        if (_loading) const AppSavingOverlay(message: 'Saving changes…'),
+      ],
+    );
+  }
+
+  Future<void> _pickTime(TextEditingController controller) async {
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime:
+          MemberModel.stringToTimeOfDay(controller.text) ?? TimeOfDay.now(),
+    );
+    if (pickedTime != null && mounted) {
+      setState(() => controller.text = pickedTime.format(context));
+    }
   }
 
   Future<void> _updateMemberDetails() async {
-    setState(() {
-      _loading = true;
-    });
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _loading = true);
 
     try {
       User? currentUser = FirebaseAuth.instance.currentUser;
@@ -468,26 +244,37 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
           'weight': double.parse(_weightController.text),
           'address': _addressController.text,
           'checkInTime': _checkInTimeController.text,
-          'checkOutTime': _checkOutTimeController.text
+          'checkOutTime': _checkOutTimeController.text,
+          'trainerId': _trainerId,
         });
-        showSuccessDialog(
+
+        // Keeps the in-memory lists in step, so the member list behind this
+        // screen shows the new details without a manual refresh.
+        if (mounted) {
+          await Provider.of<MemberProvider>(context, listen: false)
+              .getAllMembers();
+        }
+
+        if (!mounted) return;
+        setState(() => _loading = false);
+        await showSuccessDialog(
           context: context,
-          title: 'Updated!',
-          desc:
-              'You have successfully updated the details.\n Please wait you will be redirected to the HomePage.',
+          title: 'Details updated',
+          desc: '${_nameController.text}\'s record has been saved.',
         );
-        await Future.delayed(Duration(seconds: 4));
+        if (!mounted) return;
         Navigator.popAndPushNamed(context, '/home');
+        return;
       }
-    } catch (error) {
-      print('Error updating member details: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update member details')),
+    } catch (_) {
+      if (!mounted) return;
+      showErrorDialog(
+        context: context,
+        title: 'Could not save changes',
+        desc: 'Check your connection and try again.',
       );
     }
 
-    setState(() {
-      _loading = false;
-    });
+    if (mounted) setState(() => _loading = false);
   }
 }

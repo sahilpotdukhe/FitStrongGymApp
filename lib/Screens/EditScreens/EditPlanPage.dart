@@ -1,213 +1,174 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// Change an existing plan's name, length or price.
 class EditPlanPage extends StatefulWidget {
+  const EditPlanPage({required this.plan, super.key});
+
   final GymPlanModel plan;
 
-  EditPlanPage({required this.plan});
-
   @override
-  _EditPlanPageState createState() => _EditPlanPageState();
+  State<EditPlanPage> createState() => _EditPlanPageState();
 }
 
 class _EditPlanPageState extends State<EditPlanPage> {
   final _formKey = GlobalKey<FormState>();
-  late String _name;
-  late int _months;
-  late int _days;
-  late double _fee;
+  late final TextEditingController _nameController;
+  late final TextEditingController _monthsController;
+  late final TextEditingController _daysController;
+  late final TextEditingController _feeController;
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _name = widget.plan.name;
-    _months = widget.plan.months;
-    _days = widget.plan.days;
-    _fee = widget.plan.fee;
+    _nameController = TextEditingController(text: widget.plan.name);
+    _monthsController =
+        TextEditingController(text: widget.plan.months.toString());
+    _daysController = TextEditingController(text: widget.plan.days.toString());
+    _feeController =
+        TextEditingController(text: widget.plan.fee.toStringAsFixed(0));
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _monthsController.dispose();
+    _daysController.dispose();
+    _feeController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    ScaleUtils.init(context);
-    return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
-        backgroundColor: UniversalVariables.appThemeColor,
-        title: Text(
-          'Edit Plan',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Plan name',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.start,
+    return Stack(
+      children: [
+        AppScaffold(
+          title: 'Edit plan',
+          bottomBar: ShadcnButton(
+            fullWidth: true,
+            size: ShadcnButtonSize.lg,
+            loading: _saving,
+            leading: const Icon(Icons.check_rounded, size: 18),
+            onPressed: _save,
+            child: const Text('Save changes'),
+          ),
+          body: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl,
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl2,
+              ),
+              children: [
+                ShadcnInput(
+                  controller: _nameController,
+                  label: 'Plan name',
+                  textCapitalization: TextCapitalization.words,
+                  leading: const Icon(Icons.card_membership_outlined, size: 18),
+                  validator:
+                      ShadcnValidators.required('Please enter a plan name'),
                 ),
-              ),
-              TextFormField(
-                initialValue: _name,
-                decoration: InputDecoration(
-                  hintText: 'Update Plan Name',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
-                  ),
-                  suffixIcon: Icon(Icons.drive_file_rename_outline),
+                const ShadcnGap(ShadcnSpacing.lg),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ShadcnInput(
+                        controller: _monthsController,
+                        label: 'Months',
+                        keyboardType: TextInputType.number,
+                        validator: ShadcnValidators.combine([
+                          ShadcnValidators.required('Required'),
+                          ShadcnValidators.pattern(
+                            RegExp(r'^\d+$'),
+                            'Whole numbers only',
+                          ),
+                        ]),
+                      ),
+                    ),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    Expanded(
+                      child: ShadcnInput(
+                        controller: _daysController,
+                        label: 'Extra days',
+                        keyboardType: TextInputType.number,
+                        validator: ShadcnValidators.combine([
+                          ShadcnValidators.required('Required'),
+                          ShadcnValidators.pattern(
+                            RegExp(r'^\d+$'),
+                            'Whole numbers only',
+                          ),
+                        ]),
+                      ),
+                    ),
+                  ],
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the plan name';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _name = value!,
-              ),
-              SizedBox(
-                height: 14,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Months',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.start,
+                const ShadcnGap(ShadcnSpacing.lg),
+                ShadcnInput(
+                  controller: _feeController,
+                  label: 'Fee',
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  leading: const Text('₹'),
+                  validator: ShadcnValidators.combine([
+                    ShadcnValidators.required('Please enter the fee'),
+                    ShadcnValidators.numeric('Numbers only'),
+                  ]),
                 ),
-              ),
-              TextFormField(
-                initialValue: _months.toString(),
-                decoration: InputDecoration(
-                  hintText: 'Update Months',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
-                  ),
-                  suffixIcon: Icon(Icons.calendar_month_sharp),
+                const ShadcnGap(ShadcnSpacing.lg),
+                // Existing members keep the dates they already have; only
+                // future renewals use the new length. Worth saying, because
+                // editing a plan looks like it might reprice everyone.
+                ShadcnText(
+                  'Changes apply the next time this plan is sold or renewed. '
+                  'Members already on it keep their current expiry date.',
+                  variant: ShadcnTextVariant.small,
                 ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the duration';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _months = int.parse(value!),
-              ),
-              SizedBox(
-                height: 14,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Days',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              TextFormField(
-                initialValue: _days.toString(), // New TextFormField for days
-                decoration: InputDecoration(
-                  hintText: 'Update Days',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
-                  ),
-                  suffixIcon: Icon(
-                    Icons.calendar_today,
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the duration in days';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _days = int.parse(value!),
-              ),
-              SizedBox(
-                height: 14,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Fees',
-                  style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              TextFormField(
-                initialValue: _fee.toString(),
-                decoration: InputDecoration(
-                  hintText: 'Update Fee',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide:
-                          BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: HexColor('E5E7EB'), width: 2),
-                  ),
-                  suffixIcon: Icon(
-                    Icons.money,
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the fee';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _fee = double.parse(value!),
-              ),
-              SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      Provider.of<GymPlanProvider>(context, listen: false)
-                          .updatePlan(
-                              widget.plan.id, _name, _months, _days, _fee);
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: Text(
-                    'Update Details',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+        if (_saving) const AppSavingOverlay(message: 'Saving plan…'),
+      ],
     );
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final months = int.parse(_monthsController.text);
+    final days = int.parse(_daysController.text);
+    if (months == 0 && days == 0) {
+      showErrorToast(
+        context,
+        'Plan has no length',
+        description: 'Set at least one month or one day.',
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      await Provider.of<GymPlanProvider>(context, listen: false).updatePlan(
+        widget.plan.id,
+        _nameController.text,
+        months,
+        days,
+        double.parse(_feeController.text),
+      );
+      if (!mounted) return;
+      showSuccessToast(context, 'Plan updated');
+      Navigator.pop(context);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      showErrorDialog(
+        context: context,
+        title: 'Could not save plan',
+        desc: 'Check your connection and try again.',
+      );
+    }
   }
 }

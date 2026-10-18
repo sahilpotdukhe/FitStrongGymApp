@@ -1,79 +1,36 @@
-
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// Empty state for the member lists and the recycle bin.
+///
+/// `screen` keeps its old contract ("nomembers" vs anything else) so every
+/// existing call site works unchanged.
 class MembersQuietBox extends StatelessWidget {
-  final screen;
-
   const MembersQuietBox({super.key, this.screen});
+
+  final String? screen;
 
   @override
   Widget build(BuildContext context) {
-    ScaleUtils.init(context);
-    return ListView(
-      children: [
-        SizedBox(
-          height: 70 * ScaleUtils.verticalScale,
-        ),
-        Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: 30 * ScaleUtils.horizontalScale),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius:
-                BorderRadius.circular(50 * ScaleUtils.scaleFactor),
-                color: Colors.white,
-              ),
-              padding: EdgeInsets.symmetric(
-                  vertical: 25 * ScaleUtils.verticalScale,
-                  horizontal: 25 * ScaleUtils.horizontalScale),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  (screen == "nomembers")
-                      ? Image.asset('assets/nomembersbg.png')
-                      : Image.asset('assets/recyclebin.png'),
-                  Text(
-                    (screen == "nomembers") ? "No Members" : "Empty Recycle Bin",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 25 * ScaleUtils.scaleFactor),
-                  ),
-                  SizedBox(height: 10 * ScaleUtils.verticalScale),
-                  Text(
-                    (screen == "nomembers")
-                        ? "No members found. Please add new members to the gym app for admission."
-                        : "No items found in the recycle bin.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        letterSpacing: 1.2,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 15 * ScaleUtils.scaleFactor),
-                  ),
-                  SizedBox(height: 25 * ScaleUtils.verticalScale),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: UniversalVariables.appThemeColor),
-                    child: Text(
-                      (screen == "nomembers") ? 'Add Members' : 'Back',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () {
-                      (screen == "nomembers") ? Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => AddMemberPage()))
-                          :Navigator.pop(context);
-                    },
-                  )
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+    final isMembers = screen == "nomembers";
+    return AppEmptyState(
+      icon: isMembers
+          ? Icons.person_add_alt_1_rounded
+          : Icons.delete_outline_rounded,
+      title: isMembers ? 'No members yet' : 'Recycle bin is empty',
+      description: isMembers
+          ? 'Add your first member to start tracking memberships, attendance and payments.'
+          : 'Deleted members land here for 30 days before they are removed for good.',
+      actionLabel: isMembers ? 'Add member' : 'Go back',
+      onAction: () {
+        if (isMembers) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AddMemberPage()),
+          );
+        } else {
+          Navigator.pop(context);
+        }
+      },
     );
   }
 }

@@ -1,137 +1,116 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// All members, filterable by membership state.
+///
+/// Was three Material tabs over three copies of the same list; now one list
+/// with a segmented filter that also shows how many members are in each
+/// bucket, so the counts are visible without switching tabs.
 class MemberListPage extends StatefulWidget {
+  const MemberListPage({super.key});
+
   @override
-  _MemberListPageState createState() => _MemberListPageState();
+  State<MemberListPage> createState() => _MemberListPageState();
 }
 
+enum _MemberFilter { all, active, expired }
+
 class _MemberListPageState extends State<MemberListPage> {
+  _MemberFilter _filter = _MemberFilter.all;
+
   @override
   void initState() {
     super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
     final gymPlanProvider =
         Provider.of<GymPlanProvider>(context, listen: false);
-    memberProvider.getAllMembers();
-    gymPlanProvider.fetchPlans(); // Fetch plans
+    await Future.wait([
+      memberProvider.getAllMembers(),
+      gymPlanProvider.fetchPlans(),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        backgroundColor: UniversalVariables.bgColor,
-        appBar: AppBar(
-          backgroundColor: UniversalVariables.appThemeColor,
-          iconTheme: IconThemeData(
-            color: Colors.white, //change your color here
-          ),
-          title: Text(
-            'Members',
-            style: TextStyle(color: Colors.white),
-          ),
-          bottom: TabBar(
-            tabs: const [
-              Tab(text: 'All Members'),
-              Tab(text: 'Active Members'),
-              Tab(text: 'Expired Members'),
-            ],
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white,
-            indicatorColor: Colors.white,
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.search,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => SearchScreen(
-                              screen: 'All',
-                            )));
-              },
-            )
-          ],
-        ),
-        body: TabBarView(
-          children: [
-            MemberListSection(
-              filter: (member, plans) => true,
-              emptyMessage: 'No members found.',
-            ),
-            MemberListSection(
-              filter: (member, plans) => !member.isExpired(plans),
-              emptyMessage: 'No active members found.',
-            ),
-            MemberListSection(
-              filter: (member, plans) => member.isExpired(plans),
-              emptyMessage: 'No expired members found.',
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => AddMemberPage()));
-          },
-          foregroundColor: Colors.white,
-          backgroundColor: UniversalVariables.appThemeColor,
-          child: Icon(Icons.add),
-        ),
-      ),
-    );
-  }
-}
-
-class MemberListSection extends StatelessWidget {
-  final bool Function(MemberModel, List<GymPlanModel>) filter;
-  final String emptyMessage;
-
-  const MemberListSection({
-    required this.filter,
-    required this.emptyMessage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+    final t = context.shadcn;
     final memberProvider = Provider.of<MemberProvider>(context);
-    final gymPlanProvider = Provider.of<GymPlanProvider>(context);
     final members = memberProvider.members;
-    final plans = gymPlanProvider.plans;
+    final active = members.where((m) => !m.isExpired()).toList();
+    final expired = members.where((m) => m.isExpired()).toList();
 
-    if (members.isEmpty) {
-      return MembersQuietBox(
-        screen: 'nomembers',
-      );
-    }
+    final visible = switch (_filter) {
+      _MemberFilter.all => members,
+      _MemberFilter.active => active,
+      _MemberFilter.expired => expired,
+    };
 
-    final filteredMembers =
-        members.where((member) => filter(member, plans)).toList();
-
-    if (filteredMembers.isEmpty) {
-      return Center(child: Text(emptyMessage));
-    }
-
-    return ListView.builder(
-      itemCount: filteredMembers.length,
-      itemBuilder: (context, index) {
-        final member = filteredMembers[index];
-        final plan = GymPlanModel.findById(plans, member.planId);
-        final planName = plan?.name ?? 'Unknown Plan';
-        return InkWell(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => MemberDetailsPage(member: member)));
-            },
-            child: MemberCard(member: member));
-      },
+    return AppScaffold(
+      title: 'Members',
+      actions: [
+        ShadcnButton(
+          variant: ShadcnButtonVariant.ghost,
+          size: ShadcnButtonSize.icon,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SearchScreen(screen: 'All'),
+            ),
+          ),
+          child: const Icon(Icons.search_rounded, size: 20),
+        ),
+      ],
+      body: MemberListView(
+        members: visible,
+        onRefresh: _load,
+        header: AppSegmentedFilter<_MemberFilter>(
+          value: _filter,
+          onChanged: (value) => setState(() => _filter = value),
+          segments: [
+            AppSegment(
+              value: _MemberFilter.all,
+              label: 'All',
+              count: members.length,
+            ),
+            AppSegment(
+              value: _MemberFilter.active,
+              label: 'Active',
+              count: active.length,
+            ),
+            AppSegment(
+              value: _MemberFilter.expired,
+              label: 'Expired',
+              count: expired.length,
+            ),
+          ],
+        ),
+        empty: members.isEmpty
+            ? const MembersQuietBox(screen: 'nomembers')
+            : AppEmptyState(
+                icon: _filter == _MemberFilter.expired
+                    ? Icons.verified_rounded
+                    : Icons.event_busy_rounded,
+                title: _filter == _MemberFilter.expired
+                    ? 'No expired memberships'
+                    : 'No active memberships',
+                description: _filter == _MemberFilter.expired
+                    ? 'Everyone on your books is up to date. Nice.'
+                    : 'Every membership has lapsed. Renew one to bring it back here.',
+                actionLabel: 'Show all members',
+                onAction: () => setState(() => _filter = _MemberFilter.all),
+              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => AddMemberPage()),
+        ),
+        foregroundColor: t.primaryForeground,
+        backgroundColor: t.primary,
+        child: const Icon(Icons.add_rounded),
+      ),
     );
   }
 }

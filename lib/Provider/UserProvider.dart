@@ -19,4 +19,11 @@ class UserProvider with ChangeNotifier {
     _userModel = user;
     notifyListeners();
   }
+
+  /// Forgets the signed in gym owner. Called on sign out so the next person
+  /// to log in on this phone does not briefly see the previous owner's name.
+  void clear() {
+    _userModel = null;
+    notifyListeners();
+  }
 }

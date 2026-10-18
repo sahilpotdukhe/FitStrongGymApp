@@ -1,57 +1,79 @@
-import 'package:flutter/material.dart';
+import 'package:fitstrong_gym/src/custom_import.dart';
 
-/// Replaces awesome_dialog's success dialog. That package pulled in rive ->
-/// rive_native, which still applies the Kotlin Gradle Plugin and so blocks
-/// AGP 9's built-in Kotlin for the whole app.
+/// Confirmation shown after a record is saved, renewed or deleted.
+///
+/// Uses the kit's dialog so it inherits the app's radius, surface and dark
+/// mode automatically. The green check is the semantic success color rather
+/// than a raw `Colors.green`, so it stays legible on dark surfaces.
 Future<void> showSuccessDialog({
   required BuildContext context,
   required String title,
   required String desc,
 }) {
-  return showDialog<void>(
+  final status = AppStatus.of(context);
+  return showShadcnDialog<void>(
     context: context,
-    barrierDismissible: true,
-    builder: (dialogContext) => Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: const Icon(Icons.close),
-                splashRadius: 20,
-                onPressed: () => Navigator.of(dialogContext).pop(),
-              ),
-            ),
-            const Icon(Icons.check_circle, color: Colors.green, size: 64),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(desc, textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                icon: const Icon(Icons.check_circle),
-                label: const Text('OK'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ],
-        ),
+    builder: (dialogContext) => ShadcnDialog(
+      icon: ShadcnIconBadge(
+        Icons.check_circle_rounded,
+        color: status.success,
       ),
+      title: title,
+      description: desc,
+      footer: [
+        ShadcnButton(
+          fullWidth: true,
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Done'),
+        ),
+      ],
     ),
+  );
+}
+
+/// Error counterpart to [showSuccessDialog], so failures stop appearing as
+/// bare snackbars in some places and dialogs in others.
+Future<void> showErrorDialog({
+  required BuildContext context,
+  required String title,
+  required String desc,
+}) {
+  final t = ShadcnTheme.of(context);
+  return showShadcnDialog<void>(
+    context: context,
+    builder: (dialogContext) => ShadcnDialog(
+      icon: ShadcnIconBadge(Icons.error_outline_rounded, color: t.destructive),
+      title: title,
+      description: desc,
+      footer: [
+        ShadcnButton(
+          fullWidth: true,
+          variant: ShadcnButtonVariant.secondary,
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Short, non-blocking confirmation for actions that don't deserve a modal
+/// (copied, refreshed, marked present).
+void showSuccessToast(BuildContext context, String title,
+    {String? description}) {
+  showShadcnToast(
+    context,
+    title: title,
+    description: description,
+    variant: ShadcnToastVariant.success,
+  );
+}
+
+void showErrorToast(BuildContext context, String title, {String? description}) {
+  showShadcnToast(
+    context,
+    title: title,
+    description: description,
+    variant: ShadcnToastVariant.destructive,
   );
 }

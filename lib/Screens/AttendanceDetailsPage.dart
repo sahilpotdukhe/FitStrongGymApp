@@ -1,90 +1,107 @@
-import 'package:fitstrong_gym/Widgets/UniversalVariables.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:fitstrong_gym/src/custom_import.dart';
 
-import '../Provider/AttendanceProvider.dart';
-
+/// Who checked in on one particular day, and at what time.
 class AttendanceDetailPage extends StatelessWidget {
-  final String date;
   const AttendanceDetailPage({super.key, required this.date});
+
+  final String date;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.shadcn;
+    final status = context.status;
     final provider = Provider.of<AttendanceProvider>(context);
     final attendanceList = provider.getByDate(date);
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: UniversalVariables.appThemeColor,
-        centerTitle: true,
-        iconTheme: IconThemeData(
-          color: Colors.white, //change your color here
-        ),
-        title: Text(
-          _formatReadableDate(date),
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
+    return AppScaffold(
+      title: formatAttendanceDate(date),
       body: attendanceList.isEmpty
-          ? const Center(
-              child: Text("No records found.",
-                  style: TextStyle(color: Colors.white)))
+          // Previously white text on a white page, so it read as a blank
+          // screen whenever a day had no records.
+          ? const AppEmptyState(
+              icon: Icons.event_busy_rounded,
+              title: 'No check-ins',
+              description: 'Nobody was marked present on this date.',
+            )
           : ListView.builder(
-              itemCount: attendanceList.length,
+              padding: const EdgeInsets.fromLTRB(
+                ShadcnSpacing.lg,
+                ShadcnSpacing.md,
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl4,
+              ),
+              itemCount: attendanceList.length + 1,
               itemBuilder: (context, index) {
-                final a = attendanceList[index];
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: ShadcnSpacing.md),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.groups_rounded,
+                          size: 18,
+                          color: status.success,
+                        ),
+                        const ShadcnGap(ShadcnSpacing.sm),
+                        ShadcnText(
+                          '${attendanceList.length} member'
+                          '${attendanceList.length == 1 ? '' : 's'} checked in',
+                          variant: ShadcnTextVariant.small,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final a = attendanceList[index - 1];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 5.0, horizontal: 8.0),
-                  child: Card(
-                    color: Colors.yellow[700],
-                    elevation: 10,
-                    child: Padding(
-                      padding: const EdgeInsets.all(18.0),
-                      child: Row(
-                        children: [
-                          Text('${index + 1}.  ',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w500)),
-                          Text(a.name,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w500, fontSize: 15)),
-                          const Spacer(),
-                          Text(a.time),
-                        ],
-                      ),
+                  padding: const EdgeInsets.only(bottom: ShadcnSpacing.sm),
+                  child: ShadcnCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ShadcnSpacing.lg,
+                      vertical: ShadcnSpacing.md,
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 26,
+                          child: Text(
+                            '$index',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: t.mutedForeground,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            a.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w500,
+                              color: t.cardForeground,
+                            ),
+                          ),
+                        ),
+                        ShadcnBadge(
+                          style: ShadcnBadgeStyle(
+                            backgroundColor: status.successSurface,
+                            foregroundColor: status.successForeground,
+                            textStyle: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: Text(a.time),
+                        ),
+                      ],
                     ),
                   ),
                 );
               },
             ),
     );
-  }
-
-  String _formatReadableDate(String date) {
-    try {
-      final parts = date.split('-'); // "2024-11-25"
-      final day = int.parse(parts[2]);
-      final month = int.parse(parts[1]);
-      final year = parts[0];
-      const monthNames = [
-        '',
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December'
-      ];
-      return '$day ${monthNames[month]}, $year';
-    } catch (_) {
-      return date;
-    }
   }
 }

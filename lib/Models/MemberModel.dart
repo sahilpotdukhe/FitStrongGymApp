@@ -17,6 +17,11 @@ class MemberModel {
   final String checkInTime; // Changed to String
   final String checkOutTime; // Changed to String
 
+  /// The trainer assigned to this member, or '' when nobody is. Optional on
+  /// purpose: a gym can run without trainers, and records written before
+  /// trainers existed have no value here.
+  final String trainerId;
+
   MemberModel(
       {required this.id,
       required this.name,
@@ -32,9 +37,10 @@ class MemberModel {
       required this.address,
       required this.gender,
       required this.checkInTime,
-      required this.checkOutTime});
+      required this.checkOutTime,
+      this.trainerId = ''});
 
-  MemberModel copyWith({String? id}) {
+  MemberModel copyWith({String? id, String? photoUrl, String? trainerId}) {
     return MemberModel(
         id: id ?? this.id,
         name: name,
@@ -42,24 +48,48 @@ class MemberModel {
         dateOfBirth: dateOfBirth,
         height: height,
         weight: weight,
-        photoUrl: photoUrl,
+        photoUrl: photoUrl ?? this.photoUrl,
         planId: planId,
         dateOfAdmission: dateOfAdmission,
         renewalDate: renewalDate,
         expiryDate: expiryDate,
-        // Add this field
         address: address,
         gender: gender,
         checkInTime: checkInTime,
-        checkOutTime: checkOutTime);
+        checkOutTime: checkOutTime,
+        trainerId: trainerId ?? this.trainerId);
   }
 
-  bool isExpired(List<GymPlanModel> plans) {
+  bool isExpired() {
     return DateTime.now().isAfter(expiryDate);
+  }
+
+  /// Moves [from] forward by [months] calendar months, keeping the same day of
+  /// the month where that day exists and falling back to the last day of the
+  /// target month where it does not.
+  ///
+  /// Written out by hand because `DateTime(year, month + months, day)` rolls a
+  /// day that the target month is too short for into the following month: a
+  /// renewal taken on 31 January for a one month plan landed on 3 March and
+  /// quietly handed the member two free days.
+  static DateTime addMonths(DateTime from, int months) {
+    final totalMonths = from.month - 1 + months;
+    final year = from.year + (totalMonths ~/ 12);
+    final month = totalMonths % 12 + 1;
+
+    // Day 0 of the next month is the last day of this one, which gives the
+    // length of the target month without a lookup table or a leap year rule.
+    final lastDayOfMonth = DateTime(year, month + 1, 0).day;
+    final day = from.day < lastDayOfMonth ? from.day : lastDayOfMonth;
+
+    return DateTime(year, month, day);
   }
 
   MemberModel renewMembership(
       GymPlanModel newPlan, DateTime newDateOfAdmission) {
+    final newExpiryDate = addMonths(newDateOfAdmission, newPlan.months)
+        .add(Duration(days: newPlan.days));
+
     return MemberModel(
         id: id,
         name: name,
@@ -70,20 +100,13 @@ class MemberModel {
         photoUrl: photoUrl,
         planId: newPlan.id,
         dateOfAdmission: dateOfAdmission,
-        renewalDate: DateTime(
-                newDateOfAdmission.year,
-                newDateOfAdmission.month + newPlan.months,
-                newDateOfAdmission.day)
-            .add(Duration(days: newPlan.days)),
-        expiryDate: DateTime(
-                newDateOfAdmission.year,
-                newDateOfAdmission.month + newPlan.months,
-                newDateOfAdmission.day)
-            .add(Duration(days: newPlan.days)),
+        renewalDate: newExpiryDate,
+        expiryDate: newExpiryDate,
         address: address,
         gender: gender,
         checkInTime: checkInTime,
-        checkOutTime: checkOutTime);
+        checkOutTime: checkOutTime,
+        trainerId: trainerId);
   }
 
   Map<String, dynamic> toMap() {
@@ -103,6 +126,7 @@ class MemberModel {
       'gender': gender,
       'checkInTime': checkInTime,
       'checkOutTime': checkOutTime,
+      'trainerId': trainerId,
     };
   }
 

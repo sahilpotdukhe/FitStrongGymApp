@@ -1,74 +1,55 @@
-
-
 import 'package:fitstrong_gym/src/custom_import.dart';
 
+/// Members whose membership has lapsed — the follow-up list.
 class ExpiredMembersPage extends StatefulWidget {
+  const ExpiredMembersPage({super.key});
+
   @override
-  _ExpiredMembersPageState createState() => _ExpiredMembersPageState();
+  State<ExpiredMembersPage> createState() => _ExpiredMembersPageState();
 }
 
 class _ExpiredMembersPageState extends State<ExpiredMembersPage> {
   @override
   void initState() {
     super.initState();
-    // Fetch members when the page is initialized
+    _load();
+  }
+
+  Future<void> _load() async {
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
-    memberProvider.fetchExpiredMembers().then((_) {
-      setState(() {}); // Rebuild the widget after fetching members
-    });
+    await memberProvider.fetchExpiredMembers();
   }
 
   @override
   Widget build(BuildContext context) {
-    final memberProvider = Provider.of<MemberProvider>(context);
-    final expiredMembers = memberProvider.expiredMembers;
+    final expiredMembers = Provider.of<MemberProvider>(context).expiredMembers;
 
-    return Scaffold(
-      backgroundColor: UniversalVariables.bgColor,
-      appBar: AppBar(
-        backgroundColor: UniversalVariables.appThemeColor,
-        iconTheme: IconThemeData(
-          color: Colors.white, //change your color here
-        ),
-        title: Text(
-          'Expired Members',
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.search,
-              color: Colors.white,
+    return AppScaffold(
+      title: 'Expired members',
+      actions: [
+        ShadcnButton(
+          variant: ShadcnButtonVariant.ghost,
+          size: ShadcnButtonSize.icon,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SearchScreen(screen: 'Expired'),
             ),
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SearchScreen(screen: 'Expired',)));
-            },
-          )
-        ],
+          ),
+          child: const Icon(Icons.search_rounded, size: 20),
+        ),
+      ],
+      body: MemberListView(
+        members: expiredMembers,
+        onRefresh: _load,
+        empty: const AppEmptyState(
+          icon: Icons.verified_rounded,
+          title: 'Nothing expired',
+          description:
+              'Every membership on your books is up to date. Lapsed ones will '
+              'show up here so you can follow them up.',
+        ),
       ),
-      body: expiredMembers.isEmpty
-          ? MembersQuietBox(screen: 'nomembers',)
-          : ListView.builder(
-              itemCount: expiredMembers.length,
-              itemBuilder: (context, index) {
-                final expiredMember = expiredMembers[index];
-                return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  MemberDetailsPage(member: expiredMember)));
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(0.0),
-                      child: MemberCard(
-                        member: expiredMember,
-                      ),
-                    ));
-              },
-            ),
     );
   }
 }

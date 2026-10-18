@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -47,3 +49,6 @@ env/*.json
 !env/*.json.example
 android/app/.cxx/
 android/build/
+
+# Local-only package overrides (see pubspec_overrides.yaml)
+pubspec_overrides.yaml

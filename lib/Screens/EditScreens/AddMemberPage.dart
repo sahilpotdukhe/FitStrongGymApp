@@ -2,9 +2,13 @@ import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+/// Enrol a new member: their details, the plan they bought, and how they
+/// paid. Ends on their invoice.
 class AddMemberPage extends StatefulWidget {
+  const AddMemberPage({super.key});
+
   @override
-  _AddMemberPageState createState() => _AddMemberPageState();
+  State<AddMemberPage> createState() => _AddMemberPageState();
 }
 
 class _AddMemberPageState extends State<AddMemberPage> {
@@ -15,749 +19,318 @@ class _AddMemberPageState extends State<AddMemberPage> {
   final _weightController = TextEditingController();
   final _addressController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
+
   String? _selectedPaymentMethod;
-  final List<String> _paymentMethods = ['Cash', 'Online'];
+  static const List<String> _paymentMethods = ['Cash', 'Online'];
 
   XFile? _photo;
   String? _planId;
+
+  /// '' means nobody is assigned, which is allowed — a gym may not run
+  /// personal training at all.
+  String _trainerId = '';
   double _selectedPlanFee = 0.0;
   DateTime? _dateOfBirth;
   DateTime? _dateOfAdmission;
   bool _isLoading = false;
-  String? displayName;
   String? gender = 'Male';
   TimeOfDay? _checkInTime;
   TimeOfDay? _checkOutTime;
 
-  // XFile? _image;
-  String? phoneNumber;
+  /// Errors for the controls that live outside [Form]'s validation — the
+  /// photo and the two dates. They were previously reported as a snackbar
+  /// (photo) or silently crashed the save (dates).
+  bool _showNonFieldErrors = false;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     userProvider.refreshUser();
+    // Needed for the trainer picker further down the form.
+    Provider.of<TrainerProvider>(context, listen: false).fetchTrainers();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _mobileNumberController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    _addressController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = context.shadcn;
     final plans = Provider.of<GymPlanProvider>(context).plans;
-    UserProvider userProvider = Provider.of<UserProvider>(context);
-    UserModel? userModel = userProvider.getUser;
-    ScaleUtils.init(context);
-    return Stack(children: [
-      Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Add Member',
-            style: TextStyle(color: Colors.white),
+    final trainers = Provider.of<TrainerProvider>(context).activeTrainers;
+    final UserModel? userModel = Provider.of<UserProvider>(context).getUser;
+
+    return Stack(
+      children: [
+        AppScaffold(
+          title: 'Add member',
+          leading: ShadcnButton(
+            variant: ShadcnButtonVariant.ghost,
+            size: ShadcnButtonSize.icon,
+            onPressed: () => Navigator.popAndPushNamed(context, '/home'),
+            child: const Icon(Icons.arrow_back_rounded, size: 20),
           ),
-          backgroundColor: UniversalVariables.appThemeColor,
-          iconTheme: IconThemeData(
-            color: Colors.white, //change your color here
+          bottomBar: ShadcnButton(
+            fullWidth: true,
+            size: ShadcnButtonSize.lg,
+            loading: _isLoading,
+            leading: const Icon(Icons.check_rounded, size: 18),
+            onPressed: _saveForm,
+            child: const Text('Save member'),
           ),
-          leading: IconButton(
-            onPressed: () {
-              Navigator.popAndPushNamed(context, '/home');
-            },
-            icon: Icon(Icons.arrow_back_outlined),
-          ),
-          // actions: [
-          //   IconButton(
-          //       onPressed: () async {
-          //         await fillMissingCheckInOutTimes();
-          //       },
-          //       icon: Icon(Icons.notifications))
-          // ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
+          body: Form(
             key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Stack(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          _modalBottomSheetMenu(context);
-                        },
-                        child: Center(
-                          child: CircleAvatar(
-                            radius: 52,
-                            backgroundColor: Colors.black,
-                            backgroundImage: _displayChild(),
-                            //foregroundImage: NetworkImage(userModel!.profilePhoto),
-                          ),
-                        ),
-                      ),
-                      Center(
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              height: 70 * ScaleUtils.verticalScale,
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(
-                                  right: 5 * ScaleUtils.horizontalScale,
-                                  top: 12 * ScaleUtils.verticalScale),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: HexColor("#3B82F6"),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(
-                                    8.0 * ScaleUtils.scaleFactor),
-                                child: Icon(
-                                  Icons.camera_alt,
-                                  size: 26 * ScaleUtils.scaleFactor,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Full Name',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter Your Name',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide:
-                              BorderSide(color: HexColor('#E5E7EB'), width: 2)),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('#E5E7EB'), width: 2),
-                      ),
-                      suffixIcon: Icon(
-                        Icons.person,
-                      ),
-                    ),
-                    onSaved: (value) {
-                      displayName = value;
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a name';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Mobile Number',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _mobileNumberController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter Your Phone number',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      counterText: "",
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(
-                        Icons.phone_android_outlined,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide:
-                              BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('E5E7EB'), width: 2),
-                      ),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        phoneNumber = value;
-                      });
-                    },
-                    onSaved: (value) {
-                      phoneNumber = value;
-                    },
-                    keyboardType: TextInputType.phone,
-                    maxLength: 10,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Please Enter Phone No';
-                      } else if (value.length < 10) {
-                        return 'Enter 10 digit Phone number';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Date of Birth  ',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: _pickDateOfBirth,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: _dateOfBirth != null
-                              ? DateFormat('dd/MM/yyyy').format(_dateOfBirth!)
-                              : null,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Select Date of Birth',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(
-                            Icons.date_range,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                  color: HexColor('E5E7EB'), width: 2)),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide:
-                                BorderSide(color: HexColor('E5E7EB'), width: 2),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (_dateOfBirth == null) {
-                            return 'Please select a date of birth';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Height (in feet)',
-                                style: TextStyle(fontSize: 16),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                            SizedBox(
-                              height: 50,
-                              child: TextFormField(
-                                controller: _heightController,
-                                decoration: InputDecoration(
-                                  hintText: 'Height',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                  border: OutlineInputBorder(),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      borderSide: BorderSide(
-                                          color: HexColor('E5E7EB'), width: 2)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(
-                                        color: HexColor('E5E7EB'), width: 2),
-                                  ),
-                                  suffixIcon: Icon(
-                                    Icons.height,
-                                  ),
-                                ),
-                                keyboardType: TextInputType.number,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter a height';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Weight (in Kg)',
-                                style: TextStyle(fontSize: 16),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                            SizedBox(
-                              height: 50,
-                              child: TextFormField(
-                                controller: _weightController,
-                                decoration: InputDecoration(
-                                  hintText: 'Weight',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                  border: OutlineInputBorder(),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      borderSide: BorderSide(
-                                          color: HexColor('E5E7EB'), width: 2)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(
-                                        color: HexColor('E5E7EB'), width: 2),
-                                  ),
-                                  suffixIcon: Icon(
-                                    Icons.monitor_weight,
-                                  ),
-                                ),
-                                keyboardType: TextInputType.number,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter a weight';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Address',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _addressController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter Your Address',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.place),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide:
-                              BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('E5E7EB'), width: 2),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter an address';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Date of Admission',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: _pickDateOfAdmission,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: _dateOfAdmission != null
-                              ? DateFormat('dd/MM/yyyy')
-                                  .format(_dateOfAdmission!)
-                              : null,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Select Date of Admission',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.date_range),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                  color: HexColor('E5E7EB'), width: 2)),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide:
-                                BorderSide(color: HexColor('E5E7EB'), width: 2),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (_dateOfAdmission == null) {
-                            return 'Please select a date of admission';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Check-in Time',
-                                style: TextStyle(fontSize: 16),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: _pickCheckInTime,
-                              child: AbsorbPointer(
-                                child: TextFormField(
-                                  readOnly: true,
-                                  controller: TextEditingController(
-                                    text: _checkInTime?.format(context),
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Check-in Time',
-                                    hintStyle: TextStyle(color: Colors.grey),
-                                    border: OutlineInputBorder(),
-                                    suffixIcon: Icon(
-                                      Icons.access_time,
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(
-                                            color: HexColor('E5E7EB'),
-                                            width: 2)),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      borderSide: BorderSide(
-                                          color: HexColor('E5E7EB'), width: 2),
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (_checkInTime == null) {
-                                      return 'Please select a check-in time';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Check-out time',
-                                style: TextStyle(fontSize: 16),
-                                textAlign: TextAlign.start,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: _pickCheckOutTime,
-                              child: AbsorbPointer(
-                                child: TextFormField(
-                                  readOnly: true,
-                                  controller: TextEditingController(
-                                    text: _checkOutTime?.format(context),
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Check-out Time',
-                                    hintStyle: TextStyle(color: Colors.grey),
-                                    border: OutlineInputBorder(),
-                                    suffixIcon: Icon(
-                                      Icons.access_time,
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(
-                                            color: HexColor('E5E7EB'),
-                                            width: 2)),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      borderSide: BorderSide(
-                                          color: HexColor('E5E7EB'), width: 2),
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (_checkOutTime == null) {
-                                      return 'Please select a check-out time';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Gender',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Radio<String>(
-                        value: 'Male',
-                        groupValue: gender,
-                        onChanged: (value) {
-                          setState(() {
-                            gender = value!;
-                          });
-                        },
-                        activeColor: HexColor('#3B82F6'),
-                      ),
-                      const Text('Male'),
-                      Radio<String>(
-                        value: 'Female',
-                        groupValue: gender,
-                        onChanged: (value) {
-                          setState(() {
-                            gender = value!;
-                          });
-                        },
-                        activeColor: HexColor('#3B82F6'),
-                      ),
-                      const Text('Female'),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Plan',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      hintText: 'Select Plan',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(
-                        Icons.card_membership,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide:
-                              BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('E5E7EB'), width: 2),
-                      ),
-                    ),
-                    value: _planId,
-                    onChanged: (value) {
-                      setState(() {
-                        _planId = value;
-                        // Find the selected plan and set the fee
-                        final selectedPlan =
-                            GymPlanModel.findById(plans, value!);
-                        if (selectedPlan != null) {
-                          _selectedPlanFee = selectedPlan.fee;
-                        }
-                      });
-                    },
-                    items: plans
-                        .map((plan) => DropdownMenuItem(
-                              value: plan.id,
-                              child: Text(
-                                  '${plan.name} (${plan.months} months ${(plan.days != 0 ? plan.days : '')} ${(plan.days != 0 ? 'days' : '')})'),
-                            ))
-                        .toList(),
-                    validator: (value) {
-                      if (value == null) {
-                        return 'Please select a plan';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(
-                    height: 4,
-                  ),
-                  Center(
-                    child: Text(
-                      'Fees to be paid: \₹$_selectedPlanFee',
-                      style: TextStyle(color: Colors.red, fontSize: 16),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Payment Mode',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  DropdownButtonFormField<String>(
-                    value: _selectedPaymentMethod,
-                    decoration: InputDecoration(
-                      hintText: 'Select Payment Mode',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(
-                        Icons.credit_card,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide:
-                              BorderSide(color: HexColor('E5E7EB'), width: 2)),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide:
-                            BorderSide(color: HexColor('E5E7EB'), width: 2),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null) {
-                        return 'Please select payment mode';
-                      }
-                      return null;
-                    },
-                    items: _paymentMethods.map((String method) {
-                      return DropdownMenuItem<String>(
-                        value: method,
-                        child: Text(method),
-                      );
-                    }).toList(),
-                    onChanged: (String? newMethod) {
-                      setState(() {
-                        _selectedPaymentMethod = newMethod;
-                      });
-                    },
-                  ),
-                  if (_selectedPaymentMethod == 'Online')
-                    Column(
-                      children: [
-                        SizedBox(height: 10),
-                        Center(
-                          child: QrImageView(
-                            data:
-                                'upi://pay?pa=${userModel?.upiId}&pn=${userModel?.merchantName}&mc=0000&cu=INR&am=$_selectedPlanFee',
-                            size: 280,
-                            embeddedImageStyle: QrEmbeddedImageStyle(
-                              size: const Size(
-                                100,
-                                100,
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Center(
-                        //   child: CachedImage(
-                        //       imageUrl: userModel!.qrImageUrl,
-                        //       isRound: false,
-                        //       radius: 0,
-                        //       height: 350,
-                        //       width: 350,
-                        //       fit: BoxFit.cover),
-                        // ),
-                        SizedBox(height: 10),
-                        Text('Scan the QR code to pay online'),
-                      ],
-                    ),
-                  SizedBox(height: 20),
-                  Center(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green),
-                      onPressed: _saveForm,
-                      child: Text(
-                        'Save Member',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl,
+                ShadcnSpacing.lg,
+                ShadcnSpacing.xl2,
               ),
+              children: [
+                Center(
+                  child: AppPhotoPicker(
+                    localFile: _photo,
+                    initials: _nameController.text,
+                    onPicked: _pickImage,
+                    errorText: _showNonFieldErrors && _photo == null
+                        ? 'A photo is required'
+                        : null,
+                  ),
+                ),
+                const ShadcnGap(ShadcnSpacing.sm),
+                Center(
+                  child: ShadcnText(
+                    'Tap to add a photo',
+                    variant: ShadcnTextVariant.small,
+                  ),
+                ),
+                const ShadcnGap(ShadcnSpacing.xl2),
+                _SectionLabel('Personal details'),
+                const ShadcnGap(ShadcnSpacing.md),
+                ShadcnInput(
+                  controller: _nameController,
+                  label: 'Full name',
+                  placeholder: 'Member name',
+                  textCapitalization: TextCapitalization.words,
+                  leading: const Icon(Icons.person_outline_rounded, size: 18),
+                  validator: ShadcnValidators.required('Please enter a name'),
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                ShadcnInput(
+                  controller: _mobileNumberController,
+                  label: 'Mobile number',
+                  placeholder: '10-digit number',
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  leading: const Icon(Icons.phone_outlined, size: 18),
+                  validator: ShadcnValidators.combine([
+                    ShadcnValidators.required('Please enter a mobile number'),
+                    ShadcnValidators.pattern(
+                      RegExp(r'^[0-9]{10}$'),
+                      'Enter a 10 digit mobile number',
+                    ),
+                  ]),
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ShadcnInput(
+                        controller: _heightController,
+                        label: 'Height (ft)',
+                        placeholder: '5.8',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: ShadcnValidators.combine([
+                          ShadcnValidators.required('Required'),
+                          ShadcnValidators.numeric('Numbers only'),
+                        ]),
+                      ),
+                    ),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    Expanded(
+                      child: ShadcnInput(
+                        controller: _weightController,
+                        label: 'Weight (kg)',
+                        placeholder: '72',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: ShadcnValidators.combine([
+                          ShadcnValidators.required('Required'),
+                          ShadcnValidators.numeric('Numbers only'),
+                        ]),
+                      ),
+                    ),
+                  ],
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                AppPickerField(
+                  label: 'Date of birth',
+                  value: _dateOfBirth == null
+                      ? null
+                      : DateFormat('d MMM yyyy').format(_dateOfBirth!),
+                  placeholder: 'Select date of birth',
+                  onTap: _pickDateOfBirth,
+                  errorText: _showNonFieldErrors && _dateOfBirth == null
+                      ? 'Please pick a date of birth'
+                      : null,
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                ShadcnInput(
+                  controller: _addressController,
+                  label: 'Address',
+                  placeholder: 'Where the member lives',
+                  maxLines: 2,
+                  textCapitalization: TextCapitalization.sentences,
+                  validator:
+                      ShadcnValidators.required('Please enter an address'),
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                Text(
+                  'Gender',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: t.foreground,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                ShadcnRadioGroup<String>(
+                  value: gender,
+                  onChanged: (value) => setState(() => gender = value),
+                  direction: Axis.horizontal,
+                  options: const [
+                    ShadcnRadioOption(value: 'Male', label: 'Male'),
+                    ShadcnRadioOption(value: 'Female', label: 'Female'),
+                  ],
+                ),
+                const ShadcnGap(ShadcnSpacing.xl2),
+                _SectionLabel('Membership'),
+                const ShadcnGap(ShadcnSpacing.md),
+                AppPickerField(
+                  label: 'Admission date',
+                  value: _dateOfAdmission == null
+                      ? null
+                      : DateFormat('d MMM yyyy').format(_dateOfAdmission!),
+                  placeholder: 'Select admission date',
+                  onTap: _pickDateOfAdmission,
+                  errorText: _showNonFieldErrors && _dateOfAdmission == null
+                      ? 'Please pick an admission date'
+                      : null,
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                ShadcnSelect<String>(
+                  label: 'Plan',
+                  placeholder: plans.isEmpty
+                      ? 'No plans yet — create one first'
+                      : 'Select a plan',
+                  value: _planId,
+                  items: [
+                    for (final plan in plans)
+                      ShadcnSelectItem(
+                        value: plan.id,
+                        label: _planLabel(plan),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _planId = value;
+                      final selectedPlan = GymPlanModel.findById(plans, value);
+                      if (selectedPlan != null) {
+                        _selectedPlanFee = selectedPlan.fee;
+                      }
+                    });
+                  },
+                  validator: ShadcnValidators.required('Please select a plan'),
+                ),
+                if (_planId != null) ...[
+                  const ShadcnGap(ShadcnSpacing.md),
+                  _FeeSummary(fee: _selectedPlanFee),
+                ],
+                const ShadcnGap(ShadcnSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppPickerField(
+                        label: 'Check in',
+                        icon: Icons.schedule_rounded,
+                        value: _checkInTime?.format(context),
+                        placeholder: 'Optional',
+                        onTap: _pickCheckInTime,
+                      ),
+                    ),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    Expanded(
+                      child: AppPickerField(
+                        label: 'Check out',
+                        icon: Icons.schedule_rounded,
+                        value: _checkOutTime?.format(context),
+                        placeholder: 'Optional',
+                        onTap: _pickCheckOutTime,
+                      ),
+                    ),
+                  ],
+                ),
+                const ShadcnGap(ShadcnSpacing.lg),
+                AppTrainerSelect(
+                  trainers: trainers,
+                  value: _trainerId,
+                  onChanged: (value) => setState(() => _trainerId = value),
+                ),
+                const ShadcnGap(ShadcnSpacing.xl2),
+                _SectionLabel('Payment'),
+                const ShadcnGap(ShadcnSpacing.md),
+                ShadcnSelect<String>(
+                  label: 'Payment mode',
+                  placeholder: 'How did they pay?',
+                  value: _selectedPaymentMethod,
+                  items: [
+                    for (final method in _paymentMethods)
+                      ShadcnSelectItem(value: method, label: method),
+                  ],
+                  onChanged: (value) =>
+                      setState(() => _selectedPaymentMethod = value),
+                  validator:
+                      ShadcnValidators.required('Please select a payment mode'),
+                ),
+                if (_selectedPaymentMethod == 'Online') ...[
+                  const ShadcnGap(ShadcnSpacing.lg),
+                  _UpiQr(user: userModel, amount: _selectedPlanFee),
+                ],
+              ],
             ),
           ),
         ),
-      ),
-      if (_isLoading)
-        Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        ),
-    ]);
+        if (_isLoading) const AppSavingOverlay(message: 'Saving member…'),
+      ],
+    );
+  }
+
+  String _planLabel(GymPlanModel plan) {
+    final parts = <String>[
+      if (plan.months != 0)
+        '${plan.months} month${plan.months == 1 ? '' : 's'}',
+      if (plan.days != 0) '${plan.days} day${plan.days == 1 ? '' : 's'}',
+    ];
+    return parts.isEmpty ? plan.name : '${plan.name} · ${parts.join(' ')}';
   }
 
   void _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
-    setState(() {
-      _photo = pickedFile;
-    });
+    if (!mounted || pickedFile == null) return;
+    setState(() => _photo = pickedFile);
   }
 
   void _pickDateOfBirth() async {
@@ -767,10 +340,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-    if (pickedDate != null) {
-      setState(() {
-        _dateOfBirth = pickedDate;
-      });
+    if (pickedDate != null && mounted) {
+      setState(() => _dateOfBirth = pickedDate);
     }
   }
 
@@ -781,190 +352,232 @@ class _AddMemberPageState extends State<AddMemberPage> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-    if (pickedDate != null) {
-      setState(() {
-        _dateOfAdmission = pickedDate;
-      });
-    }
-  }
-
-  bool _isImageSelected() {
-    if (_photo == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select an image')),
-      );
-      return false;
-    }
-    return true;
-  }
-
-  void _saveForm() async {
-    final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
-
-    if (_formKey.currentState!.validate() && _isImageSelected()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Find the selected plan to get the duration in months
-      final selectedPlan = GymPlanModel.findById(plans, _planId!);
-      if (selectedPlan == null) {
-        // Handle error
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected plan not found')),
-        );
-        return;
-      }
-
-      final expiryDate = DateTime(
-        _dateOfAdmission!.year,
-        _dateOfAdmission!.month + selectedPlan.months,
-        _dateOfAdmission!.day,
-      ).add(Duration(days: selectedPlan.days));
-
-      final newMember = MemberModel(
-          id: '',
-          name: _nameController.text,
-          mobileNumber: _mobileNumberController.text,
-          dateOfBirth: _dateOfBirth!,
-          height: double.parse(_heightController.text),
-          weight: double.parse(_weightController.text),
-          photoUrl: '',
-          // This will be updated in provider
-          planId: _planId!,
-          dateOfAdmission: _dateOfAdmission!,
-          renewalDate: expiryDate,
-          expiryDate: expiryDate,
-          // Set expiry date
-          address: _addressController.text,
-          gender: gender ?? 'Male',
-          checkInTime: MemberModel.timeOfDayToString(context, _checkInTime),
-          checkOutTime: MemberModel.timeOfDayToString(context, _checkOutTime));
-
-      await Provider.of<MemberProvider>(context, listen: false)
-          .addMember(newMember, _photo!);
-      showSuccessDialog(
-        context: context,
-        title: 'Added!',
-        desc:
-            'You have successfully added a member.\n Please wait you will be redirected to the HomePage.',
-      );
-      await Future.delayed(Duration(seconds: 4));
-      setState(() {
-        _isLoading = false;
-      });
-
-      Navigator.pop(context);
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ViewInvoicePage(
-                    member: newMember,
-                  )));
-    }
-  }
-
-  _displayChild() {
-    if (_photo == null) {
-      return AssetImage('assets/user.jpg');
-    } else {
-      final File _imagex = File(_photo!.path);
-      return FileImage(_imagex);
+    if (pickedDate != null && mounted) {
+      setState(() => _dateOfAdmission = pickedDate);
     }
   }
 
   void _pickCheckInTime() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: _checkInTime ?? TimeOfDay.now(),
     );
-    if (pickedTime != null) {
-      setState(() {
-        _checkInTime = pickedTime;
-      });
+    if (pickedTime != null && mounted) {
+      setState(() => _checkInTime = pickedTime);
     }
   }
 
   void _pickCheckOutTime() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: _checkOutTime ?? TimeOfDay.now(),
     );
-    if (pickedTime != null) {
-      setState(() {
-        _checkOutTime = pickedTime;
-      });
+    if (pickedTime != null && mounted) {
+      setState(() => _checkOutTime = pickedTime);
     }
   }
 
-  void _modalBottomSheetMenu(BuildContext context) {
-    showModalBottomSheet(
+  void _saveForm() async {
+    final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
+
+    // The photo and the two dates sit outside the Form, so they are checked
+    // here. Picking an admission date used to be assumed, and skipping it
+    // threw a null error instead of pointing at the field.
+    setState(() => _showNonFieldErrors = true);
+    final fieldsValid = _formKey.currentState!.validate();
+    final extrasValid =
+        _photo != null && _dateOfBirth != null && _dateOfAdmission != null;
+    if (!fieldsValid || !extrasValid) return;
+
+    setState(() => _isLoading = true);
+
+    final selectedPlan = GymPlanModel.findById(plans, _planId!);
+    if (selectedPlan == null) {
+      setState(() => _isLoading = false);
+      showErrorToast(
+        context,
+        'Plan not found',
+        description: 'That plan may have been deleted. Pick another one.',
+      );
+      return;
+    }
+
+    // Shares the renewal helper so a member joining on the 29th, 30th or
+    // 31st gets the same expiry date here as they would on renewal.
+    final expiryDate =
+        MemberModel.addMonths(_dateOfAdmission!, selectedPlan.months)
+            .add(Duration(days: selectedPlan.days));
+
+    final newMember = MemberModel(
+      id: '',
+      name: _nameController.text,
+      mobileNumber: _mobileNumberController.text,
+      dateOfBirth: _dateOfBirth!,
+      height: double.parse(_heightController.text),
+      weight: double.parse(_weightController.text),
+      photoUrl: '',
+      // This will be updated in provider
+      planId: _planId!,
+      dateOfAdmission: _dateOfAdmission!,
+      renewalDate: expiryDate,
+      expiryDate: expiryDate,
+      address: _addressController.text,
+      gender: gender ?? 'Male',
+      checkInTime: MemberModel.timeOfDayToString(context, _checkInTime),
+      checkOutTime: MemberModel.timeOfDayToString(context, _checkOutTime),
+      trainerId: _trainerId,
+    );
+
+    MemberModel? savedMember;
+    try {
+      // The saved copy is used from here on: it carries the id Firestore
+      // handed out, which the invoice record needs to point at this member.
+      savedMember = await Provider.of<MemberProvider>(context, listen: false)
+          .addMember(newMember, _photo!);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      showErrorDialog(
         context: context,
-        builder: (builder) {
-          return Container(
-              height: 150.0,
-              color: Colors.transparent,
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(28.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          _pickImage(ImageSource.camera);
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.white60,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.camera_alt,
-                                    size: 50,
-                                    color: UniversalVariables.appThemeColor,
-                                  ),
-                                  Text('Camera')
-                                ],
-                              ),
-                            )),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          _pickImage(ImageSource.gallery);
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.white60,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.photo,
-                                    size: 50,
-                                    color: UniversalVariables.appThemeColor,
-                                  ),
-                                  Text('Gallery')
-                                ],
-                              ),
-                            )),
-                      ),
-                    ],
-                  ),
-                ),
-              ));
-        });
+        title: 'Could not save member',
+        desc: 'Check your connection and try again.',
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    await showSuccessDialog(
+      context: context,
+      title: 'Member added',
+      desc: '${newMember.name} is now on your books. '
+          'Their invoice is next.',
+    );
+
+    // Guards against the owner leaving while the dialog was open.
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewInvoicePage(
+          member: savedMember ?? newMember,
+          paymentMethod: _selectedPaymentMethod!,
+          amountPaid: _selectedPlanFee,
+          transactionType: 'New Membership',
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return ShadcnText(text, variant: ShadcnTextVariant.h4);
+  }
+}
+
+/// The amount due for the chosen plan.
+class _FeeSummary extends StatelessWidget {
+  const _FeeSummary({required this.fee});
+
+  final double fee;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.shadcn;
+    final status = context.status;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: ShadcnSpacing.lg,
+        vertical: ShadcnSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: status.infoSurface,
+        borderRadius: BorderRadius.circular(t.radiusMd),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.receipt_long_rounded, size: 18, color: status.info),
+          const ShadcnGap(ShadcnSpacing.sm),
+          Text(
+            'Fee to collect',
+            style: TextStyle(fontSize: 13.5, color: status.infoForeground),
+          ),
+          const Spacer(),
+          Text(
+            '₹${fee.toStringAsFixed(0)}',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: status.infoForeground,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// UPI QR code for taking payment on the spot.
+class _UpiQr extends StatelessWidget {
+  const _UpiQr({required this.user, required this.amount});
+
+  final UserModel? user;
+  final double amount;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.shadcn;
+
+    // Without a UPI id the QR would encode an unpayable link, so say what's
+    // missing instead of showing a code that silently fails at the counter.
+    if (user == null || user!.upiId.trim().isEmpty) {
+      return ShadcnCard(
+        child: Row(
+          children: [
+            Icon(Icons.info_outline_rounded, color: t.mutedForeground),
+            const ShadcnGap(ShadcnSpacing.md),
+            Expanded(
+              child: ShadcnText(
+                'Add your UPI ID in Profile to show a payment QR code here.',
+                variant: ShadcnTextVariant.small,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ShadcnCard(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(ShadcnSpacing.md),
+            decoration: BoxDecoration(
+              // The QR itself is always dark-on-white: inverting it in dark
+              // mode would stop most scanners reading it.
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(t.radiusMd),
+            ),
+            child: QrImageView(
+              data:
+                  'upi://pay?pa=${user!.upiId}&pn=${user!.merchantName}&mc=0000&cu=INR&am=$amount',
+              size: 220,
+            ),
+          ),
+          const ShadcnGap(ShadcnSpacing.md),
+          ShadcnText(
+            'Scan to pay ₹${amount.toStringAsFixed(0)}',
+            variant: ShadcnTextVariant.small,
+          ),
+        ],
+      ),
+    );
   }
 }

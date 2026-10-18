@@ -23,16 +23,31 @@ class _DashBoardState extends State<DashBoard> {
         Provider.of<GymPlanProvider>(context, listen: false);
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
+    // One member fetch is enough: the active and expired counts are worked
+    // out from that same list rather than fetched separately.
     memberProvider.getAllMembers();
     gymPlanProvider.fetchPlans();
-    memberProvider.fetchActiveMembers();
-    memberProvider.fetchExpiredMembers();
     userProvider.refreshUser();
+    Provider.of<TrainerProvider>(context, listen: false).fetchTrainers();
+  }
+
+  Future<void> _refresh() async {
+    final memberProvider = Provider.of<MemberProvider>(context, listen: false);
+    final gymPlanProvider =
+        Provider.of<GymPlanProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    await Future.wait([
+      memberProvider.getAllMembers(),
+      gymPlanProvider.fetchPlans(),
+      userProvider.refreshUser(),
+      Provider.of<TrainerProvider>(context, listen: false).fetchTrainers(),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    ScaleUtils.init(context);
+    final t = context.shadcn;
+    final status = context.status;
     final memberProvider = Provider.of<MemberProvider>(context);
     final gymPlanProvider = Provider.of<GymPlanProvider>(context);
     final userProvider = Provider.of<UserProvider>(context);
@@ -40,318 +55,317 @@ class _DashBoardState extends State<DashBoard> {
     final plans = gymPlanProvider.plans;
     final activeMembers = memberProvider.activeMembers;
     final expiredMembers = memberProvider.expiredMembers;
-    UserModel? userModel = userProvider.getUser;
+    final UserModel? userModel = userProvider.getUser;
+    final trainerCount =
+        Provider.of<TrainerProvider>(context).activeTrainers.length;
+
     return Scaffold(
-      // extendBodyBehindAppBar: true,
-      // appBar: AppBar(
-      //   title: Text(
-      //     'FitStrong Gym',
-      //     style: TextStyle(color: Colors.grey[800]),
-      //   ),
-      //   elevation: 0,
-      //   centerTitle: true,
-      //   backgroundColor: Colors.white70,
-      // ),
-      body: Stack(children: [
-        Image.asset(
-          'assets/home3.jpg',
-          height: ScaleUtils.height,
-          width: ScaleUtils.width,
-          fit: BoxFit.cover,
+      backgroundColor: t.background,
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          color: t.primary,
+          backgroundColor: t.card,
+          onRefresh: _refresh,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              ShadcnSpacing.lg,
+              ShadcnSpacing.sm,
+              ShadcnSpacing.lg,
+              ShadcnSpacing.xl3,
+            ),
+            children: [
+              _Greeting(user: userModel),
+              const ShadcnGap(ShadcnSpacing.xl),
+
+              // Two columns of equal-height cards. The old layout used fixed
+              // pixel heights multiplied by a scale factor, which clipped the
+              // numbers on small phones and on large text settings.
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: ShadcnSpacing.md,
+                mainAxisSpacing: ShadcnSpacing.md,
+                childAspectRatio: 1.35,
+                children: [
+                  AppStatCard(
+                    label: 'Total members',
+                    value: '${members.length}',
+                    icon: Icons.groups_rounded,
+                    accent: t.primary,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MemberListPage()),
+                    ),
+                  ),
+                  AppStatCard(
+                    label: 'Active memberships',
+                    value: '${activeMembers.length}',
+                    icon: Icons.verified_rounded,
+                    accent: status.success,
+                    accentSurface: status.successSurface,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ActiveMembersPage()),
+                    ),
+                  ),
+                  AppStatCard(
+                    label: 'Expired memberships',
+                    value: '${expiredMembers.length}',
+                    icon: Icons.event_busy_rounded,
+                    accent: status.danger,
+                    accentSurface: status.dangerSurface,
+                    footnote: expiredMembers.isEmpty ? null : 'Needs follow-up',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ExpiredMembersPage()),
+                    ),
+                  ),
+                  AppStatCard(
+                    label: 'Membership plans',
+                    value: '${plans.length}',
+                    icon: Icons.card_membership_rounded,
+                    accent: status.warning,
+                    accentSurface: status.warningSurface,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => GymPlansPage()),
+                    ),
+                  ),
+                ],
+              ),
+
+              const ShadcnGap(ShadcnSpacing.xl2),
+              const AppSectionHeader(title: 'Quick actions'),
+              const ShadcnGap(ShadcnSpacing.md),
+              _QuickActions(),
+
+              const ShadcnGap(ShadcnSpacing.xl2),
+              const AppSectionHeader(title: 'Your gym'),
+              const ShadcnGap(ShadcnSpacing.md),
+              _LinkCard(
+                icon: Icons.sports_gymnastics_rounded,
+                iconColor: status.info,
+                iconSurface: status.infoSurface,
+                title: 'Trainers',
+                subtitle: trainerCount == 0
+                    ? 'Add your coaches and assign members to them'
+                    : '$trainerCount trainer${trainerCount == 1 ? '' : 's'} on the team',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TrainersPage()),
+                ),
+              ),
+              const ShadcnGap(ShadcnSpacing.md),
+              _LinkCard(
+                icon: Icons.monitor_weight_outlined,
+                iconColor: status.info,
+                iconSurface: status.infoSurface,
+                title: 'BMI calculator',
+                subtitle: "Check a member's body mass index in seconds",
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BMICalculator()),
+                ),
+              ),
+            ],
+          ),
         ),
-        ListView(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8.0, 14, 8, 0),
-              child: Text(
-                'Welcome back, ${userModel?.name}!',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 22),
+      ),
+    );
+  }
+}
+
+/// Greeting row with the gym owner's name, their photo, and the light/dark
+/// switch. The old header sat on a photographic background, which forced
+/// white text and left the page unreadable in bright sunlight.
+class _Greeting extends StatelessWidget {
+  const _Greeting({required this.user});
+
+  final UserModel? user;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.shadcn;
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShadcnText(
+                // Falls back to a neutral greeting while the profile loads,
+                // instead of flashing "Welcome back, null!" on every open.
+                user == null ? 'Welcome back!' : 'Hi, ${user!.name}',
+                variant: ShadcnTextVariant.h2,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              ShadcnText(
+                "Here's how your gym is doing today",
+                variant: ShadcnTextVariant.muted,
+              ),
+            ],
+          ),
+        ),
+        const ShadcnGap(ShadcnSpacing.sm),
+        const ThemeModeToggle(),
+        const ShadcnGap(ShadcnSpacing.xs),
+        ShadcnAvatar(
+          user?.profilePhoto,
+          size: 40,
+          placeholder: const ShadcnSkeleton.circle(size: 40),
+          initials: user?.name,
+          backgroundColor: t.secondary,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ProfilePage()),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The three things a gym owner does most, one tap from the home screen.
+class _QuickActions extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _QuickAction(
+            icon: Icons.person_add_alt_1_rounded,
+            label: 'Add member',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddMemberPage()),
+            ),
+          ),
+        ),
+        const ShadcnGap(ShadcnSpacing.md),
+        Expanded(
+          child: _QuickAction(
+            icon: Icons.search_rounded,
+            label: 'Find member',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SearchScreen(screen: 'All'),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-              child: Text(
-                'Let\'s check your dashboard',
-                style: TextStyle(color: Colors.grey.shade300, fontSize: 16),
-              ),
+          ),
+        ),
+        const ShadcnGap(ShadcnSpacing.md),
+        Expanded(
+          child: _QuickAction(
+            icon: Icons.add_card_rounded,
+            label: 'New plan',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddGymPlanPage()),
             ),
-            SizedBox(
-              height: 240 * ScaleUtils.verticalScale,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.shadcn;
+    return ShadcnCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(
+        vertical: ShadcnSpacing.lg,
+        horizontal: ShadcnSpacing.sm,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: t.primary, size: 22),
+          const ShadcnGap(ShadcnSpacing.sm),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            style: TextStyle(
+              fontSize: 12.5,
+              height: 1.2,
+              fontWeight: FontWeight.w600,
+              color: t.cardForeground,
             ),
-            Column(
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A full-width row that opens another screen: icon, title, one line of
+/// explanation, chevron. Used for the dashboard's shortcuts.
+class _LinkCard extends StatelessWidget {
+  const _LinkCard({
+    required this.icon,
+    required this.iconColor,
+    required this.iconSurface,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final Color iconSurface;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.shadcn;
+    return ShadcnCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            height: 44,
+            width: 44,
+            decoration: BoxDecoration(
+              color: iconSurface,
+              borderRadius: BorderRadius.circular(t.radiusMd),
+            ),
+            child: Icon(icon, color: iconColor),
+          ),
+          const ShadcnGap(ShadcnSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                          20 * ScaleUtils.horizontalScale,
-                          10 * ScaleUtils.verticalScale,
-                          10 * ScaleUtils.horizontalScale,
-                          10 * ScaleUtils.verticalScale),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => MemberListPage()),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: const [
-                                Colors.white, // Light grey
-                                Colors.white70, // Darker grey
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          height: 130 * ScaleUtils.verticalScale,
-                          width: 150 * ScaleUtils.horizontalScale,
-                          child: Center(
-                              child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/totalmembers.png',
-                                height: 40 * ScaleUtils.verticalScale,
-                                width: 40 * ScaleUtils.horizontalScale,
-                              ),
-                              Text(
-                                'Total Members',
-                                style: TextStyle(
-                                    color: Colors.grey[800],
-                                    fontSize: 14 * ScaleUtils.scaleFactor),
-                              ),
-                              Text(
-                                '${members.length}',
-                                style: TextStyle(
-                                    fontSize: 20 * ScaleUtils.scaleFactor,
-                                    color: Colors.black),
-                              ),
-                            ],
-                          )),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                          20 * ScaleUtils.horizontalScale,
-                          10 * ScaleUtils.verticalScale,
-                          10 * ScaleUtils.horizontalScale,
-                          10 * ScaleUtils.verticalScale),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => GymPlansPage()));
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: const [
-                                Colors.white, // Light grey
-                                Colors.white70, // Darker grey
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          // decoration: BoxDecoration(
-                          //   color: Colors.white,
-                          // ),
-                          height: 130 * ScaleUtils.verticalScale,
-                          width: 150 * ScaleUtils.horizontalScale,
-                          child: Center(
-                              child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/plan.png',
-                                height: 40 * ScaleUtils.verticalScale,
-                                width: 40 * ScaleUtils.horizontalScale,
-                              ),
-                              Text(
-                                'Gym Plans',
-                                style: TextStyle(
-                                    color: Colors.grey[800],
-                                    fontSize: 14 * ScaleUtils.scaleFactor),
-                              ),
-                              Text(
-                                '${plans.length}',
-                                style: TextStyle(
-                                  fontSize: 20 * ScaleUtils.scaleFactor,
-                                ),
-                              ),
-                            ],
-                          )),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ActiveMembersPage()));
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                            20 * ScaleUtils.horizontalScale,
-                            10 * ScaleUtils.verticalScale,
-                            10 * ScaleUtils.horizontalScale,
-                            10 * ScaleUtils.verticalScale),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: const [
-                                Colors.white, // Light grey
-                                Colors.white70, // Darker grey
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          height: 130 * ScaleUtils.verticalScale,
-                          width: 150 * ScaleUtils.horizontalScale,
-                          child: Center(
-                              child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/active.png',
-                                height: 40 * ScaleUtils.verticalScale,
-                                width: 40 * ScaleUtils.horizontalScale,
-                              ),
-                              Text(
-                                'Active Members',
-                                style: TextStyle(
-                                    color: Colors.grey[800],
-                                    fontSize: 14 * ScaleUtils.scaleFactor),
-                              ),
-                              Text(
-                                '${activeMembers.length}',
-                                style: TextStyle(
-                                  fontSize: 20 * ScaleUtils.scaleFactor,
-                                ),
-                              ),
-                            ],
-                          )),
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ExpiredMembersPage()));
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                            20 * ScaleUtils.horizontalScale,
-                            10 * ScaleUtils.verticalScale,
-                            10 * ScaleUtils.horizontalScale,
-                            10 * ScaleUtils.verticalScale),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: const [
-                                Colors.white, // Light grey
-                                Colors.white70, // Darker grey
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          height: 130 * ScaleUtils.verticalScale,
-                          width: 150 * ScaleUtils.horizontalScale,
-                          child: Center(
-                              child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/expired.png',
-                                height: 40 * ScaleUtils.verticalScale,
-                                width: 40 * ScaleUtils.horizontalScale,
-                              ),
-                              Text(
-                                'Expired Members',
-                                style: TextStyle(
-                                    color: Colors.grey[800],
-                                    fontSize: 14 * ScaleUtils.scaleFactor),
-                              ),
-                              Text(
-                                '${expiredMembers.length}',
-                                style: TextStyle(
-                                  fontSize: 20 * ScaleUtils.scaleFactor,
-                                ),
-                              ),
-                            ],
-                          )),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                ShadcnText(title, variant: ShadcnTextVariant.h4),
+                ShadcnText(subtitle, variant: ShadcnTextVariant.muted),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(28.0),
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => BMICalculator()));
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.circular(20 * ScaleUtils.scaleFactor),
-                    color: HexColor("EE3427"),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(12.0 * ScaleUtils.scaleFactor),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "BMI Calculator",
-                          style: TextStyle(
-                              fontSize: 16 * ScaleUtils.scaleFactor,
-                              color: Colors.white),
-                        ),
-                        SizedBox(
-                          width: 8 * ScaleUtils.horizontalScale,
-                        ),
-                        Icon(
-                          Icons.fitness_center,
-                          color: Colors.white,
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ]),
+          ),
+          Icon(Icons.chevron_right_rounded, color: t.mutedForeground),
+        ],
+      ),
     );
   }
 }

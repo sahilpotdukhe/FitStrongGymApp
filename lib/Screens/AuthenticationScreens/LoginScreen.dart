@@ -1,514 +1,189 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isHidden = true;
   bool _isLoading = false;
-  bool isPressed = false;
+  bool _sendingReset = false;
   final _loginKey = GlobalKey<FormState>();
   final FirebaseAuth auth = FirebaseAuth.instance;
-  AuthMethods authMethods = AuthMethods();
+  final AuthMethods authMethods = AuthMethods();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
-  void _togglePasswordView() {
-    setState(() {
-      _isHidden = !_isHidden;
-    });
+  Future<void> _signIn() async {
+    if (!_loginKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+
+    final user = await authMethods.logInByEmail(
+      emailController.text.trim(),
+      passwordController.text,
+    );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (user != null) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => SplashScreen()),
+        (route) => false,
+      );
+    } else {
+      // One clear failure message. Previously this showed a dialog *and* a
+      // snackbar saying the same thing.
+      showErrorDialog(
+        context: context,
+        title: 'Could not sign in',
+        desc: authMethods.lastErrorMessage ??
+            'Login failed. Please check your details and try again.',
+      );
+    }
+  }
+
+  Future<void> _sendResetEmail() async {
+    final email = emailController.text.trim();
+    if (email.isEmpty) {
+      showErrorDialog(
+        context: context,
+        title: 'Email needed',
+        desc: 'Type the email address for your account first, then tap '
+            '"Forgot password?" again.',
+      );
+      return;
+    }
+
+    setState(() => _sendingReset = true);
+    String? failure;
+    try {
+      await auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      failure = AuthMethods.describeAuthError(e);
+    } catch (_) {
+      failure = 'Could not send the reset email. Check your connection and '
+          'try again.';
+    }
+
+    if (!mounted) return;
+    setState(() => _sendingReset = false);
+
+    if (failure != null) {
+      showErrorDialog(
+        context: context,
+        title: 'Reset email not sent',
+        desc: failure,
+      );
+      return;
+    }
+
+    showShadcnAlertDialog(
+      context,
+      icon: const ShadcnIconBadge(Icons.mark_email_read_outlined),
+      title: 'Check your inbox',
+      description:
+          'We sent a password reset link to $email.\n\nNo email after a minute? '
+          'Check the spam folder, or make sure the address is right.',
+      cancelLabel: null,
+      confirmLabel: 'Got it',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    ScaleUtils.init(context);
-    return Scaffold(
-      backgroundColor: UniversalVariables.appThemeColor,
-      body: Stack(
+    final t = context.shadcn;
+
+    return AuthScaffold(
+      title: 'Welcome back',
+      subtitle: 'Sign in to manage your members, plans and payments.',
+      child: Form(
+        key: _loginKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ShadcnInput(
+              controller: emailController,
+              label: 'Email',
+              placeholder: 'you@gym.com',
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.email],
+              leading: const Icon(Icons.alternate_email_rounded, size: 18),
+              validator: ShadcnValidators.combine([
+                ShadcnValidators.required('Enter your email address'),
+                ShadcnValidators.email('That does not look like a valid email'),
+              ]),
+            ),
+            const ShadcnGap(ShadcnSpacing.lg),
+            ShadcnPasswordInput(
+              controller: passwordController,
+              label: 'Password',
+              placeholder: 'Your password',
+              textInputAction: TextInputAction.done,
+              leading: const Icon(Icons.lock_outline_rounded, size: 18),
+              onSubmitted: (_) => _signIn(),
+              // Sign-in only checks that something was typed. The strength
+              // rules belong on sign-up; enforcing them here would lock out
+              // anyone whose existing password predates them.
+              validator: ShadcnValidators.required('Enter your password'),
+            ),
+            const ShadcnGap(ShadcnSpacing.sm),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ShadcnButton(
+                variant: ShadcnButtonVariant.link,
+                size: ShadcnButtonSize.sm,
+                loading: _sendingReset,
+                onPressed: _sendResetEmail,
+                child: const Text('Forgot password?'),
+              ),
+            ),
+            const ShadcnGap(ShadcnSpacing.lg),
+            ShadcnButton(
+              fullWidth: true,
+              size: ShadcnButtonSize.lg,
+              loading: _isLoading,
+              onPressed: _signIn,
+              child: const Text('Sign in'),
+            ),
+          ],
+        ),
+      ),
+      footer: Column(
         children: [
-          (isPressed)
-              ? Container(
-                  height: ScaleUtils.height,
-                  width: ScaleUtils.width,
-                  color: Colors.white,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Lottie.asset(
-                        'assets/googleLoader.json',
-                      ),
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Signing ',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 24 * ScaleUtils.scaleFactor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'In ',
-                              style: TextStyle(
-                                color: Colors.yellow.shade700,
-                                fontSize: 24 * ScaleUtils.scaleFactor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'Please ',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 24 * ScaleUtils.scaleFactor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'wait',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontSize: 24 * ScaleUtils.scaleFactor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ))
-              : ListView(shrinkWrap: true, children: [
-                  SizedBox(
-                    height: 267 * ScaleUtils.verticalScale,
-                    child: Row(
-                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(
-                          width: 30 * ScaleUtils.horizontalScale,
-                        ),
-                        Padding(
-                          padding: EdgeInsets.all(8.0 * ScaleUtils.scaleFactor),
-                          child: Text(
-                            "Hello\nSign in!",
-                            style: TextStyle(
-                                fontSize: 26 * ScaleUtils.scaleFactor,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Spacer(),
-                        Image.asset(
-                          'assets/gymlog.png',
-                          width: 240 * ScaleUtils.horizontalScale,
-                        )
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: ScaleUtils.height - 267 * ScaleUtils.verticalScale,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft:
-                                Radius.circular(50 * ScaleUtils.scaleFactor),
-                            topRight:
-                                Radius.circular(50 * ScaleUtils.scaleFactor))),
-                    child: Form(
-                      key: _loginKey,
-                      child: Container(
-                        margin: EdgeInsets.fromLTRB(
-                            38 * ScaleUtils.horizontalScale,
-                            38 * ScaleUtils.verticalScale,
-                            38 * ScaleUtils.horizontalScale,
-                            0),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(
-                                25 * ScaleUtils.scaleFactor)),
-                        child: ListView(
-                          padding: EdgeInsets.fromLTRB(
-                              0,
-                              32 * ScaleUtils.verticalScale,
-                              0,
-                              32 * ScaleUtils.verticalScale),
-                          shrinkWrap: true,
-                          children: [
-                            TextFormField(
-                              controller: emailController,
-                              decoration: InputDecoration(
-                                  hintText: 'Enter Your Email',
-                                  labelText: 'Email',
-                                  floatingLabelStyle: TextStyle(
-                                      fontSize: 16 * ScaleUtils.scaleFactor,
-                                      fontWeight: FontWeight.w500,
-                                      color: UniversalVariables.appThemeColor),
-                                  labelStyle: TextStyle(
-                                    fontSize: 16 * ScaleUtils.scaleFactor,
-                                  ),
-                                  border: OutlineInputBorder(),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              UniversalVariables.appThemeColor,
-                                          width:
-                                              2 * ScaleUtils.horizontalScale)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: UniversalVariables.appThemeColor,
-                                        width: 2 * ScaleUtils.horizontalScale),
-                                  ),
-                                  suffixIcon: Icon(
-                                    Icons.email,
-                                    color: UniversalVariables.appThemeColor,
-                                  )),
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Enter email address';
-                                } else if (!RegExp(
-                                        r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?"
-                                        r"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$")
-                                    .hasMatch(value)) {
-                                  return 'Please enter a valid email address';
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(
-                              height: 16 * ScaleUtils.verticalScale,
-                            ),
-                            TextFormField(
-                              controller: passwordController,
-                              decoration: InputDecoration(
-                                  hintText: 'Enter Password',
-                                  labelText: 'Password',
-                                  floatingLabelStyle: TextStyle(
-                                    fontSize: 16 * ScaleUtils.scaleFactor,
-                                    fontWeight: FontWeight.w500,
-                                    color: UniversalVariables.appThemeColor,
-                                  ),
-                                  labelStyle: TextStyle(
-                                      fontSize: 16 * ScaleUtils.scaleFactor),
-                                  border: OutlineInputBorder(),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              UniversalVariables.appThemeColor,
-                                          width:
-                                              2 * ScaleUtils.horizontalScale)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: UniversalVariables.appThemeColor,
-                                        width: 2 * ScaleUtils.horizontalScale),
-                                  ),
-                                  suffix: InkWell(
-                                    onTap: _togglePasswordView,
-                                    child: Icon(
-                                      _isHidden
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
-                                      color: UniversalVariables.appThemeColor,
-                                    ),
-                                  ),
-                                  errorMaxLines: 2),
-                              obscureText: _isHidden,
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Enter the Password';
-                                } else if (!RegExp(
-                                        r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$&*~]).{8,}$')
-                                    .hasMatch(value)) {
-                                  return 'Password must have at least one Uppercase, one Lowercase, one special character, and one numeric value';
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(
-                              height: 9 * ScaleUtils.verticalScale,
-                            ),
-                            InkWell(
-                              onTap: () {
-                                if (emailController.text.isNotEmpty) {
-                                  auth.sendPasswordResetEmail(
-                                      email: emailController.text);
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        Future.delayed(Duration(seconds: 13),
-                                            () {
-                                          Navigator.of(context).pop(true);
-                                        });
-                                        return AlertDialog(
-                                          title: Center(
-                                            child: Column(
-                                              children: [
-                                                Lottie.asset(
-                                                    'assets/email.json',
-                                                    height: 0.15 *
-                                                        ScaleUtils
-                                                            .verticalScale,
-                                                    width: 0.5 *
-                                                        ScaleUtils
-                                                            .horizontalScale),
-                                                Text(
-                                                  'Password Reset',
-                                                  style: TextStyle(
-                                                      color: Colors.red,
-                                                      fontSize: 22 *
-                                                          ScaleUtils
-                                                              .scaleFactor,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          content: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                'An email has been sent to ',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(),
-                                              ),
-                                              Text(
-                                                emailController.text,
-                                                style: TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                'Click the link in the email to change password.',
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              SizedBox(
-                                                height: 10 *
-                                                    ScaleUtils.verticalScale,
-                                              ),
-                                              Text(
-                                                'Didn\'t get the email?',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                'Check entered email or check spam folder.',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(),
-                                              ),
-                                              TextButton(
-                                                  child: Text(
-                                                    'Retry',
-                                                    style: TextStyle(
-                                                      fontSize: 20 *
-                                                          ScaleUtils
-                                                              .scaleFactor,
-                                                    ),
-                                                  ),
-                                                  onPressed: () {
-                                                    Navigator.pop(
-                                                        context, true);
-                                                  }),
-                                            ],
-                                          ),
-                                        );
-                                      });
-                                } else {
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                            title: Center(
-                                              child: Text(
-                                                'Error',
-                                                style: TextStyle(
-                                                    color: Colors.red,
-                                                    fontSize: 24 *
-                                                        ScaleUtils.scaleFactor,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                            ),
-                                            content: Text(
-                                              'Enter email in the email field or check if the email is valid.',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                  fontSize: 16 *
-                                                      ScaleUtils.scaleFactor),
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                  child: Text('Retry'),
-                                                  onPressed: () {
-                                                    Navigator.pop(
-                                                        context, true);
-                                                  })
-                                            ]);
-                                      });
-                                }
-                              },
-                              child: Text(
-                                'Forgot Password?',
-                                textAlign: TextAlign.end,
-                                style: TextStyle(
-                                    fontSize: 14 * ScaleUtils.scaleFactor,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 29 * ScaleUtils.verticalScale,
-                            ),
-                            Center(
-                              child: (_isLoading)
-                                  ? Loading()
-                                  : ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            UniversalVariables.appThemeColor,
-                                      ),
-                                      onPressed: () {
-                                        if (_loginKey.currentState!
-                                            .validate()) {
-                                          setState(() {
-                                            _isLoading = true;
-                                          });
-                                          authMethods
-                                              .logInByEmail(
-                                                  emailController.text,
-                                                  passwordController.text)
-                                              .then((user) async {
-                                            if (user != null) {
-                                              print(user);
-                                              Navigator.pushAndRemoveUntil(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          SplashScreen()),
-                                                  (route) => false);
-                                              setState(() {
-                                                _isLoading = false;
-                                              });
-                                            } else {
-                                              setState(() {
-                                                _isLoading = false;
-                                              });
-                                              {
-                                                showDialog(
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                          title: Center(
-                                                            child: Text(
-                                                              'Error',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .red,
-                                                                  fontSize: 24 *
-                                                                      ScaleUtils
-                                                                          .scaleFactor,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                            ),
-                                                          ),
-                                                          content: Text(
-                                                            '       There is no user record \n corresponding to the identifier.',
-                                                            style: TextStyle(
-                                                                fontSize: 16 *
-                                                                    ScaleUtils
-                                                                        .scaleFactor),
-                                                          ),
-                                                          actions: [
-                                                            TextButton(
-                                                                child: Text(
-                                                                    'Retry'),
-                                                                onPressed: () {
-                                                                  Navigator.pop(
-                                                                      context,
-                                                                      true);
-                                                                })
-                                                          ]);
-                                                    });
-                                              }
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(SnackBar(
-                                                      content: Text(
-                                                          "Login failed")));
-                                            }
-                                          });
-                                        }
-                                      },
-                                      child: Padding(
-                                        padding: EdgeInsets.fromLTRB(
-                                            80 * ScaleUtils.horizontalScale,
-                                            8 * ScaleUtils.verticalScale,
-                                            80 * ScaleUtils.horizontalScale,
-                                            8 * ScaleUtils.verticalScale),
-                                        child: Text(
-                                          'SIGN IN',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize:
-                                                  18 * ScaleUtils.scaleFactor,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                            SizedBox(
-                              height: 20 * ScaleUtils.verticalScale,
-                            ),
-                            Center(
-                              child: Text(
-                                'OR',
-                                style: TextStyle(
-                                    fontSize: 20 * ScaleUtils.scaleFactor,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            SizedBox(height: 20 * ScaleUtils.verticalScale),
-                            Column(
-                              children: [
-                                Text(
-                                  "Don't have account?",
-                                  style: TextStyle(
-                                      fontSize: 15 * ScaleUtils.scaleFactor,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                                MaterialButton(
-                                    child: Text(
-                                      "Sign up",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize:
-                                              18 * ScaleUtils.scaleFactor),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  SignUpScreen()));
-                                    }),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ])
+          const ShadcnSeparator(label: 'OR'),
+          const ShadcnGap(ShadcnSpacing.lg),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ShadcnText(
+                "Don't have an account?",
+                variant: ShadcnTextVariant.muted,
+              ),
+              ShadcnButton(
+                variant: ShadcnButtonVariant.link,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignUpScreen()),
+                ),
+                child: Text(
+                  'Sign up',
+                  style: TextStyle(color: t.primary),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

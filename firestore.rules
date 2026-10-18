@@ -28,6 +28,14 @@ service cloud.firestore {
       match /attendance/{attendanceId} {
         allow read, write: if isOwner(uid);
       }
+
+      match /invoices/{invoiceId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      match /trainers/{trainerId} {
+        allow read, write: if isOwner(uid);
+      }
     }
 
     match /{document=**} {
