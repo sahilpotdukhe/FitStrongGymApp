@@ -261,7 +261,7 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
           desc: '${_nameController.text}\'s record has been saved.',
         );
         if (!mounted) return;
-        Navigator.popAndPushNamed(context, '/home');
+        goHome(context);
         return;
       }
     } catch (_) {

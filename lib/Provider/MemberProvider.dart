@@ -45,7 +45,7 @@ class MemberProvider with ChangeNotifier {
         return [];
       }
     } catch (error) {
-      print('Error fetching members: $error');
+      debugPrint('Error fetching members: $error');
       return [];
     }
   }
@@ -68,7 +68,7 @@ class MemberProvider with ChangeNotifier {
         return [];
       }
     } catch (error) {
-      print('Error fetching recycle bin members: $error');
+      debugPrint('Error fetching recycle bin members: $error');
       return [];
     }
   }
@@ -93,7 +93,7 @@ class MemberProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (error) {
-      print('Error restoring member: $error');
+      debugPrint('Error restoring member: $error');
       rethrow;
     }
   }
@@ -221,7 +221,7 @@ class MemberProvider with ChangeNotifier {
         }
       }
     } catch (error) {
-      print('Error updating member: $error');
+      debugPrint('Error updating member: $error');
       rethrow;
     }
   }
@@ -251,7 +251,7 @@ class MemberProvider with ChangeNotifier {
     try {
       await Supabase.instance.client.storage.from(_photoBucket).remove([path]);
     } catch (error) {
-      print('Could not remove photo at $path: $error');
+      debugPrint('Could not remove photo at $path: $error');
     }
   }
 
@@ -274,7 +274,7 @@ class MemberProvider with ChangeNotifier {
       _recycleBinMembers.removeWhere((m) => m.id == member.id);
       notifyListeners();
     } catch (error) {
-      print('Error permanently deleting member: $error');
+      debugPrint('Error permanently deleting member: $error');
       rethrow;
     }
   }
@@ -312,7 +312,7 @@ class MemberProvider with ChangeNotifier {
       notifyListeners();
       return toRemove.length;
     } catch (error) {
-      print('Error emptying recycle bin: $error');
+      debugPrint('Error emptying recycle bin: $error');
       rethrow;
     }
   }
@@ -348,7 +348,7 @@ class MemberProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (error) {
-      print('Error deleting member: $error');
+      debugPrint('Error deleting member: $error');
       rethrow;
     }
   }

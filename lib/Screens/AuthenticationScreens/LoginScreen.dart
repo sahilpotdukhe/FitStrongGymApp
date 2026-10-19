@@ -107,6 +107,32 @@ class _LoginScreenState extends State<LoginScreen> {
     return AuthScaffold(
       title: 'Welcome back',
       subtitle: 'Sign in to manage your members, plans and payments.',
+      footer: Column(
+        children: [
+          const ShadcnSeparator(label: 'OR'),
+          const ShadcnGap(ShadcnSpacing.lg),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ShadcnText(
+                "Don't have an account?",
+                variant: ShadcnTextVariant.muted,
+              ),
+              ShadcnButton(
+                variant: ShadcnButtonVariant.link,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignUpScreen()),
+                ),
+                child: Text(
+                  'Sign up',
+                  style: TextStyle(color: t.primary),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       child: Form(
         key: _loginKey,
         child: Column(
@@ -159,32 +185,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
-      ),
-      footer: Column(
-        children: [
-          const ShadcnSeparator(label: 'OR'),
-          const ShadcnGap(ShadcnSpacing.lg),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ShadcnText(
-                "Don't have an account?",
-                variant: ShadcnTextVariant.muted,
-              ),
-              ShadcnButton(
-                variant: ShadcnButtonVariant.link,
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignUpScreen()),
-                ),
-                child: Text(
-                  'Sign up',
-                  style: TextStyle(color: t.primary),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

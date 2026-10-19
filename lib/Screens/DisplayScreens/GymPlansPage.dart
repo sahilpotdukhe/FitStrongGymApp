@@ -51,7 +51,10 @@ class _GymPlansPageState extends State<GymPlansPage> {
           leading: ShadcnButton(
             variant: ShadcnButtonVariant.ghost,
             size: ShadcnButtonSize.icon,
-            onPressed: () => Navigator.popAndPushNamed(context, '/home'),
+            // Plain pop: go back to whatever opened this page. The old
+            // `popAndPushNamed('/home')` built a second home screen on top
+            // of the one already underneath, which is what made home blink.
+            onPressed: () => Navigator.pop(context),
             child: const Icon(Icons.arrow_back_rounded, size: 20),
           ),
           floatingActionButton: FloatingActionButton.extended(

@@ -16,6 +16,19 @@ class CustomBottomNavigationBar extends StatefulWidget {
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   int page = 2;
 
+  /// Which tabs have been opened at least once.
+  ///
+  /// The five destinations live in an [IndexedStack] so that leaving a tab
+  /// and coming back keeps it exactly as it was. The previous `body:
+  /// getPage(page)` threw the old tab away and built the new one from
+  /// scratch on every tap, so returning to the dashboard re-ran its four
+  /// Firestore queries and rebuilt the whole page -- which is what made the
+  /// home screen visibly blink and lose its scroll position.
+  ///
+  /// Only visited tabs are built, so opening the app still costs one page
+  /// rather than five.
+  final Set<int> _visited = {2};
+
   static const List<_Destination> _destinations = [
     _Destination(
       icon: Icons.fact_check_outlined,
@@ -49,7 +62,14 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
     final t = context.shadcn;
     return Scaffold(
       backgroundColor: t.background,
-      body: getPage(page),
+      body: IndexedStack(
+        index: page,
+        sizing: StackFit.expand,
+        children: [
+          for (var i = 0; i < _destinations.length; i++)
+            if (_visited.contains(i)) getPage(i) else const SizedBox.shrink(),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: t.card,
@@ -66,7 +86,10 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
                     child: _NavItem(
                       destination: _destinations[i],
                       selected: page == i,
-                      onTap: () => setState(() => page = i),
+                      onTap: () => setState(() {
+                        page = i;
+                        _visited.add(i);
+                      }),
                     ),
                   ),
               ],

@@ -73,12 +73,17 @@ class _AddMemberPageState extends State<AddMemberPage> {
       children: [
         AppScaffold(
           title: 'Add member',
-          leading: ShadcnButton(
-            variant: ShadcnButtonVariant.ghost,
-            size: ShadcnButtonSize.icon,
-            onPressed: () => Navigator.popAndPushNamed(context, '/home'),
-            child: const Icon(Icons.arrow_back_rounded, size: 20),
-          ),
+          // Only shown when this page was pushed on top of something. As
+          // the "Add" tab it sits at the root of the stack, so there is
+          // nothing to go back to and the arrow is left off.
+          leading: Navigator.of(context).canPop()
+              ? ShadcnButton(
+                  variant: ShadcnButtonVariant.ghost,
+                  size: ShadcnButtonSize.icon,
+                  onPressed: () => Navigator.pop(context),
+                  child: const Icon(Icons.arrow_back_rounded, size: 20),
+                )
+              : null,
           bottomBar: ShadcnButton(
             fullWidth: true,
             size: ShadcnButtonSize.lg,

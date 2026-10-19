@@ -25,6 +25,7 @@ export 'package:fitstrong_gym/Widgets/MembersQuietBox.dart';
 export 'package:fitstrong_gym/Models/AttendanceModel.dart';
 export 'package:fitstrong_gym/Widgets/FullImageWidget.dart';
 export 'package:fitstrong_gym/Models/UserModel.dart';
+export 'package:fitstrong_gym/Resources/AppNavigation.dart';
 export 'package:fitstrong_gym/Resources/FirebaseResources.dart';
 export 'package:fitstrong_gym/Screens/AuthenticationScreens/LoginScreen.dart';
 export 'package:fitstrong_gym/Screens/CustomBottomNavigationBar.dart';

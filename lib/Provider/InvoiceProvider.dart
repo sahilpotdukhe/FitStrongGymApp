@@ -153,7 +153,7 @@ class InvoiceProvider with ChangeNotifier {
       notifyListeners();
       return _invoices;
     } catch (error) {
-      print('Error fetching invoices: $error');
+      debugPrint('Error fetching invoices: $error');
       return [];
     }
   }

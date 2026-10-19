@@ -283,10 +283,7 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                 ShadcnButton(
                   fullWidth: true,
                   variant: ShadcnButtonVariant.ghost,
-                  onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/home', (Route<dynamic> route) => false);
-                  },
+                  onPressed: () => goHome(context),
                   child: const Text('Back to home'),
                 ),
               ],

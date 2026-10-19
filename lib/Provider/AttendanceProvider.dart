@@ -18,11 +18,11 @@ class AttendanceProvider with ChangeNotifier {
 
   Future<void> fetchAttendance() async {
     if (_gymId == null) {
-      print("❌ gymId is null. Cannot fetch attendance.");
+      debugPrint("❌ gymId is null. Cannot fetch attendance.");
       return;
     }
 
-    print("📥 Fetching attendance from: Users/$_gymId/attendance");
+    debugPrint("📥 Fetching attendance from: Users/$_gymId/attendance");
 
     final snapshot = await FirebaseFirestore.instance
         .collection('Users')
@@ -34,7 +34,7 @@ class AttendanceProvider with ChangeNotifier {
     _allAttendance =
         snapshot.docs.map((doc) => Attendance.fromMap(doc.data())).toList();
 
-    print("✅ Fetched ${_allAttendance.length} records.");
+    debugPrint("✅ Fetched ${_allAttendance.length} records.");
     notifyListeners();
   }
 

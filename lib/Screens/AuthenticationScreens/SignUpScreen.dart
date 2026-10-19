@@ -127,7 +127,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return AuthScaffold(
         title: 'Verify your email',
         subtitle: 'One last step before your gym is set up.',
-        child: _VerificationPanel(email: emailController.text.trim()),
         footer: ShadcnButton(
           variant: ShadcnButtonVariant.ghost,
           fullWidth: true,
@@ -137,12 +136,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
           },
           child: const Text('Back to sign in'),
         ),
+        child: _VerificationPanel(email: emailController.text.trim()),
       );
     }
 
     return AuthScaffold(
       title: 'Create your account',
       subtitle: 'Set up your gym in a couple of minutes.',
+      footer: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ShadcnText(
+            'Already have an account?',
+            variant: ShadcnTextVariant.muted,
+          ),
+          ShadcnButton(
+            variant: ShadcnButtonVariant.link,
+            onPressed: () => Navigator.pop(context),
+            child: Text('Sign in', style: TextStyle(color: t.primary)),
+          ),
+        ],
+      ),
       child: Form(
         key: _signupKey,
         child: Column(
@@ -226,20 +240,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           ],
         ),
-      ),
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ShadcnText(
-            'Already have an account?',
-            variant: ShadcnTextVariant.muted,
-          ),
-          ShadcnButton(
-            variant: ShadcnButtonVariant.link,
-            onPressed: () => Navigator.pop(context),
-            child: Text('Sign in', style: TextStyle(color: t.primary)),
-          ),
-        ],
       ),
     );
   }

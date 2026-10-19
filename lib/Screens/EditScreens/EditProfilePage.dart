@@ -151,7 +151,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       setState(() => _isLoading = false);
       showSuccessToast(context, 'Profile updated');
-      Navigator.popAndPushNamed(context, '/home');
+      goHome(context);
     } catch (_) {
       // An upload that failed used to leave the spinner running forever.
       if (!mounted) return;
