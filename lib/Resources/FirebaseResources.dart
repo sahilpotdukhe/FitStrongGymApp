@@ -85,7 +85,7 @@ class AuthMethods {
       }
       return user;
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       lastErrorMessage = describeAuthError(e);
       return null;
     }
@@ -102,24 +102,30 @@ class AuthMethods {
       }
       return user;
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       lastErrorMessage = describeAuthError(e);
       return null;
     }
   }
 
   Future logOut(BuildContext context) async {
-    FirebaseAuth _auth = FirebaseAuth.instance;
+    // Hold on to the navigator and messenger before awaiting: once sign-out
+    // finishes the screen that gave us this context may already be gone.
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
 
     try {
-      await _auth.signOut().then((value) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
-        );
-      });
+      await FirebaseAuth.instance.signOut();
+      if (!context.mounted) return;
+      navigator.pushReplacement(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
     } catch (e) {
-      print("error");
+      lastErrorMessage = describeAuthError(e);
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(lastErrorMessage ?? 'Could not sign out.')),
+      );
     }
   }
 

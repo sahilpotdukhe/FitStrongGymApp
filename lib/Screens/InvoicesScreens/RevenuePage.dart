@@ -70,6 +70,21 @@ class _RevenuePageState extends State<RevenuePage> {
     setState(() => _downloadingId = null);
   }
 
+
+  /// Rebuilds the bill and opens the phone's share sheet, so it can go to
+  /// the member on WhatsApp without printing anything.
+  Future<void> _shareInvoice(InvoiceRecord invoice) async {
+    if (_downloadingId != null) return;
+    setState(() => _downloadingId = invoice.id);
+    await InvoicePdfService.shareRecord(
+      context,
+      invoice,
+      gymName: Provider.of<UserProvider>(context, listen: false).getUser?.name,
+    );
+    if (!mounted) return;
+    setState(() => _downloadingId = null);
+  }
+
   @override
   Widget build(BuildContext context) {
     final invoiceProvider = Provider.of<InvoiceProvider>(context);
@@ -133,6 +148,7 @@ class _RevenuePageState extends State<RevenuePage> {
                                         _downloadingId == invoice.id,
                                     onDownload: () =>
                                         _downloadInvoice(invoice),
+                                    onShare: () => _shareInvoice(invoice),
                                   );
                                 },
                               ),
@@ -225,7 +241,7 @@ class _RevenuePageState extends State<RevenuePage> {
           Row(
             children: [
               Expanded(
-                child: ShadcnSelect<String>(
+                child: AppSelect<String>(
                   value: activeMonth == null
                       ? 'all'
                       : activeMonth.toIso8601String(),

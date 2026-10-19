@@ -25,7 +25,11 @@ class _DashBoardState extends State<DashBoard> {
 
     // One member fetch is enough: the active and expired counts are worked
     // out from that same list rather than fetched separately.
-    memberProvider.getAllMembers();
+    // Re-book the morning reminder as soon as the member list lands, so it
+    // always reflects today's expiry dates and birthdays.
+    memberProvider.getAllMembers().then((_) {
+      if (mounted) ReminderScheduler.refresh(context);
+    });
     gymPlanProvider.fetchPlans();
     userProvider.refreshUser();
     Provider.of<TrainerProvider>(context, listen: false).fetchTrainers();
@@ -42,6 +46,7 @@ class _DashBoardState extends State<DashBoard> {
       userProvider.refreshUser(),
       Provider.of<TrainerProvider>(context, listen: false).fetchTrainers(),
     ]);
+    if (mounted) await ReminderScheduler.refresh(context);
   }
 
   @override
@@ -52,7 +57,8 @@ class _DashBoardState extends State<DashBoard> {
     final gymPlanProvider = Provider.of<GymPlanProvider>(context);
     final userProvider = Provider.of<UserProvider>(context);
     final members = memberProvider.members;
-    final plans = gymPlanProvider.plans;
+    // The dashboard counts what the gym currently sells, not retired plans.
+    final plans = gymPlanProvider.sellablePlans;
     final activeMembers = memberProvider.activeMembers;
     final expiredMembers = memberProvider.expiredMembers;
     final UserModel? userModel = userProvider.getUser;
@@ -76,7 +82,12 @@ class _DashBoardState extends State<DashBoard> {
             ),
             children: [
               _Greeting(user: userModel),
-              const ShadcnGap(ShadcnSpacing.xl),
+              const ShadcnGap(ShadcnSpacing.lg),
+
+              // Who needs a message today, before the counts: it is the one
+              // thing on this screen that goes stale if it is not acted on.
+              _RemindersBanner(digest: ReminderService.build(members)),
+              const ShadcnGap(ShadcnSpacing.md),
 
               // Two columns of equal-height cards. The old layout used fixed
               // pixel heights multiplied by a scale factor, which clipped the
@@ -215,11 +226,9 @@ class _Greeting extends StatelessWidget {
         const ShadcnGap(ShadcnSpacing.sm),
         const ThemeModeToggle(),
         const ShadcnGap(ShadcnSpacing.xs),
-        ShadcnAvatar(
+        AppAvatar(
           user?.profilePhoto,
           size: 40,
-          placeholder: const ShadcnSkeleton.circle(size: 40),
-          initials: user?.name,
           backgroundColor: t.secondary,
           onTap: () => Navigator.push(
             context,
@@ -364,6 +373,75 @@ class _LinkCard extends StatelessWidget {
             ),
           ),
           Icon(Icons.chevron_right_rounded, color: t.mutedForeground),
+        ],
+      ),
+    );
+  }
+}
+
+/// A single line across the top of the dashboard saying how many people
+/// need a message today. Hidden entirely when nobody does, so a quiet day
+/// looks quiet.
+class _RemindersBanner extends StatelessWidget {
+  const _RemindersBanner({required this.digest});
+
+  final ReminderDigest digest;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.shadcn;
+    final status = context.status;
+    if (digest.isEmpty) return const SizedBox.shrink();
+
+    return ShadcnCard(
+      padding: const EdgeInsets.all(ShadcnSpacing.md),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const RemindersPage()),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 38,
+            width: 38,
+            decoration: BoxDecoration(
+              color: status.warningSurface,
+              borderRadius: BorderRadius.circular(t.radiusMd),
+            ),
+            child: Icon(
+              Icons.notifications_active_rounded,
+              size: 19,
+              color: status.warning,
+            ),
+          ),
+          const ShadcnGap(ShadcnSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Needs a message today',
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: t.cardForeground,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  digest.headline,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12.5, color: t.mutedForeground),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 20,
+            color: t.mutedForeground,
+          ),
         ],
       ),
     );

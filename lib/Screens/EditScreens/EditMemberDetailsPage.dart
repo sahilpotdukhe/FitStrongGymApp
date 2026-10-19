@@ -92,11 +92,9 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
                 Center(
                   child: Column(
                     children: [
-                      ShadcnAvatar(
+                      AppAvatar(
                         widget.member.photoUrl,
                         size: 96,
-                        placeholder: const ShadcnSkeleton.circle(size: 96),
-                        initials: widget.member.name,
                         backgroundColor: t.secondary,
                       ),
                       const ShadcnGap(ShadcnSpacing.sm),

@@ -266,29 +266,31 @@ class MemberDetailsPage extends StatelessWidget {
     }
   }
 
+  /// Opens WhatsApp with a renewal reminder already written.
+  ///
+  /// The number goes through the shared helper rather than having "+91"
+  /// glued on the front: a member saved as "+91 98765 43210" or
+  /// "098765 43210" used to produce a link WhatsApp could not open.
   void openWhatsapp(
       BuildContext context, String phoneNumber, String gymName) async {
-    final whatsapp = "+91$phoneNumber"; //+92xx enter like this
     final message =
         "Hi ${member.name}! Your membership plan has been expired on ${DateFormat('dd-MM-yyyy').format(member.expiryDate)}. We invite you to renew your membership to continue enjoying our gym facilities. Thanks $gymName";
-    final whatsappUrlAndroid =
-        "whatsapp://send?phone=$whatsapp&text=${Uri.encodeComponent(message)}";
-    // The iOS link previously used `Uri.tryParse(message)`, which stringifies
-    // to the whole Uri object and sent a broken message body.
-    final whatsappUrlIos =
-        "https://wa.me/$whatsapp?text=${Uri.encodeComponent(message)}";
 
-    final target = Platform.isIOS ? whatsappUrlIos : whatsappUrlAndroid;
-    if (await canLaunchUrl(Uri.parse(target))) {
-      await launchUrl(Uri.parse(target), mode: LaunchMode.externalApplication);
-    } else {
-      if (!context.mounted) return;
-      showErrorToast(
-        context,
-        'WhatsApp not installed',
-        description: 'Install WhatsApp, or call the member instead.',
-      );
-    }
+    final opened = await WhatsAppHelper.openChat(
+      phoneNumber: phoneNumber,
+      message: message,
+    );
+    if (opened || !context.mounted) return;
+
+    showErrorToast(
+      context,
+      WhatsAppHelper.canMessage(phoneNumber)
+          ? 'WhatsApp not installed'
+          : 'No usable mobile number',
+      description: WhatsAppHelper.canMessage(phoneNumber)
+          ? 'Install WhatsApp, or call the member instead.'
+          : 'The number saved for ${member.name} is not a full mobile number.',
+    );
   }
 }
 
@@ -308,7 +310,10 @@ class _Header extends StatelessWidget {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => FullImageWidget(imageUrl: member.photoUrl),
+              builder: (_) => FullImageWidget(
+                imageUrl: member.photoUrl,
+                title: member.name,
+              ),
             ),
           ),
           child: Container(
@@ -317,11 +322,9 @@ class _Header extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: t.border, width: 2),
             ),
-            child: ShadcnAvatar(
+            child: AppAvatar(
               member.photoUrl,
               size: 104,
-              placeholder: const ShadcnSkeleton.circle(size: 104),
-              initials: member.name,
               backgroundColor: t.secondary,
             ),
           ),

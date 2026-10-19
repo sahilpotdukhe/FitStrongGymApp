@@ -17,10 +17,26 @@ void main() async {
     publishableKey: supabaseKey,
   );
   await Firebase.initializeApp();
+  // Set up the morning reminder before the first frame. It asks for
+  // permission the first time only, and a refusal just means no daily
+  // notification — the reminders screen still works.
+  await NotificationService.instance.init(onTapped: _openReminders);
+  await NotificationService.instance.requestPermission();
   // Read the saved theme before the first frame so the app never flashes the
   // wrong brightness on launch.
   final themeMode = await ThemeModeStore.load();
   runApp(MyApp(initialThemeMode: themeMode));
+}
+
+/// Lets the notification open the reminders screen without a BuildContext,
+/// because the tap arrives from outside the widget tree.
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
+void _openReminders(String? payload) {
+  if (payload != 'reminders') return;
+  appNavigatorKey.currentState?.push(
+    MaterialPageRoute(builder: (context) => const RemindersPage()),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -42,6 +58,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TrainerProvider()),
       ],
       child: ShadcnApp(
+        navigatorKey: appNavigatorKey,
         title: 'Gym Management App',
         light: AppTheme.light(),
         dark: AppTheme.dark(),
@@ -67,6 +84,7 @@ class MyApp extends StatelessWidget {
           '/add-member': (context) => AddMemberPage(),
           '/gym-plans': (context) => GymPlansPage(),
           '/trainers': (context) => TrainersPage(),
+          '/reminders': (context) => const RemindersPage(),
         },
       ),
     );

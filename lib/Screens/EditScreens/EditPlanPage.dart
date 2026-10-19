@@ -126,6 +126,26 @@ class _EditPlanPageState extends State<EditPlanPage> {
                   'Members already on it keep their current expiry date.',
                   variant: ShadcnTextVariant.small,
                 ),
+                const ShadcnGap(ShadcnSpacing.xl2),
+                const ShadcnSeparator(),
+                const ShadcnGap(ShadcnSpacing.lg),
+                // Removing a plan is deliberately kept away from Save, at
+                // the very bottom, and never deletes anything a member is
+                // still on.
+                ShadcnButton(
+                  fullWidth: true,
+                  variant: ShadcnButtonVariant.outline,
+                  leading: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: context.shadcn.destructive,
+                  ),
+                  onPressed: _saving ? null : _remove,
+                  child: Text(
+                    'Delete this plan',
+                    style: TextStyle(color: context.shadcn.destructive),
+                  ),
+                ),
               ],
             ),
           ),
@@ -133,6 +153,43 @@ class _EditPlanPageState extends State<EditPlanPage> {
         if (_saving) const AppSavingOverlay(message: 'Saving plan…'),
       ],
     );
+  }
+
+  /// Deletes the plan when nobody is on it, and offers to hide it when
+  /// somebody is. Shared with the plans list, so both ask the same thing.
+  Future<void> _remove() async {
+    setState(() => _saving = true);
+    final inUse = await PlanActions.countMembersOn(context, widget.plan);
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (inUse == null) return;
+
+    final choice = await PlanActions.askRemoval(context, widget.plan, inUse);
+    if (!mounted || choice == PlanRemoval.cancel) return;
+
+    setState(() => _saving = true);
+    final provider = Provider.of<GymPlanProvider>(context, listen: false);
+    try {
+      if (choice == PlanRemoval.delete) {
+        await provider.deletePlan(widget.plan.id);
+      } else {
+        await provider.setPlanHidden(widget.plan.id, true);
+      }
+      if (!mounted) return;
+      showSuccessToast(
+        context,
+        choice == PlanRemoval.delete ? 'Plan deleted' : 'Plan hidden',
+      );
+      Navigator.pop(context);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      showErrorDialog(
+        context: context,
+        title: 'Could not remove the plan',
+        desc: 'Check your connection and try again.',
+      );
+    }
   }
 
   Future<void> _save() async {

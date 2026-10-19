@@ -1,5 +1,9 @@
 import 'dart:io';
 
+// foundation only: this file uses the pdf package's own Text/Container,
+// so a full flutter/material import would clash with them.
+import 'package:flutter/foundation.dart';
+
 // import 'package:open_file_plus/open_file_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -22,6 +26,6 @@ class PdfApi {
 
   static Future<void> openFile(File file) async {
     final result = await OpenFilex.open(file.path);
-    print('OpenFilex result: ${result.message}');
+    debugPrint('OpenFilex result: ${result.message}');
   }
 }

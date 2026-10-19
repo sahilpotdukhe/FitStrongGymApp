@@ -1,4 +1,6 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// Rebuilds the printable bill for a payment that was saved earlier.
 ///
@@ -18,6 +20,63 @@ class InvoicePdfService {
     BuildContext context,
     InvoiceRecord record,
   ) async {
+    final pdfFile = await _buildPdf(context, record);
+    if (pdfFile == null) return false;
+    await PdfApi.openFile(pdfFile);
+    return true;
+  }
+
+  /// Builds the same bill and hands it to the phone's share sheet, where
+  /// WhatsApp sits alongside email and everything else. A short summary of
+  /// the payment goes along with it as the message text, so the member gets
+  /// the amount in words as well as the attachment.
+  ///
+  /// WhatsApp does not allow an app to attach a file straight into one
+  /// person's chat, so the owner picks the member in WhatsApp's own list.
+  /// Nothing is sent without them pressing send.
+  static Future<bool> shareRecord(
+    BuildContext context,
+    InvoiceRecord record, {
+    String? gymName,
+  }) async {
+    final pdfFile = await _buildPdf(context, record);
+    if (pdfFile == null) return false;
+
+    final amount = record.amount.toStringAsFixed(0);
+    final date = DateFormat('d MMM yyyy').format(record.issuedAt);
+    final from = (gymName == null || gymName.trim().isEmpty)
+        ? ''
+        : ' from ${gymName.trim()}';
+
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(pdfFile.path, mimeType: 'application/pdf')],
+          text: 'Hi ${record.memberName}, here is your receipt$from.\n'
+              '₹$amount for ${record.planName}, paid on $date.\n'
+              'Invoice no. ${record.invoiceNumber}. Thank you!',
+          subject: 'Invoice ${record.invoiceNumber}',
+        ),
+      );
+      return true;
+    } catch (_) {
+      if (!context.mounted) return false;
+      showErrorToast(
+        context,
+        'Could not share the invoice',
+        description: 'The bill was created but the share sheet would not '
+            'open. Try the print button instead.',
+      );
+      return false;
+    }
+  }
+
+  /// Regenerates the PDF for [record] on disk, or tells the owner why it
+  /// could not be done and returns null.
+  static Future<File?> _buildPdf(
+    BuildContext context,
+    InvoiceRecord record,
+  ) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final planProvider = Provider.of<GymPlanProvider>(context, listen: false);
     final memberProvider = Provider.of<MemberProvider>(context, listen: false);
@@ -32,19 +91,19 @@ class InvoicePdfService {
 
       final userModel = userProvider.getUser;
       if (userModel == null) {
-        if (!context.mounted) return false;
+        if (!context.mounted) return null;
         showErrorToast(
           context,
           'Profile still loading',
           description: 'Give it a moment and try again.',
         );
-        return false;
+        return null;
       }
 
       final plan = GymPlanModel.findById(planProvider.plans, record.planId);
       final member = _findMember(memberProvider.members, record.memberId);
 
-      final pdfFile = await PdfInvoiceApi.generate(
+      return await PdfInvoiceApi.generate(
         buildInvoice(
           record: record,
           member: member,
@@ -53,16 +112,14 @@ class InvoicePdfService {
         ),
         userModel,
       );
-      await PdfApi.openFile(pdfFile);
-      return true;
     } catch (_) {
-      if (!context.mounted) return false;
+      if (!context.mounted) return null;
       showErrorToast(
         context,
         'Could not open the invoice',
         description: 'Check your connection and try again.',
       );
-      return false;
+      return null;
     }
   }
 

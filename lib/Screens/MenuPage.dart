@@ -83,6 +83,12 @@ class _MenuPageState extends State<MenuPage> {
                       onTap: () => _push(const DisplayAllMembers()),
                     ),
                     _MenuItem(
+                      icon: Icons.notifications_active_rounded,
+                      color: status.warning,
+                      label: 'Reminders',
+                      onTap: () => _push(const RemindersPage()),
+                    ),
+                    _MenuItem(
                       icon: Icons.delete_outline_rounded,
                       color: status.danger,
                       label: 'Recycle bin',
@@ -193,11 +199,9 @@ class _ProfileCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ShadcnAvatar(
+          AppAvatar(
             user.profilePhoto,
             size: 56,
-            placeholder: const ShadcnSkeleton.circle(size: 56),
-            initials: user.name,
             backgroundColor: t.secondary,
           ),
           const ShadcnGap(ShadcnSpacing.md),

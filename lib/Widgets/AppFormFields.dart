@@ -26,6 +26,23 @@ class AppPickerField extends StatelessWidget {
   final IconData icon;
   final String? errorText;
 
+  /// Closes the keyboard before the picker opens.
+  ///
+  /// Tapping a date or time field is not text entry, and this field cannot
+  /// hold focus itself. Without this the text field the owner was typing in
+  /// keeps focus underneath the dialog and gets it back when the dialog
+  /// closes, so the keyboard springs up again and the form jumps back to
+  /// the old field.
+  ///
+  /// It has to be the focused field's own node. Unfocusing the surrounding
+  /// scope instead leaves the scope still remembering that field as its
+  /// last focused child, and closing the dialog hands focus straight back
+  /// to it — which looks exactly like no fix at all.
+  void _openPicker(BuildContext context) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    onTap();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
@@ -45,7 +62,7 @@ class AppPickerField extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         GestureDetector(
-          onTap: onTap,
+          onTap: () => _openPicker(context),
           behavior: HitTestBehavior.opaque,
           child: Container(
             height: 44,
@@ -100,7 +117,6 @@ class AppPhotoPicker extends StatelessWidget {
     required this.onPicked,
     this.localFile,
     this.imageUrl,
-    this.initials,
     this.size = 104,
     this.errorText,
   });
@@ -111,11 +127,13 @@ class AppPhotoPicker extends StatelessWidget {
   /// A freshly picked file, shown in preference to [imageUrl].
   final XFile? localFile;
   final String? imageUrl;
-  final String? initials;
   final double size;
   final String? errorText;
 
   Future<void> _openSheet(BuildContext context) async {
+    // Same reason as the picker field: the camera sheet is not text entry,
+    // so the keyboard should not come back when it closes.
+    FocusManager.instance.primaryFocus?.unfocus();
     final source = await showShadcnSheet<ImageSource>(
       context: context,
       builder: (sheetContext) => ShadcnSheet(
@@ -168,12 +186,10 @@ class AppPhotoPicker extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: localFile != null
                     ? Image.file(File(localFile!.path), fit: BoxFit.cover)
-                    : ShadcnAvatar(
+                    : AppAvatar(
                         imageUrl,
                         size: size,
-                        initials: initials,
                         backgroundColor: t.muted,
-                        placeholder: ShadcnSkeleton.circle(size: size),
                       ),
               ),
               Positioned(
@@ -210,6 +226,11 @@ class AppPhotoPicker extends StatelessWidget {
 
 /// Full-screen translucent blocker shown while a form is saving, so nothing
 /// is tapped twice mid-upload.
+///
+/// Every page stacks this *beside* its scaffold rather than inside it, so
+/// there is no Material above it in the tree. Without one, Flutter paints
+/// its text with the yellow-and-black "missing Material" underline, so the
+/// overlay supplies its own.
 class AppSavingOverlay extends StatelessWidget {
   const AppSavingOverlay({super.key, this.message = 'Saving…'});
 
@@ -219,32 +240,35 @@ class AppSavingOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.shadcn;
     return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.45),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: ShadcnSpacing.xl2,
-              vertical: ShadcnSpacing.xl,
-            ),
-            decoration: BoxDecoration(
-              color: t.card,
-              borderRadius: BorderRadius.circular(t.radiusXl),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 26,
-                  width: 26,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: t.primary,
+      child: Material(
+        type: MaterialType.transparency,
+        child: ColoredBox(
+          color: Colors.black.withValues(alpha: 0.45),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: ShadcnSpacing.xl2,
+                vertical: ShadcnSpacing.xl,
+              ),
+              decoration: BoxDecoration(
+                color: t.card,
+                borderRadius: BorderRadius.circular(t.radiusXl),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 26,
+                    width: 26,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: t.primary,
+                    ),
                   ),
-                ),
-                const ShadcnGap(ShadcnSpacing.md),
-                ShadcnText(message, variant: ShadcnTextVariant.small),
-              ],
+                  const ShadcnGap(ShadcnSpacing.md),
+                  ShadcnText(message, variant: ShadcnTextVariant.small),
+                ],
+              ),
             ),
           ),
         ),

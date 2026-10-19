@@ -83,11 +83,9 @@ class _MemberCardState extends State<MemberCard> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ShadcnAvatar(
+                AppAvatar(
                   member.photoUrl,
                   size: 52,
-                  placeholder: const ShadcnSkeleton.circle(size: 52),
-                  initials: member.name,
                   backgroundColor: t.secondary,
                 ),
                 const ShadcnGap(ShadcnSpacing.md),

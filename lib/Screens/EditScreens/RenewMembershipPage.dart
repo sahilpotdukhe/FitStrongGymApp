@@ -45,7 +45,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
-    final plans = Provider.of<GymPlanProvider>(context).plans;
+    // A renewal has to be sold on a plan still offered, so hidden plans
+    // are left out here the same way they are when adding a member.
+    final plans = Provider.of<GymPlanProvider>(context).sellablePlans;
     final UserModel? userModel = Provider.of<UserProvider>(context).getUser;
 
     // Shows what the renewal actually buys before it is saved, which the old
@@ -78,11 +80,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
               ShadcnCard(
                 child: Row(
                   children: [
-                    ShadcnAvatar(
+                    AppAvatar(
                       widget.member.photoUrl,
                       size: 48,
-                      placeholder: const ShadcnSkeleton.circle(size: 48),
-                      initials: widget.member.name,
                       backgroundColor: t.secondary,
                     ),
                     const ShadcnGap(ShadcnSpacing.md),
@@ -124,7 +124,7 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 onTap: _pickRenewalDate,
               ),
               const ShadcnGap(ShadcnSpacing.lg),
-              ShadcnSelect<String>(
+              AppSelect<String>(
                 label: 'New plan',
                 placeholder: plans.isEmpty
                     ? 'No plans yet — create one first'
@@ -159,7 +159,7 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
               const ShadcnGap(ShadcnSpacing.xl2),
               ShadcnText('Payment', variant: ShadcnTextVariant.h4),
               const ShadcnGap(ShadcnSpacing.md),
-              ShadcnSelect<String>(
+              AppSelect<String>(
                 label: 'Payment mode',
                 placeholder: 'How did they pay?',
                 value: _selectedPaymentMethod,

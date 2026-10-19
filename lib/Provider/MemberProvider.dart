@@ -222,7 +222,7 @@ class MemberProvider with ChangeNotifier {
       }
     } catch (error) {
       print('Error updating member: $error');
-      throw error;
+      rethrow;
     }
   }
 

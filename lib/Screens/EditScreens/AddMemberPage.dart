@@ -64,7 +64,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
-    final plans = Provider.of<GymPlanProvider>(context).plans;
+    // Hidden plans are retired, so they are not offered to a new member.
+    final plans = Provider.of<GymPlanProvider>(context).sellablePlans;
     final trainers = Provider.of<TrainerProvider>(context).activeTrainers;
     final UserModel? userModel = Provider.of<UserProvider>(context).getUser;
 
@@ -99,7 +100,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 Center(
                   child: AppPhotoPicker(
                     localFile: _photo,
-                    initials: _nameController.text,
                     onPicked: _pickImage,
                     errorText: _showNonFieldErrors && _photo == null
                         ? 'A photo is required'
@@ -231,7 +231,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       : null,
                 ),
                 const ShadcnGap(ShadcnSpacing.lg),
-                ShadcnSelect<String>(
+                AppSelect<String>(
                   label: 'Plan',
                   placeholder: plans.isEmpty
                       ? 'No plans yet — create one first'
@@ -292,7 +292,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 const ShadcnGap(ShadcnSpacing.xl2),
                 _SectionLabel('Payment'),
                 const ShadcnGap(ShadcnSpacing.md),
-                ShadcnSelect<String>(
+                AppSelect<String>(
                   label: 'Payment mode',
                   placeholder: 'How did they pay?',
                   value: _selectedPaymentMethod,
@@ -378,7 +378,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
   }
 
   void _saveForm() async {
-    final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
+    final plans =
+        Provider.of<GymPlanProvider>(context, listen: false).sellablePlans;
 
     // The photo and the two dates sit outside the Form, so they are checked
     // here. Picking an admission date used to be assumed, and skipping it

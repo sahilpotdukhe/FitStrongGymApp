@@ -23,6 +23,44 @@
           "other_platform_oauth_client": []
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:264155203137:android:9aaa02fdf7421681c1e8c0",
+        "android_client_info": {
+          "package_name": "com.example.fitstrongcheckin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfEztCM2sEoCFzw0nokhCsAs8HJPeYHqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:264155203137:android:70a83fca619239d2c1e8c0",
+        "android_client_info": {
+          "package_name": "com.fitstrong.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfEztCM2sEoCFzw0nokhCsAs8HJPeYHqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
   ],
   "configuration_version": "1"

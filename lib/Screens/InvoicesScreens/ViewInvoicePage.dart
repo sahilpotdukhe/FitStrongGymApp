@@ -31,6 +31,7 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
   InvoiceRecord? _record;
   bool _isSaving = true;
   bool _isPrinting = false;
+  bool _isSharing = false;
   String? _error;
 
   /// A missing plan cannot be fixed by trying again, so only a failed save
@@ -119,6 +120,22 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
     await InvoicePdfService.openRecord(context, record);
     if (!mounted) return;
     setState(() => _isPrinting = false);
+  }
+
+  /// Builds the bill and opens the phone's share sheet, where WhatsApp sits
+  /// alongside email. Most members want the receipt on WhatsApp rather than
+  /// printed, so this is offered right beside the print button.
+  Future<void> _shareInvoice() async {
+    final record = _record;
+    if (record == null || _isSharing) return;
+    setState(() => _isSharing = true);
+    await InvoicePdfService.shareRecord(
+      context,
+      record,
+      gymName: Provider.of<UserProvider>(context, listen: false).getUser?.name,
+    );
+    if (!mounted) return;
+    setState(() => _isSharing = false);
   }
 
   @override
@@ -231,6 +248,27 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                   ShadcnButton(
                     fullWidth: true,
                     size: ShadcnButtonSize.lg,
+                    leading: const Icon(Icons.share_outlined, size: 18),
+                    onPressed: _isSharing ? null : _shareInvoice,
+                    child: Text(
+                      _isSharing
+                          ? 'Preparing invoice…'
+                          : 'Send invoice on WhatsApp',
+                    ),
+                  ),
+                  const ShadcnGap(ShadcnSpacing.sm),
+                  ShadcnText(
+                    'Opens your phone\'s share list — pick WhatsApp, then '
+                    '${widget.member.name}. Nothing is sent until you press '
+                    'send in WhatsApp.',
+                    variant: ShadcnTextVariant.small,
+                    textAlign: TextAlign.center,
+                  ),
+                  const ShadcnGap(ShadcnSpacing.md),
+                  ShadcnButton(
+                    fullWidth: true,
+                    size: ShadcnButtonSize.lg,
+                    variant: ShadcnButtonVariant.secondary,
                     leading:
                         const Icon(Icons.picture_as_pdf_outlined, size: 18),
                     onPressed: _isPrinting ? null : _generatePdf,

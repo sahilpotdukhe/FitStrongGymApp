@@ -34,11 +34,9 @@ class TrainerCard extends StatelessWidget {
                   // A trainer who has left is dimmed rather than hidden, so
                   // their members still show who used to coach them.
                   opacity: trainer.isActive ? 1 : 0.55,
-                  child: ShadcnAvatar(
+                  child: AppAvatar(
                     trainer.photoUrl,
                     size: 52,
-                    placeholder: const ShadcnSkeleton.circle(size: 52),
-                    initials: trainer.name,
                     backgroundColor: t.secondary,
                   ),
                 ),
@@ -178,7 +176,7 @@ class AppTrainerSelect extends StatelessWidget {
     final known = trainers.any((t) => t.id == value);
     final effective = known ? value : noneValue;
 
-    return ShadcnSelect<String>(
+    return AppSelect<String>(
       label: 'Trainer',
       helperText: trainers.isEmpty
           ? 'Add trainers from the Account tab to assign one here.'

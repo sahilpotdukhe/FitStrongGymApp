@@ -80,8 +80,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          FullImageWidget(imageUrl: userModel.profilePhoto),
+                      builder: (_) => FullImageWidget(
+                        imageUrl: userModel.profilePhoto,
+                        title: 'Gym logo',
+                      ),
                     ),
                   ),
                   child: Container(
@@ -90,11 +92,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       shape: BoxShape.circle,
                       border: Border.all(color: t.border, width: 2),
                     ),
-                    child: ShadcnAvatar(
+                    child: AppAvatar(
                       userModel.profilePhoto,
                       size: 104,
-                      placeholder: const ShadcnSkeleton.circle(size: 104),
-                      initials: userModel.name,
                       backgroundColor: t.secondary,
                     ),
                   ),

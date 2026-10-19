@@ -11,12 +11,17 @@ class InvoiceCard extends StatelessWidget {
     super.key,
     required this.invoice,
     this.onDownload,
+    this.onShare,
     this.isDownloading = false,
     this.showMemberName = true,
   });
 
   final InvoiceRecord invoice;
   final VoidCallback? onDownload;
+
+  /// Sends the same bill out through the phone's share sheet, which is
+  /// where WhatsApp lives. Left out where sharing makes no sense.
+  final VoidCallback? onShare;
 
   /// Swaps the download button for a spinner while this one bill is being
   /// turned into a PDF, so a slow phone does not look frozen.
@@ -121,6 +126,19 @@ class InvoiceCard extends StatelessWidget {
                     style: TextStyle(fontSize: 12, color: t.mutedForeground),
                   ),
                 ),
+                if (onShare != null) ...[
+                  const ShadcnGap(ShadcnSpacing.xs),
+                  SizedBox(
+                    height: 32,
+                    width: 32,
+                    child: ShadcnButton(
+                      variant: ShadcnButtonVariant.ghost,
+                      size: ShadcnButtonSize.icon,
+                      onPressed: isDownloading ? null : onShare,
+                      child: const Icon(Icons.share_outlined, size: 17),
+                    ),
+                  ),
+                ],
                 if (onDownload != null) ...[
                   const ShadcnGap(ShadcnSpacing.xs),
                   SizedBox(

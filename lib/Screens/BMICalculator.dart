@@ -124,7 +124,7 @@ class _BMICalculatorState extends State<BMICalculator> {
             ),
           ),
           const ShadcnGap(ShadcnSpacing.lg),
-          ShadcnSelect<String>(
+          AppSelect<String>(
             label: 'Height unit',
             value: heightUnit,
             items: const [

@@ -1,3 +1,6 @@
+// A one-off admin script run by hand from a dev machine; the console
+// output below is its whole user interface.
+// ignore_for_file: avoid_print
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

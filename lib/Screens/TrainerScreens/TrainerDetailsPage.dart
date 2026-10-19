@@ -72,18 +72,29 @@ class TrainerDetailsPage extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: t.border, width: 2),
+                // Tapping the photo opens it full screen, the same as a
+                // member's does.
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FullImageWidget(
+                        imageUrl: current.photoUrl,
+                        title: current.name,
+                      ),
+                    ),
                   ),
-                  child: ShadcnAvatar(
-                    current.photoUrl,
-                    size: 104,
-                    placeholder: const ShadcnSkeleton.circle(size: 104),
-                    initials: current.name,
-                    backgroundColor: t.secondary,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: t.border, width: 2),
+                    ),
+                    child: AppAvatar(
+                      current.photoUrl,
+                      size: 104,
+                      backgroundColor: t.secondary,
+                    ),
                   ),
                 ),
                 const ShadcnGap(ShadcnSpacing.lg),
@@ -192,11 +203,9 @@ class TrainerDetailsPage extends StatelessWidget {
                   for (var i = 0; i < assigned.length; i++) ...[
                     if (i > 0) Divider(height: 1, color: t.border),
                     ShadcnListTile(
-                      leading: ShadcnAvatar(
+                      leading: AppAvatar(
                         assigned[i].photoUrl,
                         size: 38,
-                        placeholder: const ShadcnSkeleton.circle(size: 38),
-                        initials: assigned[i].name,
                         backgroundColor: t.secondary,
                       ),
                       title: Text(assigned[i].name),
@@ -272,20 +281,23 @@ class TrainerDetailsPage extends StatelessWidget {
     }
   }
 
+  /// Opens WhatsApp with the trainer. Goes through the shared helper so a
+  /// number saved with spaces, a plus sign or a leading zero still works.
   Future<void> _openWhatsapp(BuildContext context, TrainerModel trainer) async {
-    final whatsapp = '+91${trainer.mobileNumber}';
-    final target = Platform.isIOS
-        ? 'https://wa.me/$whatsapp'
-        : 'whatsapp://send?phone=$whatsapp';
-    if (await canLaunchUrl(Uri.parse(target))) {
-      await launchUrl(Uri.parse(target), mode: LaunchMode.externalApplication);
-    } else {
-      if (!context.mounted) return;
-      showErrorToast(
-        context,
-        'WhatsApp not installed',
-        description: 'Install WhatsApp, or call the trainer instead.',
-      );
-    }
+    final opened = await WhatsAppHelper.openChat(
+      phoneNumber: trainer.mobileNumber,
+      message: 'Hi ${trainer.name},',
+    );
+    if (opened || !context.mounted) return;
+
+    showErrorToast(
+      context,
+      WhatsAppHelper.canMessage(trainer.mobileNumber)
+          ? 'WhatsApp not installed'
+          : 'No usable mobile number',
+      description: WhatsAppHelper.canMessage(trainer.mobileNumber)
+          ? 'Install WhatsApp, or call the trainer instead.'
+          : 'The number saved for ${trainer.name} is not a full mobile number.',
+    );
   }
 }

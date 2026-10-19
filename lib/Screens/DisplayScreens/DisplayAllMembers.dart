@@ -70,7 +70,7 @@ class _DisplayAllMembersState extends State<DisplayAllMembers> {
             Row(
               children: [
                 Expanded(
-                  child: ShadcnSelect<String>(
+                  child: AppSelect<String>(
                     value: selectedPlanId,
                     placeholder: 'Plan',
                     items: [
@@ -84,7 +84,7 @@ class _DisplayAllMembersState extends State<DisplayAllMembers> {
                 ),
                 const ShadcnGap(ShadcnSpacing.sm),
                 Expanded(
-                  child: ShadcnSelect<String>(
+                  child: AppSelect<String>(
                     value: selectedGender,
                     placeholder: 'Gender',
                     items: const [

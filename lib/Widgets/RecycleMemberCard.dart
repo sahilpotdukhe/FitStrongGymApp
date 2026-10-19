@@ -95,11 +95,9 @@ class _RecycleMemberCardState extends State<RecycleMemberCard> {
                 // more — the old card looked identical to a live one.
                 Opacity(
                   opacity: 0.6,
-                  child: ShadcnAvatar(
+                  child: AppAvatar(
                     member.photoUrl,
                     size: 48,
-                    placeholder: const ShadcnSkeleton.circle(size: 48),
-                    initials: member.name,
                     backgroundColor: t.muted,
                   ),
                 ),

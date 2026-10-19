@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:fitstrong_gym/Resources/BrandingImagePrep.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
-import 'package:image/image.dart' as img;
 
 /// Edit the gym owner's own details: their name and contact information, the
 /// logo printed on invoices, their signature, and their UPI payment details.
@@ -22,15 +22,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _merchantNameController;
   late TextEditingController _merchantUpiIdController;
 
-  File? _imageFile;
-  File? _signatureImageFile;
+  /// The picked pictures after they have been cleaned up for printing, not
+  /// the raw files the owner chose.
+  Uint8List? _logoBytes;
+  Uint8List? _signatureBytes;
   bool _isLoading = false;
-
-  /// Both images are printed at a fixed size on the invoice, so they have to
-  /// be close to these dimensions or the PDF stretches them.
-  static const _logoSize = Size(470, 265);
-  static const _signatureSize = Size(340, 270);
-  static const int _sizeTolerance = 20;
 
   @override
   void initState() {
@@ -55,59 +51,58 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
-  /// Shared by both pickers: checks the chosen file decodes and is close
-  /// enough to [expected], and returns it when it is.
-  Future<File?> _pickSizedImage(Size expected) async {
+  /// Shared by both pickers: lets the owner choose any reasonable picture and
+  /// prepares it for the invoice instead of insisting on exact pixels.
+  Future<Uint8List?> _pickBrandingImage(BrandingImageSpec spec) async {
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile == null) return null;
 
-    final File file = File(pickedFile.path);
-    final Uint8List imageBytes = await file.readAsBytes();
-    final img.Image? image = img.decodeImage(imageBytes);
+    final Uint8List rawBytes = await File(pickedFile.path).readAsBytes();
+    final result = prepareBrandingImage(rawBytes, spec);
 
     if (!mounted) return null;
-    if (image == null) {
+    if (!result.ok) {
       showErrorToast(
         context,
-        'Could not read that image',
-        description: 'Try a different file.',
+        result.error!,
+        description: result.errorDetail,
       );
       return null;
     }
 
-    final okWidth = (image.width - expected.width).abs() <= _sizeTolerance;
-    final okHeight = (image.height - expected.height).abs() <= _sizeTolerance;
-    if (!okWidth || !okHeight) {
-      showErrorToast(
+    // Accepted, but worth a word: an odd shape still prints, just smaller.
+    if (result.notice != null) {
+      showShadcnToast(
         context,
-        'Wrong image size',
-        description: 'Needs to be about '
-            '${expected.width.toInt()} × ${expected.height.toInt()} pixels. '
-            'That one is ${image.width} × ${image.height}.',
+        title: '${spec.label} added',
+        description: result.notice,
+        variant: ShadcnToastVariant.normal,
       );
-      return null;
     }
 
-    return file;
+    return result.bytes;
   }
 
   Future<void> _pickImage() async {
-    final file = await _pickSizedImage(_logoSize);
-    if (file != null && mounted) setState(() => _imageFile = file);
+    final bytes = await _pickBrandingImage(BrandingImageSpec.logo);
+    if (bytes != null && mounted) setState(() => _logoBytes = bytes);
   }
 
   Future<void> _pickSignatureImage() async {
-    final file = await _pickSizedImage(_signatureSize);
-    if (file != null && mounted) setState(() => _signatureImageFile = file);
+    final bytes = await _pickBrandingImage(BrandingImageSpec.signature);
+    if (bytes != null && mounted) setState(() => _signatureBytes = bytes);
   }
 
-  Future<String> _uploadOwnerImage(String path, File file) async {
+  Future<String> _uploadOwnerImage(String path, Uint8List bytes) async {
     final supabase = Supabase.instance.client;
-    await supabase.storage.from('fitstrong photos').upload(
+    await supabase.storage.from('fitstrong photos').uploadBinary(
           path,
-          file,
-          fileOptions: const FileOptions(upsert: true),
+          bytes,
+          fileOptions: const FileOptions(
+            upsert: true,
+            contentType: 'image/jpeg',
+          ),
         );
     final url = supabase.storage.from('fitstrong photos').getPublicUrl(path);
     // The path is reused on every edit, so a version marker is needed or the
@@ -127,15 +122,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
       // Keyed on uid alone. Including the owner's name published it in a
       // public URL and orphaned the old file whenever they renamed
       // themselves.
-      if (_imageFile != null) {
+      if (_logoBytes != null) {
         profilePhotoUrl = await _uploadOwnerImage(
-            'uploads/OwnerPhotos/${widget.userModel.uid}.jpg', _imageFile!);
+            'uploads/OwnerPhotos/${widget.userModel.uid}.jpg', _logoBytes!);
       }
 
-      if (_signatureImageFile != null) {
+      if (_signatureBytes != null) {
         signatureImageUrl = await _uploadOwnerImage(
-            'uploads/Signature/${widget.userModel.uid}.jpg',
-            _signatureImageFile!);
+            'uploads/Signature/${widget.userModel.uid}.jpg', _signatureBytes!);
       }
 
       UserModel updatedUser = UserModel(
@@ -203,16 +197,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 const ShadcnGap(ShadcnSpacing.md),
                 _ImagePickerCard(
                   title: 'Gym logo',
-                  requirement: 'About 470 × 265 pixels',
-                  file: _imageFile,
+                  requirement: 'Any clear picture — a wide one (about twice '
+                      'as wide as it is tall) fills the invoice best',
+                  bytes: _logoBytes,
                   currentUrl: widget.userModel.profilePhoto,
                   onPick: _pickImage,
                 ),
                 const ShadcnGap(ShadcnSpacing.md),
                 _ImagePickerCard(
                   title: 'Signature',
-                  requirement: 'About 340 × 270 pixels',
-                  file: _signatureImageFile,
+                  requirement: 'A photo or scan of your signature — the blank '
+                      'paper around it is trimmed off for you',
+                  bytes: _signatureBytes,
                   currentUrl: widget.userModel.signatureImageUrl,
                   onPick: _pickSignatureImage,
                 ),
@@ -290,21 +286,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 }
 
-/// Preview of a branding image with its size requirement and a change
-/// button. The requirement used to appear only as an error after picking the
-/// wrong file.
+/// Preview of a branding image with a hint about what works well and a
+/// change button. The preview shows the picture the same way the invoice
+/// does — whole, never cropped — so what you see here is what prints.
 class _ImagePickerCard extends StatelessWidget {
   const _ImagePickerCard({
     required this.title,
     required this.requirement,
-    required this.file,
+    required this.bytes,
     required this.currentUrl,
     required this.onPick,
   });
 
   final String title;
   final String requirement;
-  final File? file;
+  final Uint8List? bytes;
   final String currentUrl;
   final VoidCallback onPick;
 
@@ -322,13 +318,13 @@ class _ImagePickerCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(t.radiusMd),
             ),
             clipBehavior: Clip.antiAlias,
-            child: file != null
-                ? Image.file(file!, fit: BoxFit.cover)
+            child: bytes != null
+                ? Image.memory(bytes!, fit: BoxFit.contain)
                 : currentUrl.trim().isEmpty
                     ? Icon(Icons.image_outlined, color: t.mutedForeground)
                     : CachedNetworkImage(
                         imageUrl: currentUrl,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         // A pulsing block the size of the thumbnail, so the
                         // row keeps its shape while the photo downloads.
                         placeholder: (context, url) => ShadcnSkeleton(

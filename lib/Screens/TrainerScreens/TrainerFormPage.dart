@@ -120,16 +120,18 @@ class _TrainerFormPageState extends State<TrainerFormPage> {
                   child: AppPhotoPicker(
                     localFile: _photo,
                     imageUrl: widget.trainer?.photoUrl,
-                    initials: _nameController.text,
                     onPicked: _pickImage,
+                    errorText: _showErrors && !_hasPhoto
+                        ? 'A photo is required'
+                        : null,
                   ),
                 ),
                 const ShadcnGap(ShadcnSpacing.sm),
                 Center(
                   child: ShadcnText(
-                    // Unlike members, a trainer photo is optional — a gym
-                    // should not be blocked from recording a coach.
-                    'Photo is optional',
+                    // Members are photographed, and so are trainers: the
+                    // picture is how anyone on the floor is recognised.
+                    'Tap to add a photo',
                     variant: ShadcnTextVariant.small,
                   ),
                 ),
@@ -161,7 +163,7 @@ class _TrainerFormPageState extends State<TrainerFormPage> {
                   ]),
                 ),
                 const ShadcnGap(ShadcnSpacing.lg),
-                ShadcnSelect<String>(
+                AppSelect<String>(
                   label: 'Specialises in',
                   value: _specialization,
                   items: [
@@ -335,6 +337,11 @@ class _TrainerFormPageState extends State<TrainerFormPage> {
     );
   }
 
+  /// True when there is a photo to save: either one picked just now, or
+  /// the one already on an existing trainer's record.
+  bool get _hasPhoto =>
+      _photo != null || (widget.trainer?.photoUrl.trim().isNotEmpty ?? false);
+
   void _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (!mounted || pickedFile == null) return;
@@ -373,6 +380,7 @@ class _TrainerFormPageState extends State<TrainerFormPage> {
     // Shift times and working days live outside the Form, so they are
     // checked by hand.
     if (!fieldsValid ||
+        !_hasPhoto ||
         _shiftStart == null ||
         _shiftEnd == null ||
         _workingDays.isEmpty) {
