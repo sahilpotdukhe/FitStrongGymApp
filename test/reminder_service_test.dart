@@ -1,5 +1,5 @@
-import 'package:fitstrong_gym/Models/MemberModel.dart';
-import 'package:fitstrong_gym/Resources/ReminderService.dart';
+import 'package:fitstrong_gym/models/member_model.dart';
+import 'package:fitstrong_gym/resources/reminder_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 MemberModel member({

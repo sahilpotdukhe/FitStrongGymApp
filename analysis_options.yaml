@@ -31,9 +31,6 @@ linter:
   # producing the lint.
   rules:
     prefer_const_constructors: false
-    # Every file in this project is named in CamelCase on purpose.
-    # Leaving this rule on buries real findings under 64 renames.
-    file_names: false
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 

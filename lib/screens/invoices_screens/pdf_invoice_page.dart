@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:fitstrong_gym/Models/InvoiceModel.dart';
-import 'package:fitstrong_gym/Models/UserModel.dart';
-import 'package:fitstrong_gym/Resources/PdfApi.dart';
+import 'package:fitstrong_gym/models/invoice_model.dart';
+import 'package:fitstrong_gym/models/user_model.dart';
+import 'package:fitstrong_gym/resources/pdf_api.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';

@@ -1,7 +1,7 @@
-import 'package:fitstrong_gym/Models/GymPlanModel.dart';
-import 'package:fitstrong_gym/Models/MemberModel.dart';
-import 'package:fitstrong_gym/Models/TrainerModel.dart';
-import 'package:fitstrong_gym/Provider/TrainerProvider.dart';
+import 'package:fitstrong_gym/models/gym_plan_model.dart';
+import 'package:fitstrong_gym/models/member_model.dart';
+import 'package:fitstrong_gym/models/trainer_model.dart';
+import 'package:fitstrong_gym/provider/trainer_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 TrainerModel _trainer({

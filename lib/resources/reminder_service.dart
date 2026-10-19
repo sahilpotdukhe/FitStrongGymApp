@@ -1,4 +1,4 @@
-import 'package:fitstrong_gym/Models/MemberModel.dart';
+import 'package:fitstrong_gym/models/member_model.dart';
 
 /// Why a member is on the reminders list.
 enum ReminderKind {

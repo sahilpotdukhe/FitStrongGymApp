@@ -1,4 +1,4 @@
-import 'package:fitstrong_gym/Resources/WhatsAppHelper.dart';
+import 'package:fitstrong_gym/resources/whatsapp_helper.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Members' numbers are typed in by hand, so they arrive in every shape.

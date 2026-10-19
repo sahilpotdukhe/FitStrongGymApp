@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:fitstrong_gym/Resources/BrandingImagePrep.dart';
+import 'package:fitstrong_gym/resources/branding_image_prep.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 

@@ -1,6 +1,6 @@
-import 'package:fitstrong_gym/Models/GymPlanModel.dart';
-import 'package:fitstrong_gym/Models/MemberModel.dart';
-import 'package:fitstrong_gym/Provider/GymPlanProvider.dart';
+import 'package:fitstrong_gym/models/gym_plan_model.dart';
+import 'package:fitstrong_gym/models/member_model.dart';
+import 'package:fitstrong_gym/provider/gym_plan_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 MemberModel memberOn(String planId, {String id = 'm'}) {

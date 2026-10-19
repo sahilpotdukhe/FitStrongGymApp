@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:fitstrong_gym/Resources/BrandingImagePrep.dart';
+import 'package:fitstrong_gym/resources/branding_image_prep.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 /// Edit the gym owner's own details: their name and contact information, the

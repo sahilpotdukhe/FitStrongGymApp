@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fitstrong_gym/Models/MemberModel.dart';
+import 'package:fitstrong_gym/models/member_model.dart';
 
 void main() {
   group('MemberModel.addMonths', () {

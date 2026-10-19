@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../Models/AttendanceModel.dart';
+import 'package:fitstrong_gym/models/attendance_model.dart';
 
 class AttendanceProvider with ChangeNotifier {
   String? _gymId;

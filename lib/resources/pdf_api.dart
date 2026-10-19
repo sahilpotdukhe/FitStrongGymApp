@@ -4,7 +4,6 @@ import 'dart:io';
 // so a full flutter/material import would clash with them.
 import 'package:flutter/foundation.dart';
 
-// import 'package:open_file_plus/open_file_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart';

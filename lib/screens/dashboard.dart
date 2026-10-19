@@ -1,4 +1,4 @@
-import 'package:fitstrong_gym/Screens/BMICalculator.dart';
+import 'package:fitstrong_gym/screens/bmi_calculator.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 class DashBoard extends StatefulWidget {
