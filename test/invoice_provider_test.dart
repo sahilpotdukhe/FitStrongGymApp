@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fitstrong_gym/Models/InvoiceRecord.dart';
-import 'package:fitstrong_gym/Provider/InvoiceProvider.dart';
+import 'package:fitstrong_gym/models/invoice_record.dart';
+import 'package:fitstrong_gym/provider/invoice_provider.dart';
 
 InvoiceRecord invoice({
   String number = 'INV-0001',

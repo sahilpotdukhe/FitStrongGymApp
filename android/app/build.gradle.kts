@@ -21,7 +21,7 @@ val keystoreProperties = Properties().apply {
 val hasUploadKeystore = keystoreProperties.getProperty("storeFile")?.let { file(it).exists() } == true
 
 android {
-    namespace = "com.example.fitstrong_gym"
+    namespace = "com.fitstrong.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -32,8 +32,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.fitstrong_gym"
+        applicationId = "com.fitstrong.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

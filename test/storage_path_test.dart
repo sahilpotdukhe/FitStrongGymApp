@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fitstrong_gym/Provider/MemberProvider.dart';
+import 'package:fitstrong_gym/provider/member_provider.dart';
 
 void main() {
   group('MemberProvider.storagePathFromUrl', () {
