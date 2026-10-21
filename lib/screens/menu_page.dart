@@ -12,11 +12,28 @@ class MenuPage extends StatefulWidget {
 class _MenuPageState extends State<MenuPage> {
   final AuthMethods authMethods = AuthMethods();
 
+  /// True while the member list is being turned into a file. Gathering the
+  /// members can take a moment on a slow connection, and the owner should
+  /// not be able to start a second export on top of the first.
+  bool _exporting = false;
+
   @override
   void initState() {
     super.initState();
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     userProvider.refreshUser();
+  }
+
+  Future<void> _exportMembers() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      await MemberCsvExport.run(context);
+    } finally {
+      // Guarded because the owner can leave this tab while the share sheet
+      // is still open.
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   Future<void> _confirmLogout() async {
@@ -56,112 +73,131 @@ class _MenuPageState extends State<MenuPage> {
       actions: const [ThemeModeToggle()],
       body: userModel == null
           ? const Loading()
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(
-                ShadcnSpacing.lg,
-                ShadcnSpacing.lg,
-                ShadcnSpacing.lg,
-                ShadcnSpacing.xl4,
-              ),
+          : Stack(
               children: [
-                _ProfileCard(user: userModel),
-                const ShadcnGap(ShadcnSpacing.xl2),
-                const AppSectionHeader(title: 'Members'),
-                const ShadcnGap(ShadcnSpacing.md),
-                _MenuGroup(
-                  items: [
-                    _MenuItem(
-                      icon: Icons.person_add_alt_1_rounded,
-                      color: status.info,
-                      label: 'Add new member',
-                      onTap: () => _push(const AddMemberPage()),
+                ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    ShadcnSpacing.lg,
+                    ShadcnSpacing.lg,
+                    ShadcnSpacing.lg,
+                    ShadcnSpacing.xl4,
+                  ),
+                  children: [
+                    _ProfileCard(user: userModel),
+                    const ShadcnGap(ShadcnSpacing.xl2),
+                    const AppSectionHeader(title: 'Members'),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    _MenuGroup(
+                      items: [
+                        _MenuItem(
+                          icon: Icons.person_add_alt_1_rounded,
+                          color: status.info,
+                          label: 'Add new member',
+                          onTap: () => _push(const AddMemberPage()),
+                        ),
+                        _MenuItem(
+                          icon: Icons.groups_rounded,
+                          color: status.info,
+                          label: 'All members',
+                          onTap: () => _push(const DisplayAllMembers()),
+                        ),
+                        _MenuItem(
+                          icon: Icons.notifications_active_rounded,
+                          color: status.warning,
+                          label: 'Reminders',
+                          onTap: () => _push(const RemindersPage()),
+                        ),
+                        _MenuItem(
+                          icon: Icons.delete_outline_rounded,
+                          color: status.danger,
+                          label: 'Recycle bin',
+                          onTap: () => _push(const RecycleBinPage()),
+                        ),
+                      ],
                     ),
-                    _MenuItem(
-                      icon: Icons.groups_rounded,
-                      color: status.info,
-                      label: 'All members',
-                      onTap: () => _push(const DisplayAllMembers()),
+                    const ShadcnGap(ShadcnSpacing.xl2),
+                    const AppSectionHeader(title: 'Team'),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    _MenuGroup(
+                      items: [
+                        _MenuItem(
+                          icon: Icons.sports_gymnastics_rounded,
+                          color: status.info,
+                          label: 'Trainers',
+                          onTap: () => _push(const TrainersPage()),
+                        ),
+                        _MenuItem(
+                          icon: Icons.person_add_alt_rounded,
+                          color: status.info,
+                          label: 'Add a trainer',
+                          onTap: () => _push(const TrainerFormPage()),
+                        ),
+                      ],
                     ),
-                    _MenuItem(
-                      icon: Icons.notifications_active_rounded,
-                      color: status.warning,
-                      label: 'Reminders',
-                      onTap: () => _push(const RemindersPage()),
+                    const ShadcnGap(ShadcnSpacing.xl2),
+                    const AppSectionHeader(title: 'Business'),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    _MenuGroup(
+                      items: [
+                        _MenuItem(
+                          icon: Icons.add_card_rounded,
+                          color: status.warning,
+                          label: 'Create a plan',
+                          onTap: () => _push(const AddGymPlanPage()),
+                        ),
+                        _MenuItem(
+                          icon: Icons.card_membership_rounded,
+                          color: status.warning,
+                          label: 'Membership plans',
+                          onTap: () => _push(const GymPlansPage()),
+                        ),
+                        _MenuItem(
+                          icon: Icons.currency_rupee_rounded,
+                          color: status.success,
+                          label: 'Revenue and invoices',
+                          onTap: () => _push(const RevenuePage()),
+                        ),
+                      ],
                     ),
-                    _MenuItem(
-                      icon: Icons.delete_outline_rounded,
-                      color: status.danger,
-                      label: 'Recycle bin',
-                      onTap: () => _push(const RecycleBinPage()),
+                    const ShadcnGap(ShadcnSpacing.xl2),
+                    const AppSectionHeader(title: 'Your data'),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    _MenuGroup(
+                      items: [
+                        _MenuItem(
+                          icon: Icons.file_download_outlined,
+                          color: status.success,
+                          label: 'Export members to a spreadsheet',
+                          onTap: _exportMembers,
+                        ),
+                      ],
+                    ),
+                    const ShadcnGap(ShadcnSpacing.xl2),
+                    const AppSectionHeader(title: 'About'),
+                    const ShadcnGap(ShadcnSpacing.md),
+                    _MenuGroup(
+                      items: [
+                        _MenuItem(
+                          icon: Icons.code_rounded,
+                          color: t.mutedForeground,
+                          label: 'About the developer',
+                          onTap: _openDeveloperSite,
+                        ),
+                      ],
+                    ),
+                    const ShadcnGap(ShadcnSpacing.xl2),
+                    ShadcnButton(
+                      fullWidth: true,
+                      variant: ShadcnButtonVariant.outline,
+                      foregroundColor: t.destructive,
+                      leading: const Icon(Icons.logout_rounded, size: 18),
+                      onPressed: _confirmLogout,
+                      child: const Text('Sign out'),
                     ),
                   ],
                 ),
-                const ShadcnGap(ShadcnSpacing.xl2),
-                const AppSectionHeader(title: 'Team'),
-                const ShadcnGap(ShadcnSpacing.md),
-                _MenuGroup(
-                  items: [
-                    _MenuItem(
-                      icon: Icons.sports_gymnastics_rounded,
-                      color: status.info,
-                      label: 'Trainers',
-                      onTap: () => _push(const TrainersPage()),
-                    ),
-                    _MenuItem(
-                      icon: Icons.person_add_alt_rounded,
-                      color: status.info,
-                      label: 'Add a trainer',
-                      onTap: () => _push(const TrainerFormPage()),
-                    ),
-                  ],
-                ),
-                const ShadcnGap(ShadcnSpacing.xl2),
-                const AppSectionHeader(title: 'Business'),
-                const ShadcnGap(ShadcnSpacing.md),
-                _MenuGroup(
-                  items: [
-                    _MenuItem(
-                      icon: Icons.add_card_rounded,
-                      color: status.warning,
-                      label: 'Create a plan',
-                      onTap: () => _push(const AddGymPlanPage()),
-                    ),
-                    _MenuItem(
-                      icon: Icons.card_membership_rounded,
-                      color: status.warning,
-                      label: 'Membership plans',
-                      onTap: () => _push(const GymPlansPage()),
-                    ),
-                    _MenuItem(
-                      icon: Icons.currency_rupee_rounded,
-                      color: status.success,
-                      label: 'Revenue and invoices',
-                      onTap: () => _push(const RevenuePage()),
-                    ),
-                  ],
-                ),
-                const ShadcnGap(ShadcnSpacing.xl2),
-                const AppSectionHeader(title: 'About'),
-                const ShadcnGap(ShadcnSpacing.md),
-                _MenuGroup(
-                  items: [
-                    _MenuItem(
-                      icon: Icons.code_rounded,
-                      color: t.mutedForeground,
-                      label: 'About the developer',
-                      onTap: _openDeveloperSite,
-                    ),
-                  ],
-                ),
-                const ShadcnGap(ShadcnSpacing.xl2),
-                ShadcnButton(
-                  fullWidth: true,
-                  variant: ShadcnButtonVariant.outline,
-                  foregroundColor: t.destructive,
-                  leading: const Icon(Icons.logout_rounded, size: 18),
-                  onPressed: _confirmLogout,
-                  child: const Text('Sign out'),
-                ),
+                if (_exporting)
+                  const AppSavingOverlay(message: 'Preparing your file…'),
               ],
             ),
     );
