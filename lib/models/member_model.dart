@@ -130,15 +130,4 @@ class MemberModel {
     };
   }
 
-  static String timeOfDayToString(BuildContext context, TimeOfDay? time) {
-    return time!.format(context);
-  }
-
-  static TimeOfDay? stringToTimeOfDay(String? time) {
-    if (time == null) return null;
-    final parts = time.split(':');
-    final hour = int.parse(parts[0]);
-    final minute = int.parse(parts[1]);
-    return TimeOfDay(hour: hour, minute: minute);
-  }
 }

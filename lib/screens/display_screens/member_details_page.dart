@@ -233,12 +233,12 @@ class MemberDetailsPage extends StatelessWidget {
             children: [
               AppInfoRow(
                 label: 'Check in',
-                value: member.checkInTime,
+                value: _timingLabel(context, member.checkInTime),
                 icon: Icons.login_rounded,
               ),
               AppInfoRow(
                 label: 'Check out',
-                value: member.checkOutTime,
+                value: _timingLabel(context, member.checkOutTime),
                 icon: Icons.logout_rounded,
                 last: true,
               ),
@@ -342,4 +342,14 @@ class _Header extends StatelessWidget {
       ],
     );
   }
+}
+
+/// A stored check in or check out time ready to show.
+///
+/// Times are kept on a 24 hour clock, so they are written back out the way
+/// this phone prefers. A member whose times were never filled in gets a plain
+/// "Not set" rather than an empty gap in the middle of the card.
+String _timingLabel(BuildContext context, String stored) {
+  if (stored.trim().isEmpty) return 'Not set';
+  return ClockTime.display(context, stored);
 }
