@@ -40,8 +40,8 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
     // These controllers hold the stored 24 hour value, not what is on screen.
     // Anything saved by an older version is brought into that shape on the
     // way in, so saving this member also tidies up the old text.
-    _checkInTimeController =
-        TextEditingController(text: ClockTime.normalize(widget.member.checkInTime));
+    _checkInTimeController = TextEditingController(
+        text: ClockTime.normalize(widget.member.checkInTime));
     _checkOutTimeController = TextEditingController(
         text: ClockTime.normalize(widget.member.checkOutTime));
     _trainerId = widget.member.trainerId;
@@ -188,7 +188,8 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
                       child: AppPickerField(
                         label: 'Check in',
                         icon: Icons.schedule_rounded,
-                        value: ClockTime.display(context, _checkInTimeController.text),
+                        value: ClockTime.display(
+                            context, _checkInTimeController.text),
                         placeholder: 'Select time',
                         onTap: () => _pickTime(_checkInTimeController),
                       ),
@@ -198,7 +199,8 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
                       child: AppPickerField(
                         label: 'Check out',
                         icon: Icons.schedule_rounded,
-                        value: ClockTime.display(context, _checkOutTimeController.text),
+                        value: ClockTime.display(
+                            context, _checkOutTimeController.text),
                         placeholder: 'Select time',
                         onTap: () => _pickTime(_checkOutTimeController),
                       ),
