@@ -59,9 +59,8 @@ class _TrainerFormPageState extends State<TrainerFormPage> {
         ? trainer!.specialization
         : TrainerModel.specializations.first;
     _joiningDate = trainer?.joiningDate ?? DateTime.now();
-    _shiftStart =
-        MemberModel.stringToTimeOfDay(_nullIfEmpty(trainer?.shiftStart));
-    _shiftEnd = MemberModel.stringToTimeOfDay(_nullIfEmpty(trainer?.shiftEnd));
+    _shiftStart = ClockTime.parse(trainer?.shiftStart);
+    _shiftEnd = ClockTime.parse(trainer?.shiftEnd);
     _workingDays = {
       ...?trainer?.workingDays,
     };
@@ -73,12 +72,6 @@ class _TrainerFormPageState extends State<TrainerFormPage> {
     }
     _isActive = trainer?.isActive ?? true;
   }
-
-  /// Shift times are stored as formatted strings like "6:00 AM", which the
-  /// member time parser cannot read back, so editing starts from the picker
-  /// rather than the stored text when it isn't a plain "H:mm".
-  static String? _nullIfEmpty(String? value) =>
-      (value == null || value.trim().isEmpty) ? null : value;
 
   @override
   void dispose() {
@@ -398,8 +391,8 @@ class _TrainerFormPageState extends State<TrainerFormPage> {
       experienceYears: int.tryParse(_experienceController.text) ?? 0,
       photoUrl: widget.trainer?.photoUrl ?? '',
       joiningDate: _joiningDate,
-      shiftStart: _shiftStart!.format(context),
-      shiftEnd: _shiftEnd!.format(context),
+      shiftStart: ClockTime.toStorage(_shiftStart),
+      shiftEnd: ClockTime.toStorage(_shiftEnd),
       workingDays:
           TrainerModel.allWorkingDays.where(_workingDays.contains).toList(),
       salary: double.tryParse(_salaryController.text.trim()) ?? 0,

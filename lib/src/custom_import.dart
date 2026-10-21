@@ -53,6 +53,7 @@ export 'package:fitstrong_gym/resources/reminder_service.dart';
 export 'package:fitstrong_gym/resources/reminder_scheduler.dart';
 export 'package:fitstrong_gym/resources/notification_service.dart';
 export 'package:fitstrong_gym/resources/whatsapp_helper.dart';
+export 'package:fitstrong_gym/resources/clock_time.dart';
 export 'package:fitstrong_gym/screens/reminders_page.dart';
 export 'package:fitstrong_gym/widgets/invoice_card.dart';
 export 'package:fitstrong_gym/provider/attendance_provider.dart';

@@ -429,8 +429,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
       expiryDate: expiryDate,
       address: _addressController.text,
       gender: gender ?? 'Male',
-      checkInTime: MemberModel.timeOfDayToString(context, _checkInTime),
-      checkOutTime: MemberModel.timeOfDayToString(context, _checkOutTime),
+      // Both are optional: the form never insists on them, so a time left
+      // alone is saved as blank instead of throwing part way through saving.
+      checkInTime: ClockTime.toStorage(_checkInTime),
+      checkOutTime: ClockTime.toStorage(_checkOutTime),
       trainerId: _trainerId,
     );
 

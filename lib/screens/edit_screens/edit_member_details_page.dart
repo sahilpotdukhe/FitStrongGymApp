@@ -37,10 +37,13 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
     _weightController =
         TextEditingController(text: widget.member.weight.toString());
     _addressController = TextEditingController(text: widget.member.address);
+    // These controllers hold the stored 24 hour value, not what is on screen.
+    // Anything saved by an older version is brought into that shape on the
+    // way in, so saving this member also tidies up the old text.
     _checkInTimeController =
-        TextEditingController(text: widget.member.checkInTime);
-    _checkOutTimeController =
-        TextEditingController(text: widget.member.checkOutTime);
+        TextEditingController(text: ClockTime.normalize(widget.member.checkInTime));
+    _checkOutTimeController = TextEditingController(
+        text: ClockTime.normalize(widget.member.checkOutTime));
     _trainerId = widget.member.trainerId;
     // Loaded here so the trainer picker has something to show straight away.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -185,7 +188,7 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
                       child: AppPickerField(
                         label: 'Check in',
                         icon: Icons.schedule_rounded,
-                        value: _checkInTimeController.text,
+                        value: ClockTime.display(context, _checkInTimeController.text),
                         placeholder: 'Select time',
                         onTap: () => _pickTime(_checkInTimeController),
                       ),
@@ -195,7 +198,7 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
                       child: AppPickerField(
                         label: 'Check out',
                         icon: Icons.schedule_rounded,
-                        value: _checkOutTimeController.text,
+                        value: ClockTime.display(context, _checkOutTimeController.text),
                         placeholder: 'Select time',
                         onTap: () => _pickTime(_checkOutTimeController),
                       ),
@@ -214,11 +217,10 @@ class _EditMemberDetailsPageState extends State<EditMemberDetailsPage> {
   Future<void> _pickTime(TextEditingController controller) async {
     final pickedTime = await showTimePicker(
       context: context,
-      initialTime:
-          MemberModel.stringToTimeOfDay(controller.text) ?? TimeOfDay.now(),
+      initialTime: ClockTime.parse(controller.text) ?? TimeOfDay.now(),
     );
     if (pickedTime != null && mounted) {
-      setState(() => controller.text = pickedTime.format(context));
+      setState(() => controller.text = ClockTime.toStorage(pickedTime));
     }
   }
 

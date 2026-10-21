@@ -38,7 +38,10 @@ class MemberProvider with ChangeNotifier {
             .orderBy('name')
             .get();
         _members =
-            querySnapshot.docs.map((doc) => _memberFromSnapshot(doc)).toList();
+            querySnapshot.docs
+                .map(_memberFromSnapshot)
+                .whereType<MemberModel>()
+                .toList();
         notifyListeners();
         return _members;
       } else {
@@ -61,7 +64,10 @@ class MemberProvider with ChangeNotifier {
             .orderBy('name')
             .get();
         _recycleBinMembers =
-            querySnapshot.docs.map((doc) => _memberFromSnapshot(doc)).toList();
+            querySnapshot.docs
+                .map(_memberFromSnapshot)
+                .whereType<MemberModel>()
+                .toList();
         notifyListeners();
         return _recycleBinMembers;
       } else {
@@ -98,25 +104,84 @@ class MemberProvider with ChangeNotifier {
     }
   }
 
-  MemberModel _memberFromSnapshot(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return MemberModel(
-        id: doc.id,
-        name: data['name'],
-        mobileNumber: data['mobileNumber'],
-        dateOfBirth: (data['dateOfBirth'] as Timestamp).toDate(),
-        height: data['height'],
-        weight: data['weight'],
-        photoUrl: data['photoUrl'],
-        planId: data['planId'],
-        dateOfAdmission: (data['dateOfAdmission'] as Timestamp).toDate(),
-        renewalDate: (data['renewalDate'] as Timestamp).toDate(),
-        expiryDate: (data['expiryDate'] as Timestamp).toDate(),
-        address: data['address'],
-        gender: data['gender'],
-        checkInTime: data['checkInTime'] ?? '',
-        checkOutTime: data['checkOutTime'] ?? '',
-        trainerId: data['trainerId'] ?? '');
+  /// Text as it was stored, or '' when the field is missing or holds
+  /// something that is not text.
+  static String _text(dynamic value) => value is String ? value : '';
+
+  /// A height or a weight. Firestore hands back a whole number as an int, so
+  /// a weight typed as 70 rather than 70.0 in the Firebase console used to
+  /// fail the cast to double and take the record down with it.
+  static double _number(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  /// A stored date, whichever shape it was written in, or null when there
+  /// isn't a usable one.
+  static DateTime? _dateOrNull(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  /// Builds a member out of one stored record, or returns null when that
+  /// record cannot be made sense of.
+  ///
+  /// It used to assume every field was present and of exactly the right type.
+  /// One damaged record — a missing date, a weight saved as a whole number —
+  /// threw, and the error escaped all the way out to the fetch below, which
+  /// caught it and returned an empty list. The owner was then told they had
+  /// no members at all, when in fact every other record was perfectly fine.
+  /// Leaving out the one bad record is far easier to live with than hiding
+  /// the whole gym.
+  static MemberModel? _memberFromSnapshot(DocumentSnapshot doc) =>
+      memberFromData(doc.id, doc.data());
+
+  /// The part of [_memberFromSnapshot] that does the actual reading, kept
+  /// apart from Firestore so the awkward records can be covered by tests.
+  @visibleForTesting
+  static MemberModel? memberFromData(String id, Object? raw) {
+    try {
+      final data = raw;
+      if (data is! Map<String, dynamic>) return null;
+
+      // These two earn their keep rather than being shown and forgotten:
+      // the expiry date decides whether a membership counts as live, and the
+      // date of birth decides who gets a birthday message. Guessing either
+      // one would send the wrong reminder to a real person, so a record
+      // without them is left out instead.
+      final expiryDate = _dateOrNull(data['expiryDate']);
+      final dateOfBirth = _dateOrNull(data['dateOfBirth']);
+      if (expiryDate == null || dateOfBirth == null) {
+        debugPrint('Skipping member $id: missing expiry or birth date');
+        return null;
+      }
+
+      return MemberModel(
+        id: id,
+        name: _text(data['name']),
+        mobileNumber: _text(data['mobileNumber']),
+        dateOfBirth: dateOfBirth,
+        height: _number(data['height']),
+        weight: _number(data['weight']),
+        photoUrl: _text(data['photoUrl']),
+        planId: _text(data['planId']),
+        // Only ever shown, so falling back keeps the member visible.
+        dateOfAdmission: _dateOrNull(data['dateOfAdmission']) ?? expiryDate,
+        renewalDate: _dateOrNull(data['renewalDate']) ?? expiryDate,
+        expiryDate: expiryDate,
+        address: _text(data['address']),
+        gender: _text(data['gender']),
+        checkInTime: _text(data['checkInTime']),
+        checkOutTime: _text(data['checkOutTime']),
+        trainerId: _text(data['trainerId']),
+      );
+    } catch (error) {
+      debugPrint('Skipping unreadable member $id: $error');
+      return null;
+    }
   }
 
   /// Returns the saved member, which carries the id Firestore handed out.

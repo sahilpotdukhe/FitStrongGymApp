@@ -71,11 +71,17 @@ class TrainerModel {
   ];
 
   /// The shift as one readable line, e.g. "6:00 AM – 11:00 AM".
+  ///
+  /// Shifts are stored on a 24 hour clock, so each end is written back out
+  /// for people here. Records saved by older versions already hold text like
+  /// "6:00 AM" and come through unchanged.
   String get shiftLabel {
     if (shiftStart.isEmpty && shiftEnd.isEmpty) return 'Shift not set';
-    if (shiftStart.isEmpty) return 'Until $shiftEnd';
-    if (shiftEnd.isEmpty) return 'From $shiftStart';
-    return '$shiftStart – $shiftEnd';
+    final start = ClockTime.label(shiftStart);
+    final end = ClockTime.label(shiftEnd);
+    if (shiftStart.isEmpty) return 'Until $end';
+    if (shiftEnd.isEmpty) return 'From $start';
+    return '$start – $end';
   }
 
   /// Working days as one line, collapsing the common runs so a full week
