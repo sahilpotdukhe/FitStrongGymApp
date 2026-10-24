@@ -8,9 +8,8 @@ class MemberDetailsPage extends StatelessWidget {
 
   final MemberModel member;
 
-  /// The by-hand way in, for the member whose phone is dead or who has not
-  /// been given a code yet. It records the same thing a scan would, marked
-  /// as manual so a disputed entry can be told apart from a scanned one.
+  /// The by-hand way in, for a dead phone or a member with no code yet.
+  /// Records what a scan would, tagged manual so the two can be told apart.
   Future<void> _markAttendance(BuildContext context) async {
     final attendanceProvider =
         Provider.of<AttendanceProvider>(context, listen: false);

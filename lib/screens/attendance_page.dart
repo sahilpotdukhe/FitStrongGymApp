@@ -33,14 +33,9 @@ class _AttendancePageState extends State<AttendancePage> {
     final provider = Provider.of<AttendanceProvider>(context);
     final allAttendance = provider.allAttendance;
 
-    // The records arrive newest first, so walking them in order already puts
-    // the months and the days inside them in the right order. The old screen
-    // sorted month names through a lookup table to achieve the same thing,
-    // because the time was spread across four separate strings.
-    //
-    // Everything the list needs is gathered in this one pass. Asking the
-    // provider for each day's head count while building the rows instead
-    // would re-read the whole history once per row.
+    // Records arrive newest first, so the months and days already come out
+    // in order. One pass gathers everything: asking the provider for each
+    // day's head count per row would re-read the whole history each time.
     final months = <String, List<String>>{};
     final membersSeen = <String, Set<String>>{};
     for (final record in allAttendance) {

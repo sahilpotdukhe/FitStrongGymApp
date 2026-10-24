@@ -22,9 +22,8 @@ class MemberModel {
   /// trainers existed have no value here.
   final String trainerId;
 
-  /// The random token behind this member's check-in QR code. Empty for
-  /// members added before check-in existed; one is generated and saved the
-  /// first time their code is opened, so no bulk migration is needed.
+  /// The random token behind this member's QR code. Empty for older
+  /// members, who are given one the first time their code is opened.
   final String checkinToken;
 
   MemberModel(

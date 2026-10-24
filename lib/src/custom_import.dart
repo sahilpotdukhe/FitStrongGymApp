@@ -10,7 +10,6 @@ export 'package:fitstrong_gym/provider/gym_plan_provider.dart';
 export 'package:fitstrong_gym/provider/member_provider.dart';
 export 'package:fitstrong_gym/screens/display_screens/member_details_page.dart';
 export 'package:fitstrong_gym/screens/display_screens/member_qr_page.dart';
-export 'package:fitstrong_gym/resources/checkin_code.dart';
 export 'package:fitstrong_gym/screens/search_screen.dart';
 export 'package:fitstrong_gym/widgets/app_detail_section.dart';
 export 'package:fitstrong_gym/widgets/app_empty_state.dart';
@@ -24,7 +23,6 @@ export 'package:fitstrong_gym/widgets/auth_scaffold.dart';
 export 'package:fitstrong_gym/widgets/cached_image.dart';
 export 'package:fitstrong_gym/widgets/attendance_quiet_page.dart';
 export 'package:fitstrong_gym/widgets/members_quiet_box.dart';
-export 'package:fitstrong_gym/models/attendance_model.dart';
 export 'package:fitstrong_gym/widgets/full_image_widget.dart';
 export 'package:fitstrong_gym/models/user_model.dart';
 export 'package:fitstrong_gym/resources/app_navigation.dart';
@@ -79,6 +77,7 @@ export 'package:fitstrong_gym/screens/edit_screens/renew_membership_page.dart';
 
 export 'package:fitstrong_gym/theme/app_theme.dart';
 export 'package:fitstrong_gym/theme/theme_mode_store.dart';
+export 'package:fitstrong_core/fitstrong_core.dart';
 export 'package:shadcn_kit/shadcn_kit.dart';
 
 export 'package:flutter/material.dart';

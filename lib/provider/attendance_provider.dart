@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:fitstrong_gym/models/attendance_model.dart';
+import 'package:fitstrong_core/fitstrong_core.dart';
 import 'package:fitstrong_gym/models/member_model.dart';
 
 /// What happened when a code was presented at the desk.
@@ -13,16 +13,15 @@ enum CheckinOutcome {
   /// Their plan has run out, so nothing was recorded.
   expired,
 
-  /// The same member scanned again moments after their last scan. Almost
-  /// always the camera reading the same code twice, not a real second visit.
+  /// Scanned again moments later: almost always the camera repeating.
   tooSoon,
 
   /// The write did not go through.
   failed,
 }
 
-/// The outcome of one scan, with enough detail for the desk to show a name,
-/// a face and a line of text without going back to the database.
+/// One scan's outcome, with enough detail for the desk to show a name and a
+/// face without another lookup.
 class CheckinResult {
   const CheckinResult({
     required this.outcome,
@@ -44,12 +43,8 @@ class AttendanceProvider with ChangeNotifier {
 
   List<Attendance> get allAttendance => _allAttendance;
 
-  /// How close together two scans of the same member have to be before the
-  /// second is treated as the camera repeating itself.
-  ///
-  /// A continuous scanner reads the same code many times a second while it is
-  /// held up. Without this, the second frame would check the member straight
-  /// back out again, and they would leave the building already marked gone.
+  /// A continuous camera reads the same code many times a second. Without
+  /// this gap the next frame would check the member straight back out.
   static const Duration scanCooldown = Duration(seconds: 60);
 
   Future<void> setGymId(String gymId) async {
@@ -76,12 +71,8 @@ class AttendanceProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Records a scan for [member], working out on its own whether this is them
-  /// arriving or leaving.
-  ///
-  /// The first scan of a day checks a member in and the next one checks them
-  /// out, so the desk never has to choose a mode and a member never has to
-  /// remember which way round they are.
+  /// Records a scan, working out by itself whether the member is arriving or
+  /// leaving, so the desk never has to pick a mode.
   Future<CheckinResult> recordScan(
     MemberModel member, {
     String source = AttendanceSource.scanner,
@@ -92,8 +83,7 @@ class AttendanceProvider with ChangeNotifier {
     }
     _gymId ??= uid;
 
-    // Checked before anything is written: an expired member should leave no
-    // trace of a visit they were not allowed to make.
+    // Before any write: a visit they were not allowed to make leaves no trace.
     if (member.isExpired()) {
       return CheckinResult(outcome: CheckinOutcome.expired, member: member);
     }
@@ -139,30 +129,23 @@ class AttendanceProvider with ChangeNotifier {
     }
   }
 
-  /// Which direction a scan should be recorded as, given the member's [last]
-  /// scan of the day.
-  ///
-  /// Somebody with no scan yet today is arriving, and after that it simply
-  /// alternates. Kept separate from the database so the rule can be tested.
+  /// Nobody in yet today means arriving; after that it alternates. Kept
+  /// out of the database call so the rule can be tested.
   @visibleForTesting
   static CheckinType nextType(Attendance? last) =>
       (last == null || last.type == CheckinType.checkOut)
           ? CheckinType.checkIn
           : CheckinType.checkOut;
 
-  /// Whether a scan arriving at [now] is the camera repeating [last] rather
-  /// than a real second visit.
+  /// Whether this is the camera repeating [last] rather than a real visit.
   @visibleForTesting
   static bool isRepeatScan(Attendance? last, DateTime now) {
     if (last == null) return false;
     return now.difference(last.at).abs() < scanCooldown;
   }
 
-  /// The member's most recent scan since midnight, or null if they have not
-  /// been in today.
-  ///
-  /// Only today is considered, so somebody who forgot to scan out last night
-  /// starts the new day checked in rather than checked out.
+  /// The member's last scan since midnight. Only today counts, so somebody
+  /// who forgot to scan out last night starts the day checked in.
   Future<Attendance?> _lastScanToday(
     CollectionReference<Map<String, dynamic>> collection,
     String memberId,
@@ -182,13 +165,9 @@ class AttendanceProvider with ChangeNotifier {
     return Attendance.fromDoc(doc.id, doc.data());
   }
 
-  /// Fetches the record back from the server so the time on screen is the one
-  /// that was actually stored.
-  ///
-  /// The copy sitting in the local cache still has an unresolved timestamp, so
-  /// reading that would show a blank. If the device is offline the read fails
-  /// while the write itself stays safely queued, and the device's own clock
-  /// stands in until the next refresh corrects it.
+  /// Reads the record back from the server so the time shown is the one
+  /// stored. Offline, the write stays queued and the device clock stands in
+  /// until the next refresh corrects it.
   Future<Attendance?> _readBack(
     DocumentReference<Map<String, dynamic>> docRef,
     MemberModel member,
@@ -227,8 +206,7 @@ class AttendanceProvider with ChangeNotifier {
   List<Attendance> getByDate(String dateKey) =>
       _allAttendance.where((a) => a.dateKey == dateKey).toList();
 
-  /// How many different members were seen on [dateKey]. A member who scanned
-  /// in and back out again is one person, not two.
+  /// How many different members were seen: in and out again is one person.
   int distinctMembersOn(String dateKey) =>
       getByDate(dateKey).map((a) => a.memberId).toSet().length;
 }

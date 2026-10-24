@@ -211,8 +211,7 @@ class MemberProvider with ChangeNotifier {
       final downloadUrl =
           supabase.storage.from('fitstrong photos').getPublicUrl(path);
 
-      // Issued once, at the only moment a member record is born, so every
-      // member added from here on can be handed a QR code immediately.
+      // Issued once, when the record is born.
       final checkinToken = CheckinCode.newToken();
 
       final memberData = {
@@ -261,21 +260,15 @@ class MemberProvider with ChangeNotifier {
     return expiredMembers;
   }
 
-  /// Returns [member] with a check-in token guaranteed to be set, saving a
-  /// freshly generated one when they had none.
-  ///
-  /// Members added before check-in existed have an empty token. Rather than
-  /// migrating the whole collection in one go, each one is repaired the first
-  /// time somebody actually opens their QR code, so a gym with members it
-  /// never issues codes to pays nothing for the feature.
+  /// Gives [member] a token if they have none. Older members repair
+  /// themselves one at a time, so no bulk migration is needed.
   Future<MemberModel> ensureCheckinToken(MemberModel member) async {
     if (member.checkinToken.isNotEmpty) return member;
     return _writeCheckinToken(member, CheckinCode.newToken());
   }
 
-  /// Issues [member] a brand new token, which immediately kills any code they
-  /// were given before. Used when a member says their code has been shared or
-  /// their phone was lost.
+  /// Issues a new token, killing any code the member already has. For a
+  /// lost phone or a code that has been passed around.
   Future<MemberModel> regenerateCheckinToken(MemberModel member) =>
       _writeCheckinToken(member, CheckinCode.newToken());
 

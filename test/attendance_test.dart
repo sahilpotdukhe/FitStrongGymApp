@@ -1,5 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fitstrong_gym/models/attendance_model.dart';
+import 'package:fitstrong_core/fitstrong_core.dart';
 import 'package:fitstrong_gym/provider/attendance_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,67 +17,7 @@ Attendance _scan({
   );
 }
 
-Map<String, dynamic> _record({Map<String, dynamic> changes = const {}}) {
-  return <String, dynamic>{
-    'memberId': 'm1',
-    'memberName': 'Asha',
-    'at': Timestamp.fromDate(DateTime(2026, 3, 9, 7, 5)),
-    'type': 'in',
-    'source': 'scanner',
-    ...changes,
-  };
-}
-
 void main() {
-  group('reading a scan back', () {
-    test('reads every field', () {
-      final scan = Attendance.fromDoc('a1', _record());
-      expect(scan!.memberId, 'm1');
-      expect(scan.memberName, 'Asha');
-      expect(scan.type, CheckinType.checkIn);
-      expect(scan.at, DateTime(2026, 3, 9, 7, 5));
-    });
-
-    test('a record still waiting for its server time is skipped', () {
-      // A write reaches the local cache before the server has stamped it.
-      // Showing it would mean inventing a time that nothing agrees with.
-      expect(Attendance.fromDoc('a1', _record(changes: {'at': null})), isNull);
-      expect(Attendance.fromDoc('a1', null), isNull);
-    });
-
-    test('an unreadable direction falls back to an arrival', () {
-      final scan = Attendance.fromDoc('a1', _record(changes: {'type': null}));
-      expect(scan!.type, CheckinType.checkIn);
-    });
-
-    test('a missing name does not drop the record', () {
-      // The time is the part that must be right. A blank name is survivable.
-      final scan =
-          Attendance.fromDoc('a1', _record(changes: {'memberName': null}));
-      expect(scan, isNotNull);
-      expect(scan!.memberName, '');
-    });
-  });
-
-  group('labels derived from the one timestamp', () {
-    final scan = _scan(at: DateTime(2026, 3, 9, 7, 5));
-
-    test('the day, the month and the clock all come from the same moment', () {
-      expect(scan.dateKey, '2026-03-09');
-      expect(scan.monthLabel, 'March 2026');
-      expect(scan.timeLabel, '7:05 AM');
-    });
-
-    test('an evening scan reads as PM', () {
-      expect(_scan(at: DateTime(2026, 3, 9, 19, 5)).timeLabel, '7:05 PM');
-    });
-
-    test('midnight and noon are not confused with each other', () {
-      expect(_scan(at: DateTime(2026, 3, 9, 0, 30)).timeLabel, '12:30 AM');
-      expect(_scan(at: DateTime(2026, 3, 9, 12, 30)).timeLabel, '12:30 PM');
-    });
-  });
-
   group('which direction the next scan is', () {
     test('a member who has not been in today is arriving', () {
       expect(AttendanceProvider.nextType(null), CheckinType.checkIn);

@@ -1,8 +1,7 @@
-import 'package:fitstrong_gym/models/member_model.dart';
-import 'package:fitstrong_gym/models/gym_plan_model.dart';
-import 'package:fitstrong_gym/provider/member_provider.dart';
-import 'package:fitstrong_gym/resources/checkin_code.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fitstrong_gym/models/gym_plan_model.dart';
+import 'package:fitstrong_gym/models/member_model.dart';
+import 'package:fitstrong_gym/provider/member_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 MemberModel _member({String checkinToken = ''}) {
@@ -48,38 +47,6 @@ Map<String, dynamic> _record({Map<String, dynamic> changes = const {}}) {
 }
 
 void main() {
-  group('CheckinCode', () {
-    test('encodes a token behind the prefix', () {
-      expect(CheckinCode.encode('abc-123'), 'FSGC:abc-123');
-    });
-
-    test('round trips', () {
-      final token = CheckinCode.newToken();
-      expect(CheckinCode.decode(CheckinCode.encode(token)), token);
-    });
-
-    test('issues a different token every time', () {
-      final tokens = List.generate(50, (_) => CheckinCode.newToken()).toSet();
-      expect(tokens.length, 50);
-    });
-
-    test('ignores surrounding whitespace a scanner may hand over', () {
-      expect(CheckinCode.decode('  FSGC:abc-123\n'), 'abc-123');
-    });
-
-    test('rejects a QR that is not one of ours', () {
-      // The front desk will have payment and Wi-Fi codes held up at it, and
-      // none of them should cost a member lookup.
-      expect(CheckinCode.decode('upi://pay?pa=someone@bank'), isNull);
-      expect(CheckinCode.decode('https://example.com'), isNull);
-      expect(CheckinCode.decode(''), isNull);
-    });
-
-    test('rejects our prefix with nothing behind it', () {
-      expect(CheckinCode.decode('FSGC:'), isNull);
-    });
-  });
-
   group('MemberModel check-in token', () {
     test('defaults to empty for members added before check-in existed', () {
       expect(_member().checkinToken, '');

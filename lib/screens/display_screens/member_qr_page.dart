@@ -7,12 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// One member's permanent check-in code, ready to hand over.
-///
-/// The member saves this image to their phone and holds it up at the front
-/// desk. It never changes on its own, so a screenshot keeps working — which
-/// is the whole point, and also why [_reissue] exists for the day a phone is
-/// lost or a code gets passed around.
+/// One member's check-in code, saved to their phone and held up at the desk.
+/// It never changes on its own, which is why [_reissue] exists.
 class MemberQrPage extends StatefulWidget {
   const MemberQrPage({super.key, required this.member});
 
@@ -33,8 +29,7 @@ class _MemberQrPageState extends State<MemberQrPage> {
     _ensureToken();
   }
 
-  /// Members added before check-in existed arrive here without a token, so
-  /// the first visit quietly issues one instead of showing an empty square.
+  /// Older members arrive with no token, so the first visit issues one.
   Future<void> _ensureToken() async {
     final provider = Provider.of<MemberProvider>(context, listen: false);
     try {
@@ -51,12 +46,9 @@ class _MemberQrPageState extends State<MemberQrPage> {
     }
   }
 
-  /// Draws the code onto a white square with a wide margin around it.
-  ///
-  /// The painter alone would hand back a transparent background: shared into
-  /// a dark chat that leaves black squares on black and nothing can read it.
-  /// The margin is the scanner's quiet zone, which codes cropped tight to the
-  /// edge lose.
+  /// Draws the code on a white square. A transparent background would be
+  /// black-on-black in a dark chat, and the margin is the scanner's quiet
+  /// zone.
   Future<Uint8List> _renderPng(String payload) async {
     const double code = 880;
     const double margin = 72;
@@ -73,8 +65,7 @@ class _MemberQrPageState extends State<MemberQrPage> {
       data: payload,
       version: QrVersions.auto,
       gapless: true,
-      // Kept dark on light whatever the app's theme is doing: inverting a QR
-      // stops most scanners reading it.
+      // Always dark on light: inverting a QR stops most scanners reading it.
       eyeStyle: const QrEyeStyle(
         eyeShape: QrEyeShape.square,
         color: Color(0xFF000000),
@@ -100,8 +91,7 @@ class _MemberQrPageState extends State<MemberQrPage> {
     try {
       final bytes = await _renderPng(CheckinCode.encode(_member.checkinToken));
       final dir = await getTemporaryDirectory();
-      // Named after the member so the file arriving on their phone says who
-      // it belongs to, with anything awkward in the name stripped out.
+      // Named after the member, with awkward characters stripped out.
       final safeName = _member.name
           .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '-')
           .replaceAll(RegExp(r'^-+|-+$'), '');
