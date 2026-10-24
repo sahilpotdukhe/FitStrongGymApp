@@ -65,6 +65,19 @@ class MemberDetailsPage extends StatelessWidget {
           ),
           child: const Icon(Icons.receipt_long_outlined, size: 20),
         ),
+        // The member's check-in code, which they save to their phone and
+        // show at the front desk.
+        ShadcnButton(
+          variant: ShadcnButtonVariant.ghost,
+          size: ShadcnButtonSize.icon,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MemberQrPage(member: member),
+            ),
+          ),
+          child: const Icon(Icons.qr_code_2_rounded, size: 20),
+        ),
         ShadcnButton(
           variant: ShadcnButtonVariant.ghost,
           size: ShadcnButtonSize.icon,

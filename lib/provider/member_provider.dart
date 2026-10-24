@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
+
 class MemberProvider with ChangeNotifier {
   List<MemberModel> _members = [];
   List<MemberModel> _recycleBinMembers = [];
@@ -177,6 +178,7 @@ class MemberProvider with ChangeNotifier {
         checkInTime: _text(data['checkInTime']),
         checkOutTime: _text(data['checkOutTime']),
         trainerId: _text(data['trainerId']),
+        checkinToken: _text(data['checkinToken']),
       );
     } catch (error) {
       debugPrint('Skipping unreadable member $id: $error');
@@ -209,6 +211,10 @@ class MemberProvider with ChangeNotifier {
       final downloadUrl =
           supabase.storage.from('fitstrong photos').getPublicUrl(path);
 
+      // Issued once, at the only moment a member record is born, so every
+      // member added from here on can be handed a QR code immediately.
+      final checkinToken = CheckinCode.newToken();
+
       final memberData = {
         'name': member.name,
         'mobileNumber': member.mobileNumber,
@@ -224,7 +230,8 @@ class MemberProvider with ChangeNotifier {
         'gender': member.gender,
         'checkInTime': member.checkInTime,
         'checkOutTime': member.checkOutTime,
-        'trainerId': member.trainerId
+        'trainerId': member.trainerId,
+        'checkinToken': checkinToken
       };
 
       final docRef = await FirebaseFirestore.instance
@@ -232,7 +239,8 @@ class MemberProvider with ChangeNotifier {
           .doc(currentUser.uid)
           .collection('members')
           .add(memberData);
-      final newMember = member.copyWith(id: docRef.id, photoUrl: downloadUrl);
+      final newMember = member.copyWith(
+          id: docRef.id, photoUrl: downloadUrl, checkinToken: checkinToken);
       _members.add(newMember);
       notifyListeners();
       return newMember;
@@ -251,6 +259,43 @@ class MemberProvider with ChangeNotifier {
   Future<List<MemberModel>> fetchExpiredMembers() async {
     if (_members.isEmpty) await getAllMembers();
     return expiredMembers;
+  }
+
+  /// Returns [member] with a check-in token guaranteed to be set, saving a
+  /// freshly generated one when they had none.
+  ///
+  /// Members added before check-in existed have an empty token. Rather than
+  /// migrating the whole collection in one go, each one is repaired the first
+  /// time somebody actually opens their QR code, so a gym with members it
+  /// never issues codes to pays nothing for the feature.
+  Future<MemberModel> ensureCheckinToken(MemberModel member) async {
+    if (member.checkinToken.isNotEmpty) return member;
+    return _writeCheckinToken(member, CheckinCode.newToken());
+  }
+
+  /// Issues [member] a brand new token, which immediately kills any code they
+  /// were given before. Used when a member says their code has been shared or
+  /// their phone was lost.
+  Future<MemberModel> regenerateCheckinToken(MemberModel member) =>
+      _writeCheckinToken(member, CheckinCode.newToken());
+
+  Future<MemberModel> _writeCheckinToken(
+      MemberModel member, String token) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return member;
+
+    await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(currentUser.uid)
+        .collection('members')
+        .doc(member.id)
+        .update({'checkinToken': token});
+
+    final updated = member.copyWith(checkinToken: token);
+    final index = _members.indexWhere((m) => m.id == member.id);
+    if (index != -1) _members[index] = updated;
+    notifyListeners();
+    return updated;
   }
 
   Future<void> updateMember(MemberModel member) async {

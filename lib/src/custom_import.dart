@@ -9,6 +9,8 @@ export 'package:fitstrong_gym/models/member_model.dart';
 export 'package:fitstrong_gym/provider/gym_plan_provider.dart';
 export 'package:fitstrong_gym/provider/member_provider.dart';
 export 'package:fitstrong_gym/screens/display_screens/member_details_page.dart';
+export 'package:fitstrong_gym/screens/display_screens/member_qr_page.dart';
+export 'package:fitstrong_gym/resources/checkin_code.dart';
 export 'package:fitstrong_gym/screens/search_screen.dart';
 export 'package:fitstrong_gym/widgets/app_detail_section.dart';
 export 'package:fitstrong_gym/widgets/app_empty_state.dart';

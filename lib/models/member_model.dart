@@ -22,6 +22,11 @@ class MemberModel {
   /// trainers existed have no value here.
   final String trainerId;
 
+  /// The random token behind this member's check-in QR code. Empty for
+  /// members added before check-in existed; one is generated and saved the
+  /// first time their code is opened, so no bulk migration is needed.
+  final String checkinToken;
+
   MemberModel(
       {required this.id,
       required this.name,
@@ -38,9 +43,11 @@ class MemberModel {
       required this.gender,
       required this.checkInTime,
       required this.checkOutTime,
-      this.trainerId = ''});
+      this.trainerId = '',
+      this.checkinToken = ''});
 
-  MemberModel copyWith({String? id, String? photoUrl, String? trainerId}) {
+  MemberModel copyWith(
+      {String? id, String? photoUrl, String? trainerId, String? checkinToken}) {
     return MemberModel(
         id: id ?? this.id,
         name: name,
@@ -57,7 +64,8 @@ class MemberModel {
         gender: gender,
         checkInTime: checkInTime,
         checkOutTime: checkOutTime,
-        trainerId: trainerId ?? this.trainerId);
+        trainerId: trainerId ?? this.trainerId,
+        checkinToken: checkinToken ?? this.checkinToken);
   }
 
   bool isExpired() {
@@ -106,7 +114,8 @@ class MemberModel {
         gender: gender,
         checkInTime: checkInTime,
         checkOutTime: checkOutTime,
-        trainerId: trainerId);
+        trainerId: trainerId,
+        checkinToken: checkinToken);
   }
 
   Map<String, dynamic> toMap() {
@@ -127,6 +136,7 @@ class MemberModel {
       'checkInTime': checkInTime,
       'checkOutTime': checkOutTime,
       'trainerId': trainerId,
+      'checkinToken': checkinToken,
     };
   }
 
