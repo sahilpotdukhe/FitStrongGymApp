@@ -43,10 +43,6 @@ class AttendanceProvider with ChangeNotifier {
 
   List<Attendance> get allAttendance => _allAttendance;
 
-  /// A continuous camera reads the same code many times a second. Without
-  /// this gap the next frame would check the member straight back out.
-  static const Duration scanCooldown = Duration(seconds: 60);
-
   Future<void> setGymId(String gymId) async {
     _gymId = gymId;
     await fetchAttendance();
@@ -60,7 +56,7 @@ class AttendanceProvider with ChangeNotifier {
     }
 
     final snapshot = await _collection(gymId)
-        .orderBy('at', descending: true)
+        .orderBy(AttendanceFields.at, descending: true)
         .get();
 
     _allAttendance = snapshot.docs
@@ -92,7 +88,7 @@ class AttendanceProvider with ChangeNotifier {
       final collection = _collection(uid);
       final last = await _lastScanToday(collection, member.id);
 
-      if (isRepeatScan(last, DateTime.now())) {
+      if (CheckinRules.isRepeatScan(last, DateTime.now())) {
         return CheckinResult(
           outcome: CheckinOutcome.tooSoon,
           member: member,
@@ -100,15 +96,14 @@ class AttendanceProvider with ChangeNotifier {
         );
       }
 
-      final type = nextType(last);
+      final type = CheckinRules.nextType(last);
 
-      final docRef = await collection.add({
-        'memberId': member.id,
-        'memberName': member.name,
-        'at': FieldValue.serverTimestamp(),
-        'type': type.code,
-        'source': source,
-      });
+      final docRef = await collection.add(Attendance.newRecord(
+        memberId: member.id,
+        memberName: member.name,
+        type: type,
+        source: source,
+      ));
 
       final record = await _readBack(docRef, member, type);
       if (record != null) {
@@ -129,34 +124,19 @@ class AttendanceProvider with ChangeNotifier {
     }
   }
 
-  /// Nobody in yet today means arriving; after that it alternates. Kept
-  /// out of the database call so the rule can be tested.
-  @visibleForTesting
-  static CheckinType nextType(Attendance? last) =>
-      (last == null || last.type == CheckinType.checkOut)
-          ? CheckinType.checkIn
-          : CheckinType.checkOut;
-
-  /// Whether this is the camera repeating [last] rather than a real visit.
-  @visibleForTesting
-  static bool isRepeatScan(Attendance? last, DateTime now) {
-    if (last == null) return false;
-    return now.difference(last.at).abs() < scanCooldown;
-  }
-
   /// The member's last scan since midnight. Only today counts, so somebody
   /// who forgot to scan out last night starts the day checked in.
   Future<Attendance?> _lastScanToday(
     CollectionReference<Map<String, dynamic>> collection,
     String memberId,
   ) async {
-    final now = DateTime.now();
-    final dayStart = DateTime(now.year, now.month, now.day);
+    final dayStart = CheckinRules.startOfDay(DateTime.now());
 
     final snapshot = await collection
-        .where('memberId', isEqualTo: memberId)
-        .where('at', isGreaterThanOrEqualTo: Timestamp.fromDate(dayStart))
-        .orderBy('at', descending: true)
+        .where(AttendanceFields.memberId, isEqualTo: memberId)
+        .where(AttendanceFields.at,
+            isGreaterThanOrEqualTo: Timestamp.fromDate(dayStart))
+        .orderBy(AttendanceFields.at, descending: true)
         .limit(1)
         .get();
 
@@ -191,9 +171,9 @@ class AttendanceProvider with ChangeNotifier {
 
   CollectionReference<Map<String, dynamic>> _collection(String gymId) =>
       FirebaseFirestore.instance
-          .collection('Users')
+          .collection(MemberFields.gyms)
           .doc(gymId)
-          .collection('attendance');
+          .collection(MemberFields.attendance);
 
   /// Clears the cached attendance and the gym it belonged to, on sign out.
   void clear() {

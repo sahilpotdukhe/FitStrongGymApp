@@ -343,7 +343,7 @@ packages:
       path: "../packages/fitstrong_core"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
   fixnum:
     dependency: transitive
     description:
