@@ -1,9 +1,7 @@
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:fitstrong_gym/resources/member_qr_card.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -33,7 +31,13 @@ class _MemberQrPageState extends State<MemberQrPage> {
   Future<void> _ensureToken() async {
     final provider = Provider.of<MemberProvider>(context, listen: false);
     try {
-      final member = await provider.ensureCheckinToken(widget.member);
+      // The page was handed a copy of the member from whichever list opened
+      // it, which may predate their token. Start from the provider's copy.
+      final current = provider.members.firstWhere(
+        (m) => m.id == widget.member.id,
+        orElse: () => widget.member,
+      );
+      final member = await provider.ensureCheckinToken(current);
       if (!mounted) return;
       setState(() {
         _member = member;
@@ -46,50 +50,28 @@ class _MemberQrPageState extends State<MemberQrPage> {
     }
   }
 
-  /// Draws the code on a white square. A transparent background would be
-  /// black-on-black in a dark chat, and the margin is the scanner's quiet
-  /// zone.
-  Future<Uint8List> _renderPng(String payload) async {
-    const double code = 880;
-    const double margin = 72;
-    const double side = code + margin * 2;
-
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    canvas.drawRect(
-      const Rect.fromLTWH(0, 0, side, side),
-      Paint()..color = const Color(0xFFFFFFFF),
-    );
-
-    QrPainter(
-      data: payload,
-      version: QrVersions.auto,
-      gapless: true,
-      // Always dark on light: inverting a QR stops most scanners reading it.
-      eyeStyle: const QrEyeStyle(
-        eyeShape: QrEyeShape.square,
-        color: Color(0xFF000000),
-      ),
-      dataModuleStyle: const QrDataModuleStyle(
-        dataModuleShape: QrDataModuleShape.square,
-        color: Color(0xFF000000),
-      ),
-    ).paint(
-      canvas..translate(margin, margin),
-      const Size(code, code),
-    );
-
-    final image =
-        await recorder.endRecording().toImage(side.toInt(), side.toInt());
-    final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    return data!.buffer.asUint8List();
-  }
-
   Future<void> _share() async {
     if (_busy || _member.checkinToken.isEmpty) return;
     setState(() => _busy = true);
     try {
-      final bytes = await _renderPng(CheckinCode.encode(_member.checkinToken));
+      final user = Provider.of<UserProvider>(context, listen: false).getUser;
+      final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
+      final plan = GymPlanModel.findById(plans, _member.planId);
+
+      final bytes = await renderMemberQrCard(MemberQrCardData(
+        memberName: _member.name,
+        token: _member.checkinToken,
+        gymName: user?.merchantName.isNotEmpty == true
+            ? user!.merchantName
+            : (user?.name ?? ''),
+        lines: [
+          if (plan != null) (label: 'Plan', value: plan.name),
+          (label: 'Valid till', value: formatCardDate(_member.expiryDate)),
+        ],
+      ));
+      if (bytes == null) throw StateError('nothing to draw');
+
+      if (!mounted) return;
       final dir = await getTemporaryDirectory();
       // Named after the member, with awkward characters stripped out.
       final safeName = _member.name
@@ -99,6 +81,7 @@ class _MemberQrPageState extends State<MemberQrPage> {
         dir.path,
         'checkin-code-${safeName.isEmpty ? _member.id : safeName}.png',
       ));
+
       await file.writeAsBytes(bytes);
 
       if (!mounted) return;
@@ -187,15 +170,6 @@ class _MemberQrPageState extends State<MemberQrPage> {
     return AppScaffold(
       title: 'Check-in code',
       padBody: true,
-      actions: [
-        if (hasToken)
-          ShadcnButton(
-            variant: ShadcnButtonVariant.ghost,
-            size: ShadcnButtonSize.icon,
-            onPressed: _busy ? null : _reissue,
-            child: const Icon(Icons.autorenew_rounded, size: 20),
-          ),
-      ],
       bottomBar: hasToken
           ? ShadcnButton(
               fullWidth: true,
@@ -248,12 +222,33 @@ class _MemberQrPageState extends State<MemberQrPage> {
                           ),
                         ),
                       ),
-                      const ShadcnGap(ShadcnSpacing.xl),
+                      const ShadcnGap(ShadcnSpacing.lg),
                       ShadcnText(
-                        'This code does not expire. If the member loses their '
-                        'phone, issue a new one from the button above.',
+                        'This code does not change. The same image keeps '
+                        'working every visit.',
                         variant: ShadcnTextVariant.muted,
                         textAlign: TextAlign.center,
+                      ),
+                      const ShadcnGap(ShadcnSpacing.xl2),
+                      const Divider(height: 1),
+                      const ShadcnGap(ShadcnSpacing.lg),
+                      ShadcnText(
+                        'Lost phone, or code shared around?',
+                        variant: ShadcnTextVariant.small,
+                      ),
+                      const ShadcnGap(ShadcnSpacing.xs),
+                      ShadcnText(
+                        'Issuing a new code stops the old one working '
+                        'immediately.',
+                        variant: ShadcnTextVariant.muted,
+                        textAlign: TextAlign.center,
+                      ),
+                      const ShadcnGap(ShadcnSpacing.md),
+                      ShadcnButton(
+                        variant: ShadcnButtonVariant.outline,
+                        onPressed: _busy ? null : _reissue,
+                        leading: const Icon(Icons.autorenew_rounded, size: 18),
+                        child: const Text('Issue a new code'),
                       ),
                       const ShadcnGap(ShadcnSpacing.lg),
                     ],

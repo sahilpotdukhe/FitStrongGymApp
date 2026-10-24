@@ -264,6 +264,24 @@ class MemberProvider with ChangeNotifier {
   /// themselves one at a time, so no bulk migration is needed.
   Future<MemberModel> ensureCheckinToken(MemberModel member) async {
     if (member.checkinToken.isNotEmpty) return member;
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return member;
+
+    // The caller may be holding a copy taken before a token was issued, so
+    // the stored record decides rather than the object in hand. Without this
+    // check, reopening the screen would mint a fresh token every time and
+    // kill the code already on the member's phone.
+    final doc = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(currentUser.uid)
+        .collection('members')
+        .doc(member.id)
+        .get();
+
+    final stored = (doc.data()?['checkinToken'] ?? '').toString();
+    if (stored.isNotEmpty) return _cache(member.copyWith(checkinToken: stored));
+
     return _writeCheckinToken(member, CheckinCode.newToken());
   }
 
@@ -284,11 +302,15 @@ class MemberProvider with ChangeNotifier {
         .doc(member.id)
         .update({'checkinToken': token});
 
-    final updated = member.copyWith(checkinToken: token);
+    return _cache(member.copyWith(checkinToken: token));
+  }
+
+  /// Keeps the in-memory list in step with a member that just changed.
+  MemberModel _cache(MemberModel member) {
     final index = _members.indexWhere((m) => m.id == member.id);
-    if (index != -1) _members[index] = updated;
+    if (index != -1) _members[index] = member;
     notifyListeners();
-    return updated;
+    return member;
   }
 
   Future<void> updateMember(MemberModel member) async {

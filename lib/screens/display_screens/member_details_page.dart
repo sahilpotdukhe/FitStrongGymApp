@@ -8,54 +8,6 @@ class MemberDetailsPage extends StatelessWidget {
 
   final MemberModel member;
 
-  /// The by-hand way in, for a dead phone or a member with no code yet.
-  /// Records what a scan would, tagged manual so the two can be told apart.
-  Future<void> _markAttendance(BuildContext context) async {
-    final attendanceProvider =
-        Provider.of<AttendanceProvider>(context, listen: false);
-
-    final result = await attendanceProvider.recordScan(
-      member,
-      source: AttendanceSource.manual,
-    );
-    if (!context.mounted) return;
-
-    switch (result.outcome) {
-      case CheckinOutcome.checkedIn:
-        showSuccessToast(
-          context,
-          'Checked in',
-          description: '${member.name} is marked present at '
-              '${result.record?.timeLabel ?? 'now'}',
-        );
-      case CheckinOutcome.checkedOut:
-        showSuccessToast(
-          context,
-          'Checked out',
-          description: '${member.name} left at '
-              '${result.record?.timeLabel ?? 'now'}',
-        );
-      case CheckinOutcome.expired:
-        showErrorToast(
-          context,
-          'Membership expired',
-          description: 'Renew ${member.name}\'s plan before marking them in.',
-        );
-      case CheckinOutcome.tooSoon:
-        showShadcnToast(
-          context,
-          title: 'Already recorded',
-          description: '${member.name} was just marked a moment ago.',
-        );
-      case CheckinOutcome.failed:
-        showErrorToast(
-          context,
-          'Could not mark attendance',
-          description: 'Check your connection and try again.',
-        );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
@@ -109,15 +61,6 @@ class MemberDetailsPage extends StatelessWidget {
       ],
       bottomBar: Row(
         children: [
-          Expanded(
-            child: ShadcnButton(
-              variant: ShadcnButtonVariant.outline,
-              leading: const Icon(Icons.how_to_reg_rounded, size: 18),
-              onPressed: () => _markAttendance(context),
-              child: const Text('Mark present'),
-            ),
-          ),
-          const ShadcnGap(ShadcnSpacing.md),
           Expanded(
             child: ShadcnButton(
               leading: const Icon(Icons.autorenew_rounded, size: 18),

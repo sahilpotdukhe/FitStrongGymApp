@@ -18,6 +18,14 @@ class _AttendancePageState extends State<AttendancePage> {
     _fetchAndSetGymId();
   }
 
+  /// Pull down to pick up check-ins the scanner has written since the screen
+  /// was opened. Without this the list only ever showed what was there at
+  /// load, which on a desk running all day is quickly out of date.
+  Future<void> _refresh() async {
+    await Provider.of<AttendanceProvider>(context, listen: false)
+        .fetchAttendance();
+  }
+
   Future<void> _fetchAndSetGymId() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -56,94 +64,112 @@ class _AttendancePageState extends State<AttendancePage> {
       body: _isLoading
           ? const Loading()
           : allAttendance.isEmpty
-              ? const AttendanceQuietBox()
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(
-                    ShadcnSpacing.lg,
-                    ShadcnSpacing.md,
-                    ShadcnSpacing.lg,
-                    ShadcnSpacing.xl4,
+              // Still refreshable: the first check-in of the day arrives
+              // while this empty state is on screen.
+              ? RefreshIndicator(
+                  onRefresh: _refresh,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 120),
+                      AttendanceQuietBox(),
+                    ],
                   ),
-                  itemCount: monthLabels.length,
-                  itemBuilder: (context, index) {
-                    final month = monthLabels[index];
-                    final dates = months[month]!;
+                )
+              : RefreshIndicator(
+                  onRefresh: _refresh,
+                  child: ListView.builder(
+                    // A short list must still be draggable, or there is no
+                    // way to pull it down.
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(
+                      ShadcnSpacing.lg,
+                      ShadcnSpacing.md,
+                      ShadcnSpacing.lg,
+                      ShadcnSpacing.xl4,
+                    ),
+                    itemCount: monthLabels.length,
+                    itemBuilder: (context, index) {
+                      final month = monthLabels[index];
+                      final dates = months[month]!;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (index != 0) const ShadcnGap(ShadcnSpacing.xl),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: ShadcnSpacing.sm,
-                          ),
-                          child: Row(
-                            children: [
-                              ShadcnText(month, variant: ShadcnTextVariant.h4),
-                              const ShadcnGap(ShadcnSpacing.sm),
-                              Text(
-                                '${dates.length} day${dates.length == 1 ? '' : 's'}',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  color: t.mutedForeground,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        for (final date in dates)
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (index != 0) const ShadcnGap(ShadcnSpacing.xl),
                           Padding(
-                            padding:
-                                const EdgeInsets.only(bottom: ShadcnSpacing.sm),
-                            child: ShadcnCard(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: ShadcnSpacing.lg,
-                                vertical: ShadcnSpacing.md,
-                              ),
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      AttendanceDetailPage(date: date),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.event_available_rounded,
-                                    size: 18,
-                                    color: t.primary,
-                                  ),
-                                  const ShadcnGap(ShadcnSpacing.md),
-                                  Expanded(
-                                    child: Text(
-                                      formatAttendanceDate(date),
-                                      style: TextStyle(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w500,
-                                        color: t.cardForeground,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '${membersSeen[date]?.length ?? 0}',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: t.mutedForeground,
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.chevron_right_rounded,
+                            padding: const EdgeInsets.only(
+                              bottom: ShadcnSpacing.sm,
+                            ),
+                            child: Row(
+                              children: [
+                                ShadcnText(month,
+                                    variant: ShadcnTextVariant.h4),
+                                const ShadcnGap(ShadcnSpacing.sm),
+                                Text(
+                                  '${dates.length} day${dates.length == 1 ? '' : 's'}',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
                                     color: t.mutedForeground,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
-                      ],
-                    );
-                  },
+                          for (final date in dates)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: ShadcnSpacing.sm),
+                              child: ShadcnCard(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: ShadcnSpacing.lg,
+                                  vertical: ShadcnSpacing.md,
+                                ),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        AttendanceDetailPage(date: date),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.event_available_rounded,
+                                      size: 18,
+                                      color: t.primary,
+                                    ),
+                                    const ShadcnGap(ShadcnSpacing.md),
+                                    Expanded(
+                                      child: Text(
+                                        formatAttendanceDate(date),
+                                        style: TextStyle(
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w500,
+                                          color: t.cardForeground,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${membersSeen[date]?.length ?? 0}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: t.mutedForeground,
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: t.mutedForeground,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
     );
   }
