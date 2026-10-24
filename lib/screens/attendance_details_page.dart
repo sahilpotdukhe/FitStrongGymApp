@@ -1,6 +1,6 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
-/// Who checked in on one particular day, and at what time.
+/// Every scan on one day: who, when, and which way through the door.
 class AttendanceDetailPage extends StatelessWidget {
   const AttendanceDetailPage({super.key, required this.date});
 
@@ -11,11 +11,13 @@ class AttendanceDetailPage extends StatelessWidget {
     final t = context.shadcn;
     final status = context.status;
     final provider = Provider.of<AttendanceProvider>(context);
-    final attendanceList = provider.getByDate(date);
+    final scans = provider.getByDate(date);
+    // A member who came in and left again is one person, not two.
+    final people = provider.distinctMembersOn(date);
 
     return AppScaffold(
       title: formatAttendanceDate(date),
-      body: attendanceList.isEmpty
+      body: scans.isEmpty
           // Previously white text on a white page, so it read as a blank
           // screen whenever a day had no records.
           ? const AppEmptyState(
@@ -30,7 +32,7 @@ class AttendanceDetailPage extends StatelessWidget {
                 ShadcnSpacing.lg,
                 ShadcnSpacing.xl4,
               ),
-              itemCount: attendanceList.length + 1,
+              itemCount: scans.length + 1,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return Padding(
@@ -44,8 +46,7 @@ class AttendanceDetailPage extends StatelessWidget {
                         ),
                         const ShadcnGap(ShadcnSpacing.sm),
                         ShadcnText(
-                          '${attendanceList.length} member'
-                          '${attendanceList.length == 1 ? '' : 's'} checked in',
+                          '$people member${people == 1 ? '' : 's'} checked in',
                           variant: ShadcnTextVariant.small,
                         ),
                       ],
@@ -53,7 +54,9 @@ class AttendanceDetailPage extends StatelessWidget {
                   );
                 }
 
-                final a = attendanceList[index - 1];
+                final scan = scans[index - 1];
+                final isArrival = scan.type == CheckinType.checkIn;
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: ShadcnSpacing.sm),
                   child: ShadcnCard(
@@ -63,20 +66,19 @@ class AttendanceDetailPage extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        SizedBox(
-                          width: 26,
-                          child: Text(
-                            '$index',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: t.mutedForeground,
-                            ),
-                          ),
+                        Icon(
+                          isArrival
+                              ? Icons.login_rounded
+                              : Icons.logout_rounded,
+                          size: 18,
+                          color: isArrival
+                              ? status.success
+                              : t.mutedForeground,
                         ),
+                        const ShadcnGap(ShadcnSpacing.md),
                         Expanded(
                           child: Text(
-                            a.name,
+                            scan.memberName,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 14.5,
@@ -87,14 +89,18 @@ class AttendanceDetailPage extends StatelessWidget {
                         ),
                         ShadcnBadge(
                           style: ShadcnBadgeStyle(
-                            backgroundColor: status.successSurface,
-                            foregroundColor: status.successForeground,
+                            backgroundColor: isArrival
+                                ? status.successSurface
+                                : t.muted,
+                            foregroundColor: isArrival
+                                ? status.successForeground
+                                : t.mutedForeground,
                             textStyle: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          child: Text(a.time),
+                          child: Text(scan.timeLabel),
                         ),
                       ],
                     ),

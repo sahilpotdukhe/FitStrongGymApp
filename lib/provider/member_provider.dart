@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
+
 class MemberProvider with ChangeNotifier {
   List<MemberModel> _members = [];
   List<MemberModel> _recycleBinMembers = [];
@@ -177,6 +178,7 @@ class MemberProvider with ChangeNotifier {
         checkInTime: _text(data['checkInTime']),
         checkOutTime: _text(data['checkOutTime']),
         trainerId: _text(data['trainerId']),
+        checkinToken: _text(data['checkinToken']),
       );
     } catch (error) {
       debugPrint('Skipping unreadable member $id: $error');
@@ -209,6 +211,9 @@ class MemberProvider with ChangeNotifier {
       final downloadUrl =
           supabase.storage.from('fitstrong photos').getPublicUrl(path);
 
+      // Issued once, when the record is born.
+      final checkinToken = CheckinCode.newToken();
+
       final memberData = {
         'name': member.name,
         'mobileNumber': member.mobileNumber,
@@ -224,7 +229,8 @@ class MemberProvider with ChangeNotifier {
         'gender': member.gender,
         'checkInTime': member.checkInTime,
         'checkOutTime': member.checkOutTime,
-        'trainerId': member.trainerId
+        'trainerId': member.trainerId,
+        'checkinToken': checkinToken
       };
 
       final docRef = await FirebaseFirestore.instance
@@ -232,7 +238,8 @@ class MemberProvider with ChangeNotifier {
           .doc(currentUser.uid)
           .collection('members')
           .add(memberData);
-      final newMember = member.copyWith(id: docRef.id, photoUrl: downloadUrl);
+      final newMember = member.copyWith(
+          id: docRef.id, photoUrl: downloadUrl, checkinToken: checkinToken);
       _members.add(newMember);
       notifyListeners();
       return newMember;
@@ -251,6 +258,59 @@ class MemberProvider with ChangeNotifier {
   Future<List<MemberModel>> fetchExpiredMembers() async {
     if (_members.isEmpty) await getAllMembers();
     return expiredMembers;
+  }
+
+  /// Gives [member] a token if they have none. Older members repair
+  /// themselves one at a time, so no bulk migration is needed.
+  Future<MemberModel> ensureCheckinToken(MemberModel member) async {
+    if (member.checkinToken.isNotEmpty) return member;
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return member;
+
+    // The caller may be holding a copy taken before a token was issued, so
+    // the stored record decides rather than the object in hand. Without this
+    // check, reopening the screen would mint a fresh token every time and
+    // kill the code already on the member's phone.
+    final doc = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(currentUser.uid)
+        .collection('members')
+        .doc(member.id)
+        .get();
+
+    final stored = (doc.data()?['checkinToken'] ?? '').toString();
+    if (stored.isNotEmpty) return _cache(member.copyWith(checkinToken: stored));
+
+    return _writeCheckinToken(member, CheckinCode.newToken());
+  }
+
+  /// Issues a new token, killing any code the member already has. For a
+  /// lost phone or a code that has been passed around.
+  Future<MemberModel> regenerateCheckinToken(MemberModel member) =>
+      _writeCheckinToken(member, CheckinCode.newToken());
+
+  Future<MemberModel> _writeCheckinToken(
+      MemberModel member, String token) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return member;
+
+    await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(currentUser.uid)
+        .collection('members')
+        .doc(member.id)
+        .update({'checkinToken': token});
+
+    return _cache(member.copyWith(checkinToken: token));
+  }
+
+  /// Keeps the in-memory list in step with a member that just changed.
+  MemberModel _cache(MemberModel member) {
+    final index = _members.indexWhere((m) => m.id == member.id);
+    if (index != -1) _members[index] = member;
+    notifyListeners();
+    return member;
   }
 
   Future<void> updateMember(MemberModel member) async {

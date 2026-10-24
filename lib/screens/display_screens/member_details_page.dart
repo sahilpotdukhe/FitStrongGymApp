@@ -8,37 +8,6 @@ class MemberDetailsPage extends StatelessWidget {
 
   final MemberModel member;
 
-  /// Records today's check in for this member. Marking the same person twice
-  /// in one day does nothing beyond saying so.
-  Future<void> _markAttendance(BuildContext context) async {
-    final attendanceProvider =
-        Provider.of<AttendanceProvider>(context, listen: false);
-    try {
-      final marked = await attendanceProvider.markAttendance(member.name);
-      if (!context.mounted) return;
-      if (marked) {
-        showSuccessToast(
-          context,
-          'Marked present',
-          description: '${member.name} is checked in for today',
-        );
-      } else {
-        showShadcnToast(
-          context,
-          title: 'Already checked in',
-          description: '${member.name} was marked present earlier today',
-        );
-      }
-    } catch (_) {
-      if (!context.mounted) return;
-      showErrorToast(
-        context,
-        'Could not mark attendance',
-        description: 'Check your connection and try again.',
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
@@ -65,6 +34,19 @@ class MemberDetailsPage extends StatelessWidget {
           ),
           child: const Icon(Icons.receipt_long_outlined, size: 20),
         ),
+        // The member's check-in code, which they save to their phone and
+        // show at the front desk.
+        ShadcnButton(
+          variant: ShadcnButtonVariant.ghost,
+          size: ShadcnButtonSize.icon,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MemberQrPage(member: member),
+            ),
+          ),
+          child: const Icon(Icons.qr_code_2_rounded, size: 20),
+        ),
         ShadcnButton(
           variant: ShadcnButtonVariant.ghost,
           size: ShadcnButtonSize.icon,
@@ -79,15 +61,6 @@ class MemberDetailsPage extends StatelessWidget {
       ],
       bottomBar: Row(
         children: [
-          Expanded(
-            child: ShadcnButton(
-              variant: ShadcnButtonVariant.outline,
-              leading: const Icon(Icons.how_to_reg_rounded, size: 18),
-              onPressed: () => _markAttendance(context),
-              child: const Text('Mark present'),
-            ),
-          ),
-          const ShadcnGap(ShadcnSpacing.md),
           Expanded(
             child: ShadcnButton(
               leading: const Icon(Icons.autorenew_rounded, size: 18),

@@ -10,7 +10,8 @@ class AttendanceQuietBox extends StatelessWidget {
       icon: Icons.qr_code_scanner_rounded,
       title: 'No check-ins yet',
       description:
-          'Nobody has checked in for this date. Members appear here as soon as they scan the gym QR code.',
+          'Nobody has checked in yet. Members appear here as soon as they '
+          'show their code at the front desk.',
     );
   }
 }
