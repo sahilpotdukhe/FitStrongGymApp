@@ -1,4 +1,5 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
+import 'package:intl/intl.dart';
 
 /// Attendance history, grouped by month with the newest first.
 class AttendancePage extends StatefulWidget {
@@ -32,29 +33,27 @@ class _AttendancePageState extends State<AttendancePage> {
     final provider = Provider.of<AttendanceProvider>(context);
     final allAttendance = provider.allAttendance;
 
-    // Group by year > month > date
-    final grouped = <String, Map<String, List<String>>>{};
-    for (var record in allAttendance) {
-      final year = record.year;
-      final month = "${record.month} $year";
-      grouped.putIfAbsent(year, () => {});
-      grouped[year]!.putIfAbsent(month, () => []);
-      if (!grouped[year]![month]!.contains(record.date)) {
-        grouped[year]![month]!.add(record.date);
+    // The records arrive newest first, so walking them in order already puts
+    // the months and the days inside them in the right order. The old screen
+    // sorted month names through a lookup table to achieve the same thing,
+    // because the time was spread across four separate strings.
+    //
+    // Everything the list needs is gathered in this one pass. Asking the
+    // provider for each day's head count while building the rows instead
+    // would re-read the whole history once per row.
+    final months = <String, List<String>>{};
+    final membersSeen = <String, Set<String>>{};
+    for (final record in allAttendance) {
+      final dates = months.putIfAbsent(record.monthLabel, () => <String>[]);
+      // Sorted by time, so every record for one day sits next to the rest.
+      if (dates.isEmpty || dates.last != record.dateKey) {
+        dates.add(record.dateKey);
       }
+      membersSeen
+          .putIfAbsent(record.dateKey, () => <String>{})
+          .add(record.memberId);
     }
-
-    final years = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-
-    // Flattened into one list of months so the page is a single ListView
-    // instead of a ListView whose every item builds another Column of
-    // Columns — same result, far less work per scroll.
-    final months = <String>[];
-    for (final year in years) {
-      final yearMonths = grouped[year]!.keys.toList()
-        ..sort((a, b) => _monthSortValue(b).compareTo(_monthSortValue(a)));
-      months.addAll(yearMonths);
-    }
+    final monthLabels = months.keys.toList();
 
     return AppScaffold(
       title: 'Attendance',
@@ -70,12 +69,10 @@ class _AttendancePageState extends State<AttendancePage> {
                     ShadcnSpacing.lg,
                     ShadcnSpacing.xl4,
                   ),
-                  itemCount: months.length,
+                  itemCount: monthLabels.length,
                   itemBuilder: (context, index) {
-                    final month = months[index];
-                    final year = month.split(' ').last;
-                    final dates = grouped[year]![month]!
-                      ..sort((a, b) => b.compareTo(a));
+                    final month = monthLabels[index];
+                    final dates = months[month]!;
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,12 +122,20 @@ class _AttendancePageState extends State<AttendancePage> {
                                   const ShadcnGap(ShadcnSpacing.md),
                                   Expanded(
                                     child: Text(
-                                      _formatReadableDate(date),
+                                      formatAttendanceDate(date),
                                       style: TextStyle(
                                         fontSize: 14.5,
                                         fontWeight: FontWeight.w500,
                                         color: t.cardForeground,
                                       ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${membersSeen[date]?.length ?? 0}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: t.mutedForeground,
                                     ),
                                   ),
                                   Icon(
@@ -147,32 +152,6 @@ class _AttendancePageState extends State<AttendancePage> {
                 ),
     );
   }
-
-  /// Sort months by value for descending order (January = 1, December = 12)
-  int _monthSortValue(String monthYear) {
-    final parts = monthYear.split(' ');
-    const monthOrder = {
-      'January': 1,
-      'February': 2,
-      'March': 3,
-      'April': 4,
-      'May': 5,
-      'June': 6,
-      'July': 7,
-      'August': 8,
-      'September': 9,
-      'October': 10,
-      'November': 11,
-      'December': 12
-    };
-    // A record with a missing or odd month string used to bring the whole
-    // screen down here, because int.parse throws on anything unexpected.
-    if (parts.length < 2) return 0;
-    final year = int.tryParse(parts[1]) ?? 0;
-    return year * 100 + (monthOrder[parts[0]] ?? 0);
-  }
-
-  String _formatReadableDate(String date) => formatAttendanceDate(date);
 }
 
 /// Turns a stored "2024-11-25" into "25 November 2024".
@@ -180,26 +159,7 @@ class _AttendancePageState extends State<AttendancePage> {
 /// Shared by the list and the detail page, which each had their own copy.
 String formatAttendanceDate(String date) {
   try {
-    final parts = date.split('-'); // "2024-11-25"
-    final day = int.parse(parts[2]);
-    final month = int.parse(parts[1]);
-    final year = parts[0];
-    const monthNames = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    return '$day ${monthNames[month]} $year';
+    return DateFormat('d MMMM yyyy').format(DateTime.parse(date));
   } catch (_) {
     return date;
   }

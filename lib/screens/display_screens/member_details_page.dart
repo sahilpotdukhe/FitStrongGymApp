@@ -8,34 +8,52 @@ class MemberDetailsPage extends StatelessWidget {
 
   final MemberModel member;
 
-  /// Records today's check in for this member. Marking the same person twice
-  /// in one day does nothing beyond saying so.
+  /// The by-hand way in, for the member whose phone is dead or who has not
+  /// been given a code yet. It records the same thing a scan would, marked
+  /// as manual so a disputed entry can be told apart from a scanned one.
   Future<void> _markAttendance(BuildContext context) async {
     final attendanceProvider =
         Provider.of<AttendanceProvider>(context, listen: false);
-    try {
-      final marked = await attendanceProvider.markAttendance(member.name);
-      if (!context.mounted) return;
-      if (marked) {
+
+    final result = await attendanceProvider.recordScan(
+      member,
+      source: AttendanceSource.manual,
+    );
+    if (!context.mounted) return;
+
+    switch (result.outcome) {
+      case CheckinOutcome.checkedIn:
         showSuccessToast(
           context,
-          'Marked present',
-          description: '${member.name} is checked in for today',
+          'Checked in',
+          description: '${member.name} is marked present at '
+              '${result.record?.timeLabel ?? 'now'}',
         );
-      } else {
+      case CheckinOutcome.checkedOut:
+        showSuccessToast(
+          context,
+          'Checked out',
+          description: '${member.name} left at '
+              '${result.record?.timeLabel ?? 'now'}',
+        );
+      case CheckinOutcome.expired:
+        showErrorToast(
+          context,
+          'Membership expired',
+          description: 'Renew ${member.name}\'s plan before marking them in.',
+        );
+      case CheckinOutcome.tooSoon:
         showShadcnToast(
           context,
-          title: 'Already checked in',
-          description: '${member.name} was marked present earlier today',
+          title: 'Already recorded',
+          description: '${member.name} was just marked a moment ago.',
         );
-      }
-    } catch (_) {
-      if (!context.mounted) return;
-      showErrorToast(
-        context,
-        'Could not mark attendance',
-        description: 'Check your connection and try again.',
-      );
+      case CheckinOutcome.failed:
+        showErrorToast(
+          context,
+          'Could not mark attendance',
+          description: 'Check your connection and try again.',
+        );
     }
   }
 
