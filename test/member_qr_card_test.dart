@@ -1,5 +1,7 @@
+import 'package:fitstrong_core/fitstrong_core.dart';
 import 'package:fitstrong_gym/resources/member_qr_card.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 void main() {
   group('the shared check-in card', () {
@@ -10,15 +12,24 @@ void main() {
         memberName: 'Asha',
         token: '',
         gymName: 'FitStrong',
-        lines: [],
       ));
       expect(png, isNull);
     });
   });
 
-  group('dates on the card', () {
-    test('read the long way round, not as digits', () {
-      expect(formatCardDate(DateTime(2026, 4, 8)), '8 April 2026');
+  group('the code itself', () {
+    test('carries the strongest error correction', () {
+      // Level H rebuilds the code from 30% of it, which is what lets a
+      // scratched screen or a poor camera still read it.
+      final qr = buildCheckinQr(CheckinCode.newToken());
+      expect(qr.errorCorrectLevel, QrErrorCorrectLevel.H);
+    });
+
+    test('encodes the member token', () {
+      final token = CheckinCode.newToken();
+      // Same payload the scanner decodes, so what is drawn is what is read.
+      expect(CheckinCode.decode(CheckinCode.encode(token)), token);
+      expect(() => buildCheckinQr(token), returnsNormally);
     });
   });
 }

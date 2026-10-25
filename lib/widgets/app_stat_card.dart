@@ -115,7 +115,17 @@ class AppSectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        ShadcnText(title, variant: ShadcnTextVariant.h4),
+        // Flexible with an ellipsis: on a narrow phone a long section title
+        // would otherwise run past the edge of the screen, which Flutter
+        // reports as a layout error rather than just a clipped word.
+        Flexible(
+          child: ShadcnText(
+            title,
+            variant: ShadcnTextVariant.h4,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         if (actionLabel != null && onAction != null)
           ShadcnButton(
             variant: ShadcnButtonVariant.link,

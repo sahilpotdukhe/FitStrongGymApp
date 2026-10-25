@@ -1,6 +1,6 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
-/// Every scan on one day: who, when, and which way through the door.
+/// Who came in on one day, and at what time.
 class AttendanceDetailPage extends StatelessWidget {
   const AttendanceDetailPage({super.key, required this.date});
 
@@ -12,8 +12,6 @@ class AttendanceDetailPage extends StatelessWidget {
     final status = context.status;
     final provider = Provider.of<AttendanceProvider>(context);
     final scans = provider.getByDate(date);
-    // A member who came in and left again is one person, not two.
-    final people = provider.distinctMembersOn(date);
 
     return AppScaffold(
       title: formatAttendanceDate(date),
@@ -46,7 +44,8 @@ class AttendanceDetailPage extends StatelessWidget {
                         ),
                         const ShadcnGap(ShadcnSpacing.sm),
                         ShadcnText(
-                          '$people member${people == 1 ? '' : 's'} checked in',
+                          '${scans.length} member'
+                          '${scans.length == 1 ? '' : 's'} checked in',
                           variant: ShadcnTextVariant.small,
                         ),
                       ],
@@ -55,7 +54,6 @@ class AttendanceDetailPage extends StatelessWidget {
                 }
 
                 final scan = scans[index - 1];
-                final isArrival = scan.type == CheckinType.checkIn;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: ShadcnSpacing.sm),
@@ -66,16 +64,17 @@ class AttendanceDetailPage extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          isArrival
-                              ? Icons.login_rounded
-                              : Icons.logout_rounded,
-                          size: 18,
-                          color: isArrival
-                              ? status.success
-                              : t.mutedForeground,
+                        SizedBox(
+                          width: 26,
+                          child: Text(
+                            '\$index',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: t.mutedForeground,
+                            ),
+                          ),
                         ),
-                        const ShadcnGap(ShadcnSpacing.md),
                         Expanded(
                           child: Text(
                             scan.memberName,
@@ -89,12 +88,8 @@ class AttendanceDetailPage extends StatelessWidget {
                         ),
                         ShadcnBadge(
                           style: ShadcnBadgeStyle(
-                            backgroundColor: isArrival
-                                ? status.successSurface
-                                : t.muted,
-                            foregroundColor: isArrival
-                                ? status.successForeground
-                                : t.mutedForeground,
+                            backgroundColor: status.successSurface,
+                            foregroundColor: status.successForeground,
                             textStyle: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,

@@ -1,3 +1,4 @@
+import 'package:fitstrong_gym/resources/member_qr_share.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
 
@@ -32,7 +33,12 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
   bool _isSaving = true;
   bool _isPrinting = false;
   bool _isSharing = false;
+  bool _isSharingCode = false;
   String? _error;
+
+  /// The member's check-in card, drawn while the invoice saves so the share
+  /// is instant rather than a second's wait after the tap.
+  Future<File?>? _checkinCard;
 
   /// A missing plan cannot be fixed by trying again, so only a failed save
   /// offers the retry button.
@@ -41,7 +47,44 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _saveInvoice());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _saveInvoice();
+      _warmCheckinCard();
+    });
+  }
+
+  /// Starts drawing the card. Runs alongside the invoice save rather than
+  /// after it: neither waits on the other.
+  void _warmCheckinCard() {
+    if (widget.member.checkinToken.isEmpty) return;
+    final user = Provider.of<UserProvider>(context, listen: false).getUser;
+    setState(() => _checkinCard = MemberQrShare.render(widget.member, user));
+  }
+
+  Future<void> _shareCheckinCode() async {
+    if (_isSharingCode) return;
+    setState(() => _isSharingCode = true);
+    try {
+      // Re-rendered if the first attempt failed or the OS cleared the file.
+      var file = await _checkinCard;
+      if (file == null || !file.existsSync()) {
+        if (!mounted) return;
+        final user = Provider.of<UserProvider>(context, listen: false).getUser;
+        file = await MemberQrShare.render(widget.member, user);
+      }
+      if (!mounted) return;
+
+      if (!await MemberQrShare.send(file, widget.member)) {
+        if (!mounted) return;
+        showErrorToast(
+          context,
+          'Could not prepare the code',
+          description: 'Open the member and share it from there.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSharingCode = false);
+    }
   }
 
   /// Records the payment once, as soon as the screen opens, because reaching
@@ -245,38 +288,59 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                     ),
                   ),
                   const ShadcnGap(ShadcnSpacing.xl),
+                  // Sending the bill is what this screen is for, so it is
+                  // the only large button. The rest sit together underneath
+                  // as a quieter row, which used to be three stacked buttons
+                  // with a paragraph apiece.
                   ShadcnButton(
                     fullWidth: true,
                     size: ShadcnButtonSize.lg,
+                    loading: _isSharing,
                     leading: const Icon(Icons.share_outlined, size: 18),
                     onPressed: _isSharing ? null : _shareInvoice,
-                    child: Text(
-                      _isSharing
-                          ? 'Preparing invoice…'
-                          : 'Send invoice on WhatsApp',
-                    ),
+                    child: const Text('Send invoice on WhatsApp'),
                   ),
                   const ShadcnGap(ShadcnSpacing.sm),
-                  ShadcnText(
-                    'Opens your phone\'s share list — pick WhatsApp, then '
-                    '${widget.member.name}. Nothing is sent until you press '
-                    'send in WhatsApp.',
-                    variant: ShadcnTextVariant.small,
-                    textAlign: TextAlign.center,
+                  Row(
+                    children: [
+                      if (widget.member.checkinToken.isNotEmpty) ...[
+                        Expanded(
+                          child: ShadcnButton(
+                            fullWidth: true,
+                            variant: ShadcnButtonVariant.secondary,
+                            loading: _isSharingCode,
+                            leading:
+                                const Icon(Icons.qr_code_2_rounded, size: 18),
+                            onPressed:
+                                _isSharingCode ? null : _shareCheckinCode,
+                            child: const Text('Check-in QR'),
+                          ),
+                        ),
+                        const ShadcnGap(ShadcnSpacing.sm),
+                      ],
+                      Expanded(
+                        child: ShadcnButton(
+                          fullWidth: true,
+                          variant: ShadcnButtonVariant.secondary,
+                          loading: _isPrinting,
+                          leading: const Icon(
+                            Icons.picture_as_pdf_outlined,
+                            size: 18,
+                          ),
+                          onPressed: _isPrinting ? null : _generatePdf,
+                          child: const Text('Print bill'),
+                        ),
+                      ),
+                    ],
                   ),
                   const ShadcnGap(ShadcnSpacing.md),
-                  ShadcnButton(
-                    fullWidth: true,
-                    size: ShadcnButtonSize.lg,
-                    variant: ShadcnButtonVariant.secondary,
-                    leading:
-                        const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                    onPressed: _isPrinting ? null : _generatePdf,
-                    child: Text(
-                      _isPrinting
-                          ? 'Preparing invoice…'
-                          : 'Open printable invoice',
-                    ),
+                  // One line instead of three: the same caution applied to
+                  // every button above it.
+                  ShadcnText(
+                    'Sharing opens your phone\'s share list. Nothing leaves '
+                    'the app until you press send there.',
+                    variant: ShadcnTextVariant.small,
+                    textAlign: TextAlign.center,
                   ),
                 ],
                 const ShadcnGap(ShadcnSpacing.md),
