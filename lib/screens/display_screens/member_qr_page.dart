@@ -128,7 +128,9 @@ class _MemberQrPageState extends State<MemberQrPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
+    final status = context.status;
     final hasToken = _member.checkinToken.isNotEmpty;
+    final expired = _member.isExpired();
 
     return AppScaffold(
       title: 'Check-in code',
@@ -136,6 +138,7 @@ class _MemberQrPageState extends State<MemberQrPage> {
       bottomBar: hasToken
           ? ShadcnButton(
               fullWidth: true,
+              size: ShadcnButtonSize.lg,
               loading: _busy,
               onPressed: _busy ? null : _share,
               leading: const Icon(Icons.ios_share_rounded, size: 18),
@@ -156,20 +159,24 @@ class _MemberQrPageState extends State<MemberQrPage> {
                   child: Column(
                     children: [
                       const ShadcnGap(ShadcnSpacing.lg),
-                      ShadcnText(
-                        _member.name,
-                        variant: ShadcnTextVariant.h3,
-                      ),
-                      const ShadcnGap(ShadcnSpacing.xs),
-                      ShadcnText(
-                        _member.isExpired()
-                            ? 'Membership expired — this code will be turned '
-                                'away at the desk until the plan is renewed.'
-                            : 'Save this to your phone and show it at the '
-                                'front desk.',
-                        variant: ShadcnTextVariant.muted,
-                        textAlign: TextAlign.center,
-                      ),
+                      // The code itself leads: name, then the image, then one
+                      // line of instruction. Everything that is not the code
+                      // sits below the fold.
+                      ShadcnText(_member.name, variant: ShadcnTextVariant.h3),
+                      if (expired) ...[
+                        const ShadcnGap(ShadcnSpacing.sm),
+                        ShadcnBadge(
+                          style: ShadcnBadgeStyle(
+                            backgroundColor: status.dangerSurface,
+                            foregroundColor: status.dangerForeground,
+                            textStyle: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: const Text('Expired — will be turned away'),
+                        ),
+                      ],
                       const ShadcnGap(ShadcnSpacing.xl),
                       ShadcnCard(
                         child: Container(
@@ -185,33 +192,32 @@ class _MemberQrPageState extends State<MemberQrPage> {
                           ),
                         ),
                       ),
-                      const ShadcnGap(ShadcnSpacing.lg),
+                      const ShadcnGap(ShadcnSpacing.md),
                       ShadcnText(
-                        'This code does not change. The same image keeps '
-                        'working every visit.',
+                        'Show this at the front desk. The same code works '
+                        'every visit.',
                         variant: ShadcnTextVariant.muted,
                         textAlign: TextAlign.center,
                       ),
                       const ShadcnGap(ShadcnSpacing.xl2),
-                      const Divider(height: 1),
-                      const ShadcnGap(ShadcnSpacing.lg),
-                      ShadcnText(
-                        'Lost phone, or code shared around?',
-                        variant: ShadcnTextVariant.small,
+                      const ShadcnSeparator(),
+                      const ShadcnGap(ShadcnSpacing.md),
+                      // Deliberately plain and last: this kills the code on
+                      // the member's phone, so it should never be the thing
+                      // the eye lands on first.
+                      ShadcnButton(
+                        variant: ShadcnButtonVariant.ghost,
+                        size: ShadcnButtonSize.sm,
+                        onPressed: _busy ? null : _reissue,
+                        leading: const Icon(Icons.autorenew_rounded, size: 16),
+                        child: const Text('Issue a new code'),
                       ),
                       const ShadcnGap(ShadcnSpacing.xs),
                       ShadcnText(
-                        'Issuing a new code stops the old one working '
-                        'immediately.',
-                        variant: ShadcnTextVariant.muted,
+                        'Use this only if the phone was lost or the code was '
+                        'passed around.',
+                        variant: ShadcnTextVariant.small,
                         textAlign: TextAlign.center,
-                      ),
-                      const ShadcnGap(ShadcnSpacing.md),
-                      ShadcnButton(
-                        variant: ShadcnButtonVariant.outline,
-                        onPressed: _busy ? null : _reissue,
-                        leading: const Icon(Icons.autorenew_rounded, size: 18),
-                        child: const Text('Issue a new code'),
                       ),
                       const ShadcnGap(ShadcnSpacing.lg),
                     ],

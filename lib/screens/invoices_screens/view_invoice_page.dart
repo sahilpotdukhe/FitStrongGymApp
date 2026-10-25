@@ -288,60 +288,59 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                     ),
                   ),
                   const ShadcnGap(ShadcnSpacing.xl),
+                  // Sending the bill is what this screen is for, so it is
+                  // the only large button. The rest sit together underneath
+                  // as a quieter row, which used to be three stacked buttons
+                  // with a paragraph apiece.
                   ShadcnButton(
                     fullWidth: true,
                     size: ShadcnButtonSize.lg,
+                    loading: _isSharing,
                     leading: const Icon(Icons.share_outlined, size: 18),
                     onPressed: _isSharing ? null : _shareInvoice,
-                    child: Text(
-                      _isSharing
-                          ? 'Preparing invoice…'
-                          : 'Send invoice on WhatsApp',
-                    ),
+                    child: const Text('Send invoice on WhatsApp'),
                   ),
                   const ShadcnGap(ShadcnSpacing.sm),
+                  Row(
+                    children: [
+                      if (widget.member.checkinToken.isNotEmpty) ...[
+                        Expanded(
+                          child: ShadcnButton(
+                            fullWidth: true,
+                            variant: ShadcnButtonVariant.secondary,
+                            loading: _isSharingCode,
+                            leading:
+                                const Icon(Icons.qr_code_2_rounded, size: 18),
+                            onPressed:
+                                _isSharingCode ? null : _shareCheckinCode,
+                            child: const Text('Check-in QR'),
+                          ),
+                        ),
+                        const ShadcnGap(ShadcnSpacing.sm),
+                      ],
+                      Expanded(
+                        child: ShadcnButton(
+                          fullWidth: true,
+                          variant: ShadcnButtonVariant.secondary,
+                          loading: _isPrinting,
+                          leading: const Icon(
+                            Icons.picture_as_pdf_outlined,
+                            size: 18,
+                          ),
+                          onPressed: _isPrinting ? null : _generatePdf,
+                          child: const Text('Print bill'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const ShadcnGap(ShadcnSpacing.md),
+                  // One line instead of three: the same caution applied to
+                  // every button above it.
                   ShadcnText(
-                    'Opens your phone\'s share list — pick WhatsApp, then '
-                    '${widget.member.name}. Nothing is sent until you press '
-                    'send in WhatsApp.',
+                    'Sharing opens your phone\'s share list. Nothing leaves '
+                    'the app until you press send there.',
                     variant: ShadcnTextVariant.small,
                     textAlign: TextAlign.center,
-                  ),
-                  if (widget.member.checkinToken.isNotEmpty) ...[
-                    const ShadcnGap(ShadcnSpacing.md),
-                    ShadcnButton(
-                      fullWidth: true,
-                      size: ShadcnButtonSize.lg,
-                      variant: ShadcnButtonVariant.secondary,
-                      leading: const Icon(Icons.qr_code_2_rounded, size: 18),
-                      onPressed: _isSharingCode ? null : _shareCheckinCode,
-                      child: Text(
-                        _isSharingCode
-                            ? 'Preparing code…'
-                            : 'Send check-in code',
-                      ),
-                    ),
-                    const ShadcnGap(ShadcnSpacing.sm),
-                    ShadcnText(
-                      'The QR ${widget.member.name} shows at the front desk. '
-                      'It never changes, so this one image lasts.',
-                      variant: ShadcnTextVariant.small,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                  const ShadcnGap(ShadcnSpacing.md),
-                  ShadcnButton(
-                    fullWidth: true,
-                    size: ShadcnButtonSize.lg,
-                    variant: ShadcnButtonVariant.secondary,
-                    leading:
-                        const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                    onPressed: _isPrinting ? null : _generatePdf,
-                    child: Text(
-                      _isPrinting
-                          ? 'Preparing invoice…'
-                          : 'Open printable invoice',
-                    ),
                   ),
                 ],
                 const ShadcnGap(ShadcnSpacing.md),
