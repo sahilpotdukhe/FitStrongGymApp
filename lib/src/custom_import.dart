@@ -58,6 +58,7 @@ export 'package:fitstrong_gym/resources/member_csv_export.dart';
 export 'package:fitstrong_gym/screens/reminders_page.dart';
 export 'package:fitstrong_gym/widgets/invoice_card.dart';
 export 'package:fitstrong_gym/provider/attendance_provider.dart';
+export 'package:fitstrong_gym/screens/attendance_insights_page.dart';
 export 'package:fitstrong_gym/screens/attendance_details_page.dart';
 export 'package:fitstrong_gym/screens/attendance_page.dart';
 export 'package:fitstrong_gym/screens/dashboard.dart';
