@@ -1,3 +1,4 @@
+import 'package:fitstrong_gym/resources/member_qr_share.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 import 'package:intl/intl.dart';
 
@@ -32,7 +33,12 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
   bool _isSaving = true;
   bool _isPrinting = false;
   bool _isSharing = false;
+  bool _isSharingCode = false;
   String? _error;
+
+  /// The member's check-in card, drawn while the invoice saves so the share
+  /// is instant rather than a second's wait after the tap.
+  Future<File?>? _checkinCard;
 
   /// A missing plan cannot be fixed by trying again, so only a failed save
   /// offers the retry button.
@@ -41,7 +47,44 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _saveInvoice());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _saveInvoice();
+      _warmCheckinCard();
+    });
+  }
+
+  /// Starts drawing the card. Runs alongside the invoice save rather than
+  /// after it: neither waits on the other.
+  void _warmCheckinCard() {
+    if (widget.member.checkinToken.isEmpty) return;
+    final user = Provider.of<UserProvider>(context, listen: false).getUser;
+    setState(() => _checkinCard = MemberQrShare.render(widget.member, user));
+  }
+
+  Future<void> _shareCheckinCode() async {
+    if (_isSharingCode) return;
+    setState(() => _isSharingCode = true);
+    try {
+      // Re-rendered if the first attempt failed or the OS cleared the file.
+      var file = await _checkinCard;
+      if (file == null || !file.existsSync()) {
+        if (!mounted) return;
+        final user = Provider.of<UserProvider>(context, listen: false).getUser;
+        file = await MemberQrShare.render(widget.member, user);
+      }
+      if (!mounted) return;
+
+      if (!await MemberQrShare.send(file, widget.member)) {
+        if (!mounted) return;
+        showErrorToast(
+          context,
+          'Could not prepare the code',
+          description: 'Open the member and share it from there.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSharingCode = false);
+    }
   }
 
   /// Records the payment once, as soon as the screen opens, because reaching
@@ -264,6 +307,28 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                     variant: ShadcnTextVariant.small,
                     textAlign: TextAlign.center,
                   ),
+                  if (widget.member.checkinToken.isNotEmpty) ...[
+                    const ShadcnGap(ShadcnSpacing.md),
+                    ShadcnButton(
+                      fullWidth: true,
+                      size: ShadcnButtonSize.lg,
+                      variant: ShadcnButtonVariant.secondary,
+                      leading: const Icon(Icons.qr_code_2_rounded, size: 18),
+                      onPressed: _isSharingCode ? null : _shareCheckinCode,
+                      child: Text(
+                        _isSharingCode
+                            ? 'Preparing code…'
+                            : 'Send check-in code',
+                      ),
+                    ),
+                    const ShadcnGap(ShadcnSpacing.sm),
+                    ShadcnText(
+                      'The QR ${widget.member.name} shows at the front desk. '
+                      'It never changes, so this one image lasts.',
+                      variant: ShadcnTextVariant.small,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                   const ShadcnGap(ShadcnSpacing.md),
                   ShadcnButton(
                     fullWidth: true,

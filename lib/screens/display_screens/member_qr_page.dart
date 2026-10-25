@@ -1,9 +1,7 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:fitstrong_gym/resources/member_qr_card.dart';
+import 'package:fitstrong_gym/resources/member_qr_share.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// One member's check-in code, saved to their phone and held up at the desk.
 /// It never changes on its own, which is why [_reissue] exists.
@@ -55,52 +53,17 @@ class _MemberQrPageState extends State<MemberQrPage> {
     setState(() => _busy = true);
     try {
       final user = Provider.of<UserProvider>(context, listen: false).getUser;
-      final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
-      final plan = GymPlanModel.findById(plans, _member.planId);
-
-      final bytes = await renderMemberQrCard(MemberQrCardData(
-        memberName: _member.name,
-        token: _member.checkinToken,
-        gymName: user?.merchantName.isNotEmpty == true
-            ? user!.merchantName
-            : (user?.name ?? ''),
-        lines: [
-          if (plan != null) (label: 'Plan', value: plan.name),
-          (label: 'Valid till', value: formatCardDate(_member.expiryDate)),
-        ],
-      ));
-      if (bytes == null) throw StateError('nothing to draw');
-
+      final file = await MemberQrShare.render(_member, user);
       if (!mounted) return;
-      final dir = await getTemporaryDirectory();
-      // Named after the member, with awkward characters stripped out.
-      final safeName = _member.name
-          .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '-')
-          .replaceAll(RegExp(r'^-+|-+$'), '');
-      final file = File(p.join(
-        dir.path,
-        'checkin-code-${safeName.isEmpty ? _member.id : safeName}.png',
-      ));
 
-      await file.writeAsBytes(bytes);
-
-      if (!mounted) return;
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path, mimeType: 'image/png')],
-          subject: 'Your gym check-in code',
-          text: 'Hi ${_member.name}, save this code to your phone and show it '
-              'at the front desk to mark your attendance.',
-        ),
-      );
-    } catch (error) {
-      debugPrint('Could not share the check-in code: $error');
-      if (!mounted) return;
-      await showErrorDialog(
-        context: context,
-        title: 'Could not share the code',
-        desc: 'The image could not be prepared. Please try again.',
-      );
+      if (!await MemberQrShare.send(file, _member)) {
+        if (!mounted) return;
+        await showErrorDialog(
+          context: context,
+          title: 'Could not share the code',
+          desc: 'The image could not be prepared. Please try again.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -215,8 +178,8 @@ class _MemberQrPageState extends State<MemberQrPage> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(t.radiusMd),
                           ),
-                          child: QrImageView(
-                            data: CheckinCode.encode(_member.checkinToken),
+                          child: QrImageView.withQr(
+                            qr: buildCheckinQr(_member.checkinToken),
                             size: 240,
                             backgroundColor: Colors.white,
                           ),
