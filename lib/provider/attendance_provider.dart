@@ -83,6 +83,7 @@ class AttendanceProvider with ChangeNotifier {
 
     try {
       final collection = _collection(uid);
+      final now = DateTime.now();
       final last = await _lastScanToday(collection, member.id);
 
       if (CheckinRules.alreadyRecordedToday(last)) {
@@ -97,6 +98,7 @@ class AttendanceProvider with ChangeNotifier {
         memberId: member.id,
         memberName: member.name,
         source: source,
+        now: now,
       ));
 
       final record = await _readBack(docRef, member);
@@ -117,6 +119,11 @@ class AttendanceProvider with ChangeNotifier {
   }
 
   /// The member's record for today, if they have been in.
+  ///
+  /// Keyed on the device clock rather than the server stamp, matching the
+  /// scanner: a record still queued on an offline device has no server
+  /// stamp yet, and a server-keyed query would miss it and let the same
+  /// person be recorded twice.
   Future<Attendance?> _lastScanToday(
     CollectionReference<Map<String, dynamic>> collection,
     String memberId,
@@ -125,9 +132,9 @@ class AttendanceProvider with ChangeNotifier {
 
     final snapshot = await collection
         .where(AttendanceFields.memberId, isEqualTo: memberId)
-        .where(AttendanceFields.at,
+        .where(AttendanceFields.deviceAt,
             isGreaterThanOrEqualTo: Timestamp.fromDate(dayStart))
-        .orderBy(AttendanceFields.at, descending: true)
+        .orderBy(AttendanceFields.deviceAt, descending: true)
         .limit(1)
         .get();
 
