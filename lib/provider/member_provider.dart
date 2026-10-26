@@ -1,7 +1,4 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 
@@ -205,11 +202,7 @@ class MemberProvider with ChangeNotifier {
   Future<MemberModel?> addMember(MemberModel member, XFile photo) async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      final newPath =
-          p.join((await getTemporaryDirectory()).path, '${DateTime.now()}.jpg');
-      final result = await FlutterImageCompress.compressAndGetFile(
-          photo.path, newPath,
-          quality: 40, format: CompressFormat.jpeg);
+      final prepared = await preparePersonPhoto(photo);
       final supabase = Supabase.instance.client;
       // Named by a generated id, not the member's name: two members sharing a
       // name would otherwise upload to the same path and overwrite each other.
@@ -218,7 +211,7 @@ class MemberProvider with ChangeNotifier {
 
       await supabase.storage.from('fitstrong photos').upload(
             path,
-            File(result!.path),
+            prepared,
           );
 
       final downloadUrl =

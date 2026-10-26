@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:fitstrong_gym/resources/branding_image_prep.dart';
 import 'package:fitstrong_gym/src/custom_import.dart';
 
@@ -325,6 +323,10 @@ class _ImagePickerCard extends StatelessWidget {
                     : CachedNetworkImage(
                         imageUrl: currentUrl,
                         fit: BoxFit.contain,
+                        // The row only ever paints this 84x56 box, so there is
+                        // no reason to pull down the full-size logo for it.
+                        memCacheWidth: 256,
+                        maxWidthDiskCache: 256,
                         // A pulsing block the size of the thumbnail, so the
                         // row keeps its shape while the photo downloads.
                         placeholder: (context, url) => ShadcnSkeleton(

@@ -1,11 +1,15 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
-/// Brand moment shown for three seconds after sign-in while the user's
-/// profile loads.
+/// Brand moment shown after sign-in while the dashboard's data loads.
 ///
 /// Deliberately dark in both themes: the logo artwork has a dark background
 /// baked into the image, and a brand splash is one of the few places a fixed
 /// color is the right call.
+///
+/// It used to sit here for a flat three seconds and then hand over to a
+/// dashboard that only started fetching once it was built — two waits, back to
+/// back. Now the fetching happens behind this screen and the app moves on as
+/// soon as it is done.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -16,19 +20,38 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   static const Color _splashBackground = Color(0xFF0B0D16);
 
+  /// Shortest time the logo stays up, even when the data is already there.
+  /// Without it a warm start would flash the brand screen for a few frames,
+  /// which reads as a glitch rather than as a splash.
+  static const Duration _minimumShow = Duration(milliseconds: 1200);
+
+  /// Longest the owner is asked to look at the logo. A dead connection should
+  /// still let them into the app, on whatever counts were cached.
+  static const Duration _loadTimeout = Duration(seconds: 8);
+
   @override
   void initState() {
     super.initState();
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    userProvider.refreshUser();
-    Future.delayed(const Duration(seconds: 3), () {
-      // The screen can be popped by a sign-out before the timer fires.
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => CustomBottomNavigationBar()),
-      );
-    });
+    _openWhenReady();
+  }
+
+  Future<void> _openWhenReady() async {
+    // Started before the first await, so the providers are read while this
+    // widget is definitely still mounted.
+    final loaded = DashboardPreload.run(context, timeout: _loadTimeout);
+    // Both clocks start here, so the wait is the longer of the two rather
+    // than one after the other.
+    final shown = Future<void>.delayed(_minimumShow);
+
+    await loaded;
+    await shown;
+
+    // The screen can be popped by a sign-out while the data is loading.
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => CustomBottomNavigationBar()),
+    );
   }
 
   @override

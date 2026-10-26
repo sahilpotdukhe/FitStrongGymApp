@@ -23,6 +23,7 @@ export 'package:fitstrong_gym/widgets/auth_scaffold.dart';
 export 'package:fitstrong_gym/widgets/cached_image.dart';
 export 'package:fitstrong_gym/widgets/attendance_quiet_page.dart';
 export 'package:fitstrong_gym/widgets/members_quiet_box.dart';
+export 'package:fitstrong_gym/widgets/exit_confirm_dialog.dart';
 export 'package:fitstrong_gym/widgets/full_image_widget.dart';
 export 'package:fitstrong_gym/models/user_model.dart';
 export 'package:fitstrong_gym/resources/app_navigation.dart';
@@ -49,6 +50,8 @@ export 'package:fitstrong_gym/screens/invoices_screens/revenue_page.dart';
 export 'package:fitstrong_gym/screens/invoices_screens/member_invoices_page.dart';
 export 'package:fitstrong_gym/resources/invoice_pdf_service.dart';
 export 'package:fitstrong_gym/resources/plan_actions.dart';
+export 'package:fitstrong_gym/resources/dashboard_preload.dart';
+export 'package:fitstrong_gym/resources/photo_upload.dart';
 export 'package:fitstrong_gym/resources/reminder_service.dart';
 export 'package:fitstrong_gym/resources/reminder_scheduler.dart';
 export 'package:fitstrong_gym/resources/notification_service.dart';
@@ -82,6 +85,8 @@ export 'package:fitstrong_core/fitstrong_core.dart';
 export 'package:shadcn_kit/shadcn_kit.dart';
 
 export 'package:flutter/material.dart';
+// For SystemNavigator, used to close the app from the exit confirmation.
+export 'package:flutter/services.dart';
 export 'package:cloud_firestore/cloud_firestore.dart';
 export 'package:firebase_auth/firebase_auth.dart';
 export 'package:supabase_flutter/supabase_flutter.dart'

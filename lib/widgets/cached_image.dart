@@ -25,6 +25,16 @@ class CachedImage extends StatelessWidget {
   final BoxFit fit;
   final IconData fallbackIcon;
 
+  /// How many real pixels this box needs: its longest side scaled by the
+  /// screen's density, capped so a thumbnail can never ask for the original
+  /// camera file again. A caller that leaves a side unbounded gets the cap.
+  int _cacheExtent(BuildContext context) {
+    final longest = isRound ? radius : (height > width ? height : width);
+    if (!longest.isFinite) return 1024;
+    final ratio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0;
+    return (longest * ratio).round().clamp(64, 1024);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
@@ -65,6 +75,13 @@ class CachedImage extends StatelessWidget {
             : CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: fit,
+                // Fetch and decode at the size this box actually paints, not
+                // at whatever the camera happened to produce: a 46px row
+                // thumbnail was pulling down a 1920px photo and decoding all
+                // of it. The resized copy is derived from one download, so
+                // asking for a small one costs nothing extra.
+                memCacheWidth: _cacheExtent(context),
+                maxWidthDiskCache: _cacheExtent(context),
                 placeholder: (context, url) => loadingSkeleton(),
                 errorWidget: (context, url, error) => fallback(),
               ),

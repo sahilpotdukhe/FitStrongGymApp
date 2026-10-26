@@ -1,7 +1,4 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 /// Loads and stores the gym's trainers under `Users/{uid}/trainers`.
@@ -145,14 +142,7 @@ class TrainerProvider with ChangeNotifier {
   }
 
   Future<String> _uploadPhoto(String uid, XFile photo) async {
-    final newPath = p.join(
-        (await getTemporaryDirectory()).path, '${const Uuid().v4()}.jpg');
-    final result = await FlutterImageCompress.compressAndGetFile(
-      photo.path,
-      newPath,
-      quality: 40,
-      format: CompressFormat.jpeg,
-    );
+    final prepared = await preparePersonPhoto(photo);
 
     final supabase = Supabase.instance.client;
     // Named by a generated id, like member photos: two trainers sharing a
@@ -160,7 +150,7 @@ class TrainerProvider with ChangeNotifier {
     final path = 'uploads/trainer_photos/$uid/${const Uuid().v4()}.jpg';
     await supabase.storage.from('fitstrong photos').upload(
           path,
-          File(result!.path),
+          prepared,
         );
     return supabase.storage.from('fitstrong photos').getPublicUrl(path);
   }

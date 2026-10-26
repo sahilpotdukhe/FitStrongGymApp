@@ -26,9 +26,11 @@ class MemberQrShare {
       final bytes = await renderMemberQrCard(MemberQrCardData(
         memberName: member.name,
         token: member.checkinToken,
-        gymName: user?.merchantName.isNotEmpty == true
-            ? user!.merchantName
-            : (user?.name ?? ''),
+        // The gym's own name lives on the profile's "Gym or owner name"
+        // field, which is what every other document prints. The payments
+        // merchant name is only a fallback: it is there for the UPI QR and
+        // is often a bank's version of the name, or not filled in at all.
+        gymName: _gymName(user),
         gymPhone: user?.phoneNumber ?? '',
       ));
       if (bytes == null) return null;
@@ -48,6 +50,14 @@ class MemberQrShare {
       debugPrint('Could not render the check-in card: $error');
       return null;
     }
+  }
+
+  /// The name to print in the card's header, or empty when the owner has
+  /// not filled either field in yet.
+  static String _gymName(UserModel? user) {
+    final name = user?.name.trim() ?? '';
+    if (name.isNotEmpty) return name;
+    return user?.merchantName.trim() ?? '';
   }
 
   /// Opens the share sheet with [file]. Returns false when there is nothing

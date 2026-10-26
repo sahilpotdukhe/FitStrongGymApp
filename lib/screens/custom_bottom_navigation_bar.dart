@@ -14,7 +14,11 @@ class CustomBottomNavigationBar extends StatefulWidget {
 }
 
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
-  int page = 2;
+  /// The dashboard's slot in [_destinations] — where the app opens, and the
+  /// only tab where back means "close FitStrong".
+  static const int _homeIndex = 2;
+
+  int page = _homeIndex;
 
   /// Which tabs have been opened at least once.
   ///
@@ -27,7 +31,28 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   ///
   /// Only visited tabs are built, so opening the app still costs one page
   /// rather than five.
-  final Set<int> _visited = {2};
+  final Set<int> _visited = {_homeIndex};
+
+  /// What the back gesture does from the app shell.
+  ///
+  /// This only runs while the shell is the top route: a pushed page such as
+  /// member details handles its own back, so the question is never asked over
+  /// a nested screen.
+  ///
+  /// From another tab, back means "take me home" — the familiar Android
+  /// behaviour, and the reason the question is not asked there. From home
+  /// there is nowhere left to go, so it asks before closing.
+  Future<void> _handleBack(bool didPop, Object? result) async {
+    if (didPop) return;
+
+    if (page != _homeIndex) {
+      setState(() => page = _homeIndex);
+      return;
+    }
+
+    final leave = await confirmExitApp(context);
+    if (leave && mounted) await SystemNavigator.pop();
+  }
 
   static const List<_Destination> _destinations = [
     _Destination(
@@ -60,39 +85,48 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
-    return Scaffold(
-      backgroundColor: t.background,
-      body: IndexedStack(
-        index: page,
-        sizing: StackFit.expand,
-        children: [
-          for (var i = 0; i < _destinations.length; i++)
-            if (_visited.contains(i)) getPage(i) else const SizedBox.shrink(),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: t.card,
-          border: Border(top: BorderSide(color: t.border)),
+    return PopScope(
+      // Back is never let through untouched: it either returns to the home
+      // tab or asks before closing the app.
+      canPop: false,
+      onPopInvokedWithResult: _handleBack,
+      child: Scaffold(
+        backgroundColor: t.background,
+        body: IndexedStack(
+          index: page,
+          sizing: StackFit.expand,
+          children: [
+            for (var i = 0; i < _destinations.length; i++)
+              if (_visited.contains(i))
+                getPage(i)
+              else
+                const SizedBox.shrink(),
+          ],
         ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 62,
-            child: Row(
-              children: [
-                for (var i = 0; i < _destinations.length; i++)
-                  Expanded(
-                    child: _NavItem(
-                      destination: _destinations[i],
-                      selected: page == i,
-                      onTap: () => setState(() {
-                        page = i;
-                        _visited.add(i);
-                      }),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: t.card,
+            border: Border(top: BorderSide(color: t.border)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 62,
+              child: Row(
+                children: [
+                  for (var i = 0; i < _destinations.length; i++)
+                    Expanded(
+                      child: _NavItem(
+                        destination: _destinations[i],
+                        selected: page == i,
+                        onTap: () => setState(() {
+                          page = i;
+                          _visited.add(i);
+                        }),
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

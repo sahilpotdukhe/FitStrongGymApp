@@ -14,7 +14,20 @@ class _DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
-    _fetchInitialData();
+    if (DashboardPreload.claim()) {
+      // The splash already fetched all of this behind the logo. Fetching again
+      // would mean two trips for the same data on every cold start.
+      //
+      // The reminder still needs re-booking, and that reads the member list
+      // through the context, so it waits for the first frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ReminderScheduler.refresh(context);
+      });
+    } else {
+      // Signing up and the `/home` route land here without a splash, so this
+      // screen still has to be able to load its own data.
+      _fetchInitialData();
+    }
   }
 
   void _fetchInitialData() {
