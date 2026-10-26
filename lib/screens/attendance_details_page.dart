@@ -12,6 +12,9 @@ class AttendanceDetailPage extends StatelessWidget {
     final status = context.status;
     final provider = Provider.of<AttendanceProvider>(context);
     final scans = provider.getByDate(date);
+    // Read once for the whole list rather than per row: a check-in stores
+    // only the member id, so each row has to be matched back to a person.
+    final memberProvider = Provider.of<MemberProvider>(context);
 
     return AppScaffold(
       title: formatAttendanceDate(date),
@@ -54,6 +57,7 @@ class AttendanceDetailPage extends StatelessWidget {
                 }
 
                 final scan = scans[index - 1];
+                final member = memberProvider.byId(scan.memberId);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: ShadcnSpacing.sm),
@@ -62,12 +66,15 @@ class AttendanceDetailPage extends StatelessWidget {
                       horizontal: ShadcnSpacing.lg,
                       vertical: ShadcnSpacing.md,
                     ),
+                    // Opens the person behind the check-in: their plan,
+                    // expiry, trainer and payment history.
+                    onTap: () => _openMember(context, member, scan.memberName),
                     child: Row(
                       children: [
                         SizedBox(
                           width: 26,
                           child: Text(
-                            '\$index',
+                            '$index',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -97,6 +104,11 @@ class AttendanceDetailPage extends StatelessWidget {
                           ),
                           child: Text(scan.timeLabel),
                         ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 20,
+                          color: t.mutedForeground,
+                        ),
                       ],
                     ),
                   ),
@@ -105,4 +117,27 @@ class AttendanceDetailPage extends StatelessWidget {
             ),
     );
   }
+}
+
+/// Opens [member], or explains why it cannot be opened.
+///
+/// A check-in outlives the member record: the name is copied into the
+/// record at scan time precisely so history survives a deletion. When the
+/// person is gone there is nothing to show, and saying so is better than a
+/// tap that silently does nothing.
+void _openMember(BuildContext context, MemberModel? member, String name) {
+  if (member == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$name is no longer in your member list.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return;
+  }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => MemberDetailsPage(member: member)),
+  );
 }

@@ -23,6 +23,19 @@ class MemberProvider with ChangeNotifier {
   List<MemberModel> get expiredMembers =>
       _members.where((m) => m.isExpired()).toList();
 
+  /// One member by their stable id, or null when nobody matches — they were
+  /// deleted, moved to the recycle bin, or the list has not loaded yet.
+  ///
+  /// Attendance records keep only the member id, so anything linking a
+  /// historic check-in back to a person has to come through here.
+  MemberModel? byId(String id) {
+    if (id.isEmpty) return null;
+    for (final member in _members) {
+      if (member.id == id) return member;
+    }
+    return null;
+  }
+
   MemberProvider() {
     // Fetch members when the provider is initialized
     getAllMembers();
