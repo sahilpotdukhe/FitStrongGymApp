@@ -1,9 +1,7 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:fitstrong_gym/resources/member_qr_card.dart';
+import 'package:fitstrong_gym/resources/member_qr_share.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// One member's check-in code, saved to their phone and held up at the desk.
 /// It never changes on its own, which is why [_reissue] exists.
@@ -55,52 +53,17 @@ class _MemberQrPageState extends State<MemberQrPage> {
     setState(() => _busy = true);
     try {
       final user = Provider.of<UserProvider>(context, listen: false).getUser;
-      final plans = Provider.of<GymPlanProvider>(context, listen: false).plans;
-      final plan = GymPlanModel.findById(plans, _member.planId);
-
-      final bytes = await renderMemberQrCard(MemberQrCardData(
-        memberName: _member.name,
-        token: _member.checkinToken,
-        gymName: user?.merchantName.isNotEmpty == true
-            ? user!.merchantName
-            : (user?.name ?? ''),
-        lines: [
-          if (plan != null) (label: 'Plan', value: plan.name),
-          (label: 'Valid till', value: formatCardDate(_member.expiryDate)),
-        ],
-      ));
-      if (bytes == null) throw StateError('nothing to draw');
-
+      final file = await MemberQrShare.render(_member, user);
       if (!mounted) return;
-      final dir = await getTemporaryDirectory();
-      // Named after the member, with awkward characters stripped out.
-      final safeName = _member.name
-          .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '-')
-          .replaceAll(RegExp(r'^-+|-+$'), '');
-      final file = File(p.join(
-        dir.path,
-        'checkin-code-${safeName.isEmpty ? _member.id : safeName}.png',
-      ));
 
-      await file.writeAsBytes(bytes);
-
-      if (!mounted) return;
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path, mimeType: 'image/png')],
-          subject: 'Your gym check-in code',
-          text: 'Hi ${_member.name}, save this code to your phone and show it '
-              'at the front desk to mark your attendance.',
-        ),
-      );
-    } catch (error) {
-      debugPrint('Could not share the check-in code: $error');
-      if (!mounted) return;
-      await showErrorDialog(
-        context: context,
-        title: 'Could not share the code',
-        desc: 'The image could not be prepared. Please try again.',
-      );
+      if (!await MemberQrShare.send(file, _member)) {
+        if (!mounted) return;
+        await showErrorDialog(
+          context: context,
+          title: 'Could not share the code',
+          desc: 'The image could not be prepared. Please try again.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -165,7 +128,9 @@ class _MemberQrPageState extends State<MemberQrPage> {
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
+    final status = context.status;
     final hasToken = _member.checkinToken.isNotEmpty;
+    final expired = _member.isExpired();
 
     return AppScaffold(
       title: 'Check-in code',
@@ -173,6 +138,7 @@ class _MemberQrPageState extends State<MemberQrPage> {
       bottomBar: hasToken
           ? ShadcnButton(
               fullWidth: true,
+              size: ShadcnButtonSize.lg,
               loading: _busy,
               onPressed: _busy ? null : _share,
               leading: const Icon(Icons.ios_share_rounded, size: 18),
@@ -193,20 +159,24 @@ class _MemberQrPageState extends State<MemberQrPage> {
                   child: Column(
                     children: [
                       const ShadcnGap(ShadcnSpacing.lg),
-                      ShadcnText(
-                        _member.name,
-                        variant: ShadcnTextVariant.h3,
-                      ),
-                      const ShadcnGap(ShadcnSpacing.xs),
-                      ShadcnText(
-                        _member.isExpired()
-                            ? 'Membership expired — this code will be turned '
-                                'away at the desk until the plan is renewed.'
-                            : 'Save this to your phone and show it at the '
-                                'front desk.',
-                        variant: ShadcnTextVariant.muted,
-                        textAlign: TextAlign.center,
-                      ),
+                      // The code itself leads: name, then the image, then one
+                      // line of instruction. Everything that is not the code
+                      // sits below the fold.
+                      ShadcnText(_member.name, variant: ShadcnTextVariant.h3),
+                      if (expired) ...[
+                        const ShadcnGap(ShadcnSpacing.sm),
+                        ShadcnBadge(
+                          style: ShadcnBadgeStyle(
+                            backgroundColor: status.dangerSurface,
+                            foregroundColor: status.dangerForeground,
+                            textStyle: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: const Text('Expired — will be turned away'),
+                        ),
+                      ],
                       const ShadcnGap(ShadcnSpacing.xl),
                       ShadcnCard(
                         child: Container(
@@ -215,40 +185,39 @@ class _MemberQrPageState extends State<MemberQrPage> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(t.radiusMd),
                           ),
-                          child: QrImageView(
-                            data: CheckinCode.encode(_member.checkinToken),
+                          child: QrImageView.withQr(
+                            qr: buildCheckinQr(_member.checkinToken),
                             size: 240,
                             backgroundColor: Colors.white,
                           ),
                         ),
                       ),
-                      const ShadcnGap(ShadcnSpacing.lg),
+                      const ShadcnGap(ShadcnSpacing.md),
                       ShadcnText(
-                        'This code does not change. The same image keeps '
-                        'working every visit.',
+                        'Show this at the front desk. The same code works '
+                        'every visit.',
                         variant: ShadcnTextVariant.muted,
                         textAlign: TextAlign.center,
                       ),
                       const ShadcnGap(ShadcnSpacing.xl2),
-                      const Divider(height: 1),
-                      const ShadcnGap(ShadcnSpacing.lg),
-                      ShadcnText(
-                        'Lost phone, or code shared around?',
-                        variant: ShadcnTextVariant.small,
+                      const ShadcnSeparator(),
+                      const ShadcnGap(ShadcnSpacing.md),
+                      // Deliberately plain and last: this kills the code on
+                      // the member's phone, so it should never be the thing
+                      // the eye lands on first.
+                      ShadcnButton(
+                        variant: ShadcnButtonVariant.ghost,
+                        size: ShadcnButtonSize.sm,
+                        onPressed: _busy ? null : _reissue,
+                        leading: const Icon(Icons.autorenew_rounded, size: 16),
+                        child: const Text('Issue a new code'),
                       ),
                       const ShadcnGap(ShadcnSpacing.xs),
                       ShadcnText(
-                        'Issuing a new code stops the old one working '
-                        'immediately.',
-                        variant: ShadcnTextVariant.muted,
+                        'Use this only if the phone was lost or the code was '
+                        'passed around.',
+                        variant: ShadcnTextVariant.small,
                         textAlign: TextAlign.center,
-                      ),
-                      const ShadcnGap(ShadcnSpacing.md),
-                      ShadcnButton(
-                        variant: ShadcnButtonVariant.outline,
-                        onPressed: _busy ? null : _reissue,
-                        leading: const Icon(Icons.autorenew_rounded, size: 18),
-                        child: const Text('Issue a new code'),
                       ),
                       const ShadcnGap(ShadcnSpacing.lg),
                     ],

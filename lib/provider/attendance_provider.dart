@@ -7,14 +7,13 @@ import 'package:fitstrong_gym/models/member_model.dart';
 
 /// What happened when a code was presented at the desk.
 enum CheckinOutcome {
-  checkedIn,
-  checkedOut,
+  recorded,
 
   /// Their plan has run out, so nothing was recorded.
   expired,
 
-  /// Scanned again moments later: almost always the camera repeating.
-  tooSoon,
+  /// Already recorded today, so nothing was written.
+  alreadyIn,
 
   /// The write did not go through.
   failed,
@@ -33,8 +32,7 @@ class CheckinResult {
   final MemberModel member;
   final Attendance? record;
 
-  bool get recorded =>
-      outcome == CheckinOutcome.checkedIn || outcome == CheckinOutcome.checkedOut;
+  bool get wasWritten => outcome == CheckinOutcome.recorded;
 }
 
 class AttendanceProvider with ChangeNotifier {
@@ -67,8 +65,7 @@ class AttendanceProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Records a scan, working out by itself whether the member is arriving or
-  /// leaving, so the desk never has to pick a mode.
+  /// Records today's arrival for [member], once per day.
   Future<CheckinResult> recordScan(
     MemberModel member, {
     String source = AttendanceSource.scanner,
@@ -86,35 +83,32 @@ class AttendanceProvider with ChangeNotifier {
 
     try {
       final collection = _collection(uid);
+      final now = DateTime.now();
       final last = await _lastScanToday(collection, member.id);
 
-      if (CheckinRules.isRepeatScan(last, DateTime.now())) {
+      if (CheckinRules.alreadyRecordedToday(last)) {
         return CheckinResult(
-          outcome: CheckinOutcome.tooSoon,
+          outcome: CheckinOutcome.alreadyIn,
           member: member,
           record: last,
         );
       }
 
-      final type = CheckinRules.nextType(last);
-
       final docRef = await collection.add(Attendance.newRecord(
         memberId: member.id,
         memberName: member.name,
-        type: type,
         source: source,
+        now: now,
       ));
 
-      final record = await _readBack(docRef, member, type);
+      final record = await _readBack(docRef, member);
       if (record != null) {
         _allAttendance.insert(0, record);
         notifyListeners();
       }
 
       return CheckinResult(
-        outcome: type == CheckinType.checkIn
-            ? CheckinOutcome.checkedIn
-            : CheckinOutcome.checkedOut,
+        outcome: CheckinOutcome.recorded,
         member: member,
         record: record,
       );
@@ -124,8 +118,12 @@ class AttendanceProvider with ChangeNotifier {
     }
   }
 
-  /// The member's last scan since midnight. Only today counts, so somebody
-  /// who forgot to scan out last night starts the day checked in.
+  /// The member's record for today, if they have been in.
+  ///
+  /// Keyed on the device clock rather than the server stamp, matching the
+  /// scanner: a record still queued on an offline device has no server
+  /// stamp yet, and a server-keyed query would miss it and let the same
+  /// person be recorded twice.
   Future<Attendance?> _lastScanToday(
     CollectionReference<Map<String, dynamic>> collection,
     String memberId,
@@ -134,9 +132,9 @@ class AttendanceProvider with ChangeNotifier {
 
     final snapshot = await collection
         .where(AttendanceFields.memberId, isEqualTo: memberId)
-        .where(AttendanceFields.at,
+        .where(AttendanceFields.deviceAt,
             isGreaterThanOrEqualTo: Timestamp.fromDate(dayStart))
-        .orderBy(AttendanceFields.at, descending: true)
+        .orderBy(AttendanceFields.deviceAt, descending: true)
         .limit(1)
         .get();
 
@@ -151,7 +149,6 @@ class AttendanceProvider with ChangeNotifier {
   Future<Attendance?> _readBack(
     DocumentReference<Map<String, dynamic>> docRef,
     MemberModel member,
-    CheckinType type,
   ) async {
     try {
       final saved = await docRef.get(const GetOptions(source: Source.server));
@@ -163,7 +160,6 @@ class AttendanceProvider with ChangeNotifier {
         memberId: member.id,
         memberName: member.name,
         at: DateTime.now(),
-        type: type,
         source: AttendanceSource.scanner,
       );
     }
@@ -182,11 +178,11 @@ class AttendanceProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Every scan on one day, newest first.
+  /// Every arrival on one day, newest first.
   List<Attendance> getByDate(String dateKey) =>
       _allAttendance.where((a) => a.dateKey == dateKey).toList();
 
-  /// How many different members were seen: in and out again is one person.
+  /// How many different members were seen on [dateKey].
   int distinctMembersOn(String dateKey) =>
       getByDate(dateKey).map((a) => a.memberId).toSet().length;
 }

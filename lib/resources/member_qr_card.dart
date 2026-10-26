@@ -1,13 +1,9 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:fitstrong_core/fitstrong_core.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:qr_flutter/qr_flutter.dart';
-
-/// One `Label: value` line under the QR.
-typedef MemberCardLine = ({String label, String value});
 
 /// Everything the shared check-in card prints. Built by the caller so this
 /// file stays a pure renderer.
@@ -16,7 +12,7 @@ class MemberQrCardData {
     required this.memberName,
     required this.token,
     required this.gymName,
-    required this.lines,
+    this.gymPhone = '',
   });
 
   final String memberName;
@@ -24,13 +20,26 @@ class MemberQrCardData {
   /// The member's check-in token; drawn as the QR.
   final String token;
 
-  /// Printed top right. Empty when the gym has not named itself yet.
+  /// Printed in the header. Empty when the gym has not named itself yet.
   final String gymName;
 
-  final List<MemberCardLine> lines;
+  /// Printed in the footer so a member can ring the gym from the image.
+  final String gymPhone;
 }
 
+/// Builds the member's QR with the strongest error correction.
+///
+/// Level H rebuilds the code from 30% of it, so a scratched screen, a thumb
+/// over a corner, a reprinted photo or a poor camera still reads it. The code
+/// is denser than the default, but a denser code that recovers beats a
+/// sparser one that does not.
+QrCode buildCheckinQr(String token) => QrCode.fromData(
+      data: CheckinCode.encode(token),
+      errorCorrectLevel: QrErrorCorrectLevel.H,
+    );
+
 const String _logoAsset = 'assets/logobg.png';
+const String _developerAsset = 'assets/developer.png';
 
 // Laid out at the design width and painted at [_scale], so a chat app's
 // recompression still leaves a crisp, scannable image.
@@ -38,14 +47,17 @@ const double _cardWidth = 393;
 const double _scale = 4;
 
 const double _pad = 28;
-const double _logoSize = 44;
-const double _qrPlate = 268;
+const double _headerHeight = 104;
+const double _logoTile = 64;
+const double _qrPlate = 272;
+const double _developerWidth = 132;
 
-const ui.Color _background = ui.Color(0xFFFAFAFA);
+const ui.Color _header = ui.Color(0xFF111827);
+const ui.Color _paper = ui.Color(0xFFFFFFFF);
 const ui.Color _ink = ui.Color(0xFF111827);
 const ui.Color _muted = ui.Color(0xFF6B7280);
 const ui.Color _plate = ui.Color(0xFFF1F1F6);
-const ui.Color _white = ui.Color(0xFFFFFFFF);
+const ui.Color _rule = ui.Color(0xFFE5E7EB);
 const ui.Color _brand = ui.Color(0xFF15803D);
 
 /// Renders the member's check-in card to PNG bytes.
@@ -55,14 +67,10 @@ const ui.Color _brand = ui.Color(0xFF15803D);
 Future<Uint8List?> renderMemberQrCard(MemberQrCardData data) async {
   if (data.token.isEmpty) return null;
 
-  final qr = QrCode.fromData(
-    data: CheckinCode.encode(data.token),
-    // A shared image gets recompressed and reprinted; the extra recovery
-    // data is worth the slightly denser code.
-    errorCorrectLevel: QrErrorCorrectLevel.M,
-  );
-
-  final logo = await _loadAsset(_logoAsset, width: (_logoSize * _scale).round());
+  final qr = buildCheckinQr(data.token);
+  final logo = await _loadAsset(_logoAsset, width: (_logoTile * _scale).round());
+  final developer =
+      await _loadAsset(_developerAsset, width: (_developerWidth * _scale).round());
 
   // The height is only known after laying the paragraphs out, so paint the
   // body first and size the image from it. A fixed height clips long names.
@@ -70,13 +78,13 @@ Future<Uint8List?> renderMemberQrCard(MemberQrCardData data) async {
   final canvas = ui.Canvas(recorder);
   canvas.scale(_scale);
 
-  final height = _paintBody(canvas, data, logo, qr);
+  final height = _paintCard(canvas, data, logo, developer, qr);
 
   // Painted last, behind everything, now that the height is known.
   canvas.drawRect(
     ui.Rect.fromLTWH(0, 0, _cardWidth, height),
     ui.Paint()
-      ..color = _background
+      ..color = _paper
       ..blendMode = ui.BlendMode.dstOver,
   );
 
@@ -87,41 +95,57 @@ Future<Uint8List?> renderMemberQrCard(MemberQrCardData data) async {
   final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
   image.dispose();
   logo.dispose();
+  developer.dispose();
   return bytes?.buffer.asUint8List();
 }
 
-/// Paints the card; returns its full height.
-double _paintBody(
+double _paintCard(
   ui.Canvas canvas,
   MemberQrCardData data,
   ui.Image logo,
+  ui.Image developer,
   QrCode qr,
 ) {
-  var y = _pad;
+  // The brand mark is a dark image, so it sits in a dark band where its own
+  // background disappears instead of showing as a black square on white.
+  canvas.drawRect(
+    ui.Rect.fromLTWH(0, 0, _cardWidth, _headerHeight),
+    ui.Paint()..color = _header,
+  );
 
+  final tileTop = (_headerHeight - _logoTile) / 2;
+  final tile = ui.RRect.fromRectAndRadius(
+    ui.Rect.fromLTWH(_pad, tileTop, _logoTile, _logoTile),
+    const ui.Radius.circular(14),
+  );
+  canvas.save();
+  canvas.clipRRect(tile);
   canvas.drawImageRect(
     logo,
     ui.Rect.fromLTWH(0, 0, logo.width.toDouble(), logo.height.toDouble()),
-    ui.Rect.fromLTWH(_pad, y, _logoSize, _logoSize),
+    tile.outerRect,
     ui.Paint()..filterQuality = ui.FilterQuality.high,
   );
+  canvas.restore();
 
   if (data.gymName.isNotEmpty) {
-    const gymWidth = _cardWidth - _pad * 2 - _logoSize - 16;
+    final nameWidth = _cardWidth - _pad * 2 - _logoTile - 16;
     final gym = _paragraph(
       [(text: data.gymName, bold: true)],
-      size: 14,
-      color: _ink,
-      align: ui.TextAlign.right,
-      maxWidth: gymWidth,
-      height: 1.3,
+      size: 19,
+      color: _paper,
+      align: ui.TextAlign.left,
+      maxWidth: nameWidth,
+      height: 1.2,
+      maxLines: 2,
     );
     canvas.drawParagraph(
       gym,
-      ui.Offset(_cardWidth - _pad - gymWidth, y + (_logoSize - gym.height) / 2),
+      ui.Offset(_pad + _logoTile + 16, (_headerHeight - gym.height) / 2),
     );
   }
-  y += _logoSize + 26;
+
+  var y = _headerHeight + 28;
 
   y += _drawCentered(
     canvas,
@@ -132,12 +156,12 @@ double _paintBody(
     letterSpacing: 2.4,
   );
 
-  y += 8;
+  y += 10;
   y += _drawCentered(
     canvas,
     [(text: data.memberName, bold: true)],
     y: y,
-    size: 26,
+    size: 27,
     color: _ink,
     height: 1.15,
   );
@@ -153,7 +177,7 @@ double _paintBody(
     ),
     ui.Paint()..color = _plate,
   );
-  const cardInset = 14.0;
+  const cardInset = 12.0;
   canvas.drawRRect(
     ui.RRect.fromRectAndRadius(
       ui.Rect.fromLTWH(
@@ -164,12 +188,12 @@ double _paintBody(
       ),
       const ui.Radius.circular(18),
     ),
-    ui.Paint()..color = _white,
+    ui.Paint()..color = _paper,
   );
 
   // Snap each module to whole output pixels: fractional modules blur, and a
   // blurred QR is slow or impossible to scan. The remainder becomes margin.
-  const qrInset = cardInset + 18;
+  const qrInset = cardInset + 16;
   const qrBox = _qrPlate - qrInset * 2;
   final modules = QrImage(qr).moduleCount;
   final modulePx = (qrBox * _scale / modules).floorToDouble();
@@ -191,34 +215,50 @@ double _paintBody(
   canvas.restore();
   y += _qrPlate + 24;
 
-  for (final line in data.lines) {
+  y += _drawCentered(
+    canvas,
+    [(text: 'Show this at the front desk', bold: true)],
+    y: y,
+    size: 15,
+    color: _ink,
+  );
+
+  // Nothing about the plan is printed: the same code keeps working after a
+  // renewal, so a plan or expiry date on the image would go stale while the
+  // member still has it on their phone.
+  if (data.gymPhone.isNotEmpty) {
+    y += 6;
     y += _drawCentered(
       canvas,
-      [(text: '${line.label}: ', bold: true), (text: line.value, bold: false)],
+      [(text: data.gymPhone, bold: false)],
       y: y,
       size: 13,
       color: _muted,
-      boldColor: _ink,
-      height: 1.6,
     );
   }
 
   y += 22;
   canvas.drawRect(
     ui.Rect.fromLTWH(_pad, y, _cardWidth - _pad * 2, 1),
-    ui.Paint()..color = const ui.Color(0xFFE5E7EB),
+    ui.Paint()..color = _rule,
   );
 
-  y += 18;
-  y += _drawCentered(
-    canvas,
-    [(text: 'Show this at the front desk', bold: false)],
-    y: y,
-    size: 13.5,
-    color: _muted,
+  y += 14;
+  final developerHeight = _developerWidth * developer.height / developer.width;
+  canvas.drawImageRect(
+    developer,
+    ui.Rect.fromLTWH(
+        0, 0, developer.width.toDouble(), developer.height.toDouble()),
+    ui.Rect.fromLTWH(
+      (_cardWidth - _developerWidth) / 2,
+      y,
+      _developerWidth,
+      developerHeight,
+    ),
+    ui.Paint()..filterQuality = ui.FilterQuality.high,
   );
 
-  return y + _pad;
+  return y + developerHeight + 10;
 }
 
 /// Draws a full-width centred paragraph at [y]; returns its height.
@@ -228,7 +268,6 @@ double _drawCentered(
   required double y,
   required double size,
   required ui.Color color,
-  ui.Color? boldColor,
   double height = 1.2,
   double letterSpacing = 0,
 }) {
@@ -237,7 +276,6 @@ double _drawCentered(
     spans,
     size: size,
     color: color,
-    boldColor: boldColor,
     align: ui.TextAlign.center,
     maxWidth: maxWidth,
     height: height,
@@ -253,17 +291,23 @@ ui.Paragraph _paragraph(
   required ui.Color color,
   required ui.TextAlign align,
   required double maxWidth,
-  ui.Color? boldColor,
   double height = 1.2,
   double letterSpacing = 0,
+  int? maxLines,
 }) {
   final builder = ui.ParagraphBuilder(
-    ui.ParagraphStyle(textAlign: align, fontSize: size, height: height),
+    ui.ParagraphStyle(
+      textAlign: align,
+      fontSize: size,
+      height: height,
+      maxLines: maxLines,
+      ellipsis: maxLines == null ? null : '…',
+    ),
   );
   for (final span in spans) {
     builder.pushStyle(
       ui.TextStyle(
-        color: span.bold ? (boldColor ?? color) : color,
+        color: color,
         fontSize: size,
         height: height,
         letterSpacing: letterSpacing,
@@ -287,6 +331,3 @@ Future<ui.Image> _loadAsset(String key, {int? width}) async {
   codec.dispose();
   return frame.image;
 }
-
-/// The date as the card prints it.
-String formatCardDate(DateTime date) => DateFormat('d MMMM yyyy').format(date);

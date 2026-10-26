@@ -14,8 +14,6 @@ class RenewMembershipPage extends StatefulWidget {
 }
 
 class _RenewMembershipPageState extends State<RenewMembershipPage> {
-  late TextEditingController _cashAmountController;
-
   /// The date the renewed term starts from.
   late DateTime _renewalDate;
 
@@ -31,14 +29,12 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
   void initState() {
     super.initState();
     _renewalDate = widget.member.renewalDate;
-    _cashAmountController = TextEditingController();
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     userProvider.refreshUser();
   }
 
   @override
   void dispose() {
-    _cashAmountController.dispose();
     super.dispose();
   }
 
@@ -143,8 +139,6 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                     _selectedPlan = GymPlanModel.findById(plans, value);
                     if (_selectedPlan != null) {
                       _selectedPlanFee = _selectedPlan!.fee;
-                      _cashAmountController.text =
-                          _selectedPlanFee.toStringAsFixed(2);
                     }
                   });
                 },
@@ -173,18 +167,6 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 onChanged: (value) =>
                     setState(() => _selectedPaymentMethod = value),
               ),
-              if (_selectedPaymentMethod != null) ...[
-                const ShadcnGap(ShadcnSpacing.lg),
-                ShadcnInput(
-                  controller: _cashAmountController,
-                  label: 'Amount received',
-                  placeholder: '0',
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  leading: const Text('₹'),
-                  helperText: 'Leave as is to record the full plan fee.',
-                ),
-              ],
               if (_selectedPaymentMethod == 'Online') ...[
                 const ShadcnGap(ShadcnSpacing.lg),
                 _UpiQr(user: userModel, amount: _selectedPlanFee),
@@ -225,8 +207,10 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
     setState(() => _isLoading = true);
 
     // An empty or unreadable box falls back to the plan fee.
-    final amountPaid =
-        double.tryParse(_cashAmountController.text.trim()) ?? _selectedPlanFee;
+    // Always the plan fee. A typed-in amount disagreed with the UPI QR beside
+    // it, which always asked for the full fee, and nothing in the app tracks
+    // a balance owing, so a part payment left an invoice nothing reconciled.
+    final amountPaid = _selectedPlanFee;
 
     try {
       final renewedMember =

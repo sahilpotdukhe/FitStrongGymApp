@@ -61,7 +61,7 @@ dependencies:
   fitstrong_core:
     git:
       url: git@github-personal:sahilpotdukhe/fitstrong_core.git
-      ref: v0.2.0 # a tag, so updates are deliberate
+      ref: v0.4.0 # a tag, so updates are deliberate
   shadcn_kit:
     git:
       # `github-personal` is an SSH host alias in ~/.ssh/config for the

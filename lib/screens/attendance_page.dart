@@ -61,6 +61,21 @@ class _AttendancePageState extends State<AttendancePage> {
     return AppScaffold(
       title: 'Attendance',
       automaticallyImplyLeading: false,
+      actions: [
+        // Only offered once there is something to draw conclusions from; an
+        // empty chart teaches the owner nothing.
+        if (allAttendance.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.insights_rounded),
+            tooltip: 'Insights',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AttendanceInsightsPage(),
+              ),
+            ),
+          ),
+      ],
       body: _isLoading
           ? const Loading()
           : allAttendance.isEmpty
