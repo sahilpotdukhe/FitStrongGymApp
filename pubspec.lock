@@ -954,7 +954,7 @@ packages:
       path: "../packages/shadcn_kit"
       relative: true
     source: path
-    version: "0.2.1"
+    version: "0.2.2"
   share_plus:
     dependency: "direct main"
     description:
