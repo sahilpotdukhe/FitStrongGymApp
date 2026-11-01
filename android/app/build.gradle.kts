@@ -20,6 +20,26 @@ val keystoreProperties = Properties().apply {
 }
 val hasUploadKeystore = keystoreProperties.getProperty("storeFile")?.let { file(it).exists() } == true
 
+// Without a keystore a release build does not stop: it prints its ticks, writes the APKs,
+// and they are unsigned and will not install on any phone. The failure only turns up when
+// somebody tries to install it, which is far too late and exactly the silent outcome the
+// signing config below is meant to avoid.
+//
+// So refuse up front, based on what was actually asked for. Debug builds ask for
+// `assembleDebug` and neither need nor want a signing key, so they are untouched.
+val buildingRelease = gradle.startParameter.taskNames.any { taskName ->
+    taskName.contains("Release", ignoreCase = true)
+}
+if (buildingRelease && !hasUploadKeystore) {
+    throw GradleException(
+        "No signing key, so this release would be unsigned and could not be installed " +
+            "on any device.\n\n" +
+            "Create android/key.properties with storeFile, storePassword, keyAlias and " +
+            "keyPassword. See \"One-time: signing key\" in the README for the keytool " +
+            "command that generates one.",
+    )
+}
+
 android {
     namespace = "com.fitstrong.app"
     compileSdk = flutter.compileSdkVersion
@@ -52,8 +72,9 @@ android {
 
     buildTypes {
         release {
-            // Deliberately no debug fallback (unlike infraapass): leaving the release
-            // unsigned fails visibly instead of silently shipping a debug-signed build.
+            // Deliberately no debug fallback: a release is signed with the real upload key
+            // or it is not built at all. AGP on its own would simply write an unsigned APK
+            // here, so the guard at the top of this file is what makes that refusal happen.
             if (hasUploadKeystore) {
                 signingConfig = signingConfigs.getByName("release")
             }
