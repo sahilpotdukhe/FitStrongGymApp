@@ -11,16 +11,28 @@ enum MembershipState { active, expiringSoon, expired }
 /// out.
 MembershipState membershipStateOf(MemberModel member, {int soonDays = 7}) {
   if (member.isExpired()) return MembershipState.expired;
-  final now = DateTime.now();
-  final daysLeft = member.expiryDate.difference(now).inDays;
-  return daysLeft <= soonDays
+  return daysUntilExpiry(member) <= soonDays
       ? MembershipState.expiringSoon
       : MembershipState.active;
 }
 
 /// How many whole days until the membership lapses; negative once it has.
-int daysUntilExpiry(MemberModel member) =>
-    member.expiryDate.difference(DateTime.now()).inDays;
+///
+/// Counted between dates with the time of day thrown away, the same way the
+/// reminders are worked out. Subtracting the two moments instead dropped the
+/// part day on the floor: at six in the evening a membership four days off
+/// came out as three, so the badge and the reminders list disagreed by a day
+/// and the badge was always the pessimistic one.
+int daysUntilExpiry(MemberModel member) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final expiry = DateTime(
+    member.expiryDate.year,
+    member.expiryDate.month,
+    member.expiryDate.day,
+  );
+  return expiry.difference(today).inDays;
+}
 
 /// Coloured status chip used on member cards, the details page and the lists.
 class MembershipBadge extends StatelessWidget {
@@ -47,11 +59,16 @@ class MembershipBadge extends StatelessWidget {
       MembershipState.expiringSoon => (
           status.warningForeground,
           status.warningSurface,
+          // A membership is past on its expiry date, so the last day a
+          // member can actually train is the day before it: one day left
+          // means today is that last day.
           compact
               ? 'Due soon'
               : daysLeft <= 0
                   ? 'Expires today'
-                  : 'Expires in ${daysLeft}d',
+                  : daysLeft == 1
+                      ? 'Last day today'
+                      : 'Expires in ${daysLeft}d',
         ),
       MembershipState.expired => (
           status.dangerForeground,

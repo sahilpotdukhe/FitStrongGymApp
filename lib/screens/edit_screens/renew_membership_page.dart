@@ -53,6 +53,19 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
         : MemberModel.addMonths(_renewalDate, _selectedPlan!.months)
             .add(Duration(days: _selectedPlan!.days));
 
+    // Renewals are often backdated on purpose: a member who ran out of money
+    // but kept training is charged from the day their last term ended, so the
+    // days they have already used are paid for rather than given away. That
+    // is why "Renew from" starts on their old expiry date.
+    //
+    // The catch is that a short plan backdated far enough ends before today.
+    // The money is taken, the bill is raised, and the member is still turned
+    // away at the scanner — which is the one thing a renewal must not do.
+    final today = _dateOnly(DateTime.now());
+    final daysAlreadyUsed = today.difference(_dateOnly(_renewalDate)).inDays;
+    final endsInThePast =
+        newExpiry != null && !_dateOnly(newExpiry).isAfter(today);
+
     return Stack(
       children: [
         AppScaffold(
@@ -148,6 +161,8 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
                 _RenewalSummary(
                   fee: _selectedPlanFee,
                   newExpiry: newExpiry,
+                  daysAlreadyUsed: daysAlreadyUsed,
+                  endsInThePast: endsInThePast,
                 ),
               ],
               const ShadcnGap(ShadcnSpacing.xl2),
@@ -179,6 +194,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
     );
   }
 
+  static DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+
   String _planLabel(GymPlanModel plan) {
     final parts = <String>[
       if (plan.months != 0)
@@ -203,6 +221,9 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
   Future<void> _renewMembership() async {
     setState(() => _showErrors = true);
     if (_selectedPlan == null || _selectedPaymentMethod == null) return;
+
+    if (!await _confirmRenewalThatIsAlreadyOver()) return;
+    if (!mounted) return;
 
     setState(() => _isLoading = true);
 
@@ -256,23 +277,90 @@ class _RenewMembershipPageState extends State<RenewMembershipPage> {
       );
     }
   }
+
+  /// Checks a backdated renewal that ends on or before today, and asks before
+  /// letting it through.
+  ///
+  /// Not a hard block: the owner may genuinely be recording a term that was
+  /// paid for late and will renew again straight afterwards. But it must
+  /// never happen by accident, because the member walks away believing they
+  /// are paid up while the scanner still refuses them.
+  Future<bool> _confirmRenewalThatIsAlreadyOver() async {
+    final plan = _selectedPlan;
+    if (plan == null) return false;
+
+    final newExpiry = MemberModel.addMonths(_renewalDate, plan.months)
+        .add(Duration(days: plan.days));
+    final today = _dateOnly(DateTime.now());
+    if (_dateOnly(newExpiry).isAfter(today)) return true;
+
+    final dates = DateFormat('d MMM yyyy');
+    final goAhead = await showShadcnDialog<bool>(
+      context: context,
+      builder: (dialogContext) => ShadcnDialog(
+        icon: ShadcnIconBadge(
+          Icons.warning_amber_rounded,
+          color: context.status.warning,
+        ),
+        title: 'This renewal has already run out',
+        description:
+            '"${plan.name}" starting ${dates.format(_renewalDate)} ends on '
+            '${dates.format(newExpiry)}, which has already passed.\n\n'
+            '${widget.member.name} would still count as expired and would '
+            'still be turned away at check-in. Renew from a later date, or '
+            'pick a plan long enough to reach today.',
+        footer: [
+          ShadcnButton(
+            fullWidth: true,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Change the dates'),
+          ),
+          ShadcnButton(
+            fullWidth: true,
+            variant: ShadcnButtonVariant.secondary,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Renew anyway'),
+          ),
+        ],
+      ),
+    );
+    return goAhead == true;
+  }
 }
 
 /// What this renewal costs and what it buys.
 class _RenewalSummary extends StatelessWidget {
-  const _RenewalSummary({required this.fee, required this.newExpiry});
+  const _RenewalSummary({
+    required this.fee,
+    required this.newExpiry,
+    required this.daysAlreadyUsed,
+    required this.endsInThePast,
+  });
 
   final double fee;
   final DateTime newExpiry;
+
+  /// How far the start date has been backdated, in days. Zero or less when
+  /// the term starts today or later.
+  final int daysAlreadyUsed;
+
+  /// The new term is already over, so the member stays expired.
+  final bool endsInThePast;
 
   @override
   Widget build(BuildContext context) {
     final t = context.shadcn;
     final status = context.status;
+    // A term that is already over is the one case worth colouring
+    // differently: everything else here is routine.
+    final surface =
+        endsInThePast ? status.warningSurface : status.infoSurface;
+    final foreground =
+        endsInThePast ? status.warningForeground : status.infoForeground;
     return Container(
       padding: const EdgeInsets.all(ShadcnSpacing.lg),
       decoration: BoxDecoration(
-        color: status.infoSurface,
+        color: surface,
         borderRadius: BorderRadius.circular(t.radiusMd),
       ),
       child: Column(
@@ -281,7 +369,7 @@ class _RenewalSummary extends StatelessWidget {
             children: [
               Text(
                 'Fee to collect',
-                style: TextStyle(fontSize: 13.5, color: status.infoForeground),
+                style: TextStyle(fontSize: 13.5, color: foreground),
               ),
               const Spacer(),
               Text(
@@ -289,7 +377,7 @@ class _RenewalSummary extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: status.infoForeground,
+                  color: foreground,
                 ),
               ),
             ],
@@ -299,7 +387,7 @@ class _RenewalSummary extends StatelessWidget {
             children: [
               Text(
                 'New expiry date',
-                style: TextStyle(fontSize: 13.5, color: status.infoForeground),
+                style: TextStyle(fontSize: 13.5, color: foreground),
               ),
               const Spacer(),
               Text(
@@ -307,11 +395,56 @@ class _RenewalSummary extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: status.infoForeground,
+                  color: foreground,
                 ),
               ),
             ],
           ),
+          // Spelled out rather than left for the owner to work out from two
+          // dates: a backdated renewal is charging the member for days they
+          // have already trained, which is usually the intention but should
+          // never be a surprise.
+          if (daysAlreadyUsed > 0) ...[
+            const ShadcnGap(ShadcnSpacing.sm),
+            Row(
+              children: [
+                Icon(Icons.history_rounded, size: 16, color: foreground),
+                const ShadcnGap(ShadcnSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Backdated — covers $daysAlreadyUsed '
+                    '${daysAlreadyUsed == 1 ? 'day' : 'days'} already used',
+                    style: TextStyle(fontSize: 12.5, color: foreground),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (endsInThePast) ...[
+            const ShadcnGap(ShadcnSpacing.sm),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 16,
+                  color: foreground,
+                ),
+                const ShadcnGap(ShadcnSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'This term is already over, so the member stays expired. '
+                    'Use a longer plan or a later start date.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: foreground,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

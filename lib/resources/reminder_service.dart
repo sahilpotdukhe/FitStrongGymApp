@@ -148,13 +148,19 @@ class ReminderService {
 
       final daysToExpiry =
           _dateOnly(member.expiryDate).difference(today).inDays;
-      if (daysToExpiry >= 0 && daysToExpiry <= expiryWindowDays) {
+      // The expiry date is the first day a membership no longer covers, which
+      // is why the door turns a member away on that date. So a membership
+      // "expiring today" has in fact already ended, and belongs with the
+      // lapsed ones. It used to be listed as expiring soon, which meant the
+      // reminders screen offered to nudge somebody about renewing on the very
+      // day the scanner was already refusing them.
+      if (daysToExpiry > 0 && daysToExpiry <= expiryWindowDays) {
         expiring.add(MemberReminder(
           member: member,
           kind: ReminderKind.expiringSoon,
           daysAway: daysToExpiry,
         ));
-      } else if (daysToExpiry < 0 && daysToExpiry >= -expiredWindowDays) {
+      } else if (daysToExpiry <= 0 && daysToExpiry >= -expiredWindowDays) {
         expired.add(MemberReminder(
           member: member,
           kind: ReminderKind.expiredRecently,
@@ -221,9 +227,11 @@ class ReminderMessages {
 
   static String expired(MemberReminder reminder, String gymName) {
     final from = gymName.trim().isEmpty ? 'us' : gymName.trim();
-    final when = reminder.daysAway == -1
-        ? 'yesterday'
-        : '${-reminder.daysAway} days ago';
+    final when = reminder.daysAway == 0
+        ? 'today'
+        : reminder.daysAway == -1
+            ? 'yesterday'
+            : '${-reminder.daysAway} days ago';
     return 'Hi ${reminder.member.name}, your gym membership at $from ended '
         '$when. We would love to have you back — renew any time and pick up '
         'right where you left off.';

@@ -78,6 +78,27 @@ void main() {
       expect(digest.expired.single.whenLabel, '3 days ago');
     });
 
+    test('a membership whose expiry date is today has already ended', () {
+      // The door turns this member away from midnight, so listing them as
+      // "expiring soon" had the app offering to remind somebody to renew on
+      // the very day the scanner was already refusing them.
+      final digest = ReminderService.build(
+        [
+          member(
+            name: 'Arjun',
+            dateOfBirth: DateTime(1995, 8, 1),
+            expiryDate: DateTime(2026, 3, 10),
+          ),
+        ],
+        now: today,
+      );
+
+      expect(digest.expiring, isEmpty);
+      expect(digest.expired, hasLength(1));
+      expect(digest.expired.single.kind, ReminderKind.expiredRecently);
+      expect(digest.expired.single.daysAway, 0);
+    });
+
     test('a membership that lapsed months ago is left alone', () {
       final digest = ReminderService.build(
         [
@@ -102,15 +123,15 @@ void main() {
             expiryDate: DateTime(2026, 3, 13),
           ),
           member(
-            name: 'Today',
+            name: 'Tomorrow',
             dateOfBirth: DateTime(1995, 8, 1),
-            expiryDate: DateTime(2026, 3, 10),
+            expiryDate: DateTime(2026, 3, 11),
           ),
         ],
         now: today,
       );
 
-      expect(digest.expiring.map((r) => r.member.name), ['Today', 'Later']);
+      expect(digest.expiring.map((r) => r.member.name), ['Tomorrow', 'Later']);
     });
   });
 
@@ -222,6 +243,27 @@ void main() {
       expect(text, contains('Arjun'));
       expect(text, contains('tomorrow'));
       expect(text, contains('FitStrong Gym'));
+    });
+
+    test('a membership that ended today says so in plain words', () {
+      final digest = ReminderService.build(
+        [
+          member(
+            name: 'Arjun',
+            dateOfBirth: DateTime(1990, 9, 9),
+            expiryDate: DateTime(2026, 3, 10),
+          ),
+        ],
+        now: today,
+      );
+
+      final text = ReminderMessages.forReminder(
+        digest.expired.single,
+        'FitStrong Gym',
+      );
+
+      expect(text, contains('ended today'));
+      expect(text, isNot(contains('0 days ago')));
     });
 
     test('the birthday message is a birthday message', () {

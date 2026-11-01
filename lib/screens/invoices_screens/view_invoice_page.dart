@@ -154,6 +154,51 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
     _saveInvoice();
   }
 
+  /// Leaving with no saved bill is the one exit worth questioning.
+  ///
+  /// By the time this screen opens the money has been taken and the
+  /// membership has already been extended, so a payment that was never
+  /// recorded is gone from the gym's books for good and nothing anywhere
+  /// flags it. The retry button sat directly above "Back to home", which made
+  /// it far too easy to lose a fee with one tap.
+  Future<void> _leaveScreen() async {
+    if (_record != null || _isSaving) {
+      goHome(context);
+      return;
+    }
+
+    final leave = await showShadcnDialog<bool>(
+      context: context,
+      builder: (dialogContext) => ShadcnDialog(
+        icon: ShadcnIconBadge(
+          Icons.warning_amber_rounded,
+          color: context.status.warning,
+        ),
+        title: 'This payment was not recorded',
+        description:
+            'No bill was saved for ${widget.member.name}, so it will not show '
+            'up in your revenue and there will be no receipt to hand back. '
+            'The membership has already been updated.\n\n'
+            'Leaving now means losing this payment from your records.',
+        footer: [
+          ShadcnButton(
+            fullWidth: true,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Stay and try again'),
+          ),
+          ShadcnButton(
+            fullWidth: true,
+            variant: ShadcnButtonVariant.secondary,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Leave anyway'),
+          ),
+        ],
+      ),
+    );
+
+    if (leave == true && mounted) goHome(context);
+  }
+
   Future<void> _generatePdf() async {
     final record = _record;
     if (record == null || _isPrinting) return;
@@ -347,7 +392,7 @@ class _ViewInvoicePageState extends State<ViewInvoicePage> {
                 ShadcnButton(
                   fullWidth: true,
                   variant: ShadcnButtonVariant.ghost,
-                  onPressed: () => goHome(context),
+                  onPressed: _leaveScreen,
                   child: const Text('Back to home'),
                 ),
               ],
