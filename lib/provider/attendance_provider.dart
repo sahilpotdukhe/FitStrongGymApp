@@ -9,8 +9,13 @@ import 'package:fitstrong_gym/models/member_model.dart';
 enum CheckinOutcome {
   recorded,
 
-  /// Their plan has run out, so nothing was recorded.
+  /// Their plan has run out for good — the days they had to pay have gone
+  /// too — so nothing was recorded.
   expired,
+
+  /// Recorded, but their plan has run out and they are inside the days the
+  /// gym gives them to settle up.
+  paymentDue,
 
   /// Already recorded today, so nothing was written.
   alreadyIn,
@@ -32,7 +37,11 @@ class CheckinResult {
   final MemberModel member;
   final Attendance? record;
 
-  bool get wasWritten => outcome == CheckinOutcome.recorded;
+  /// A member inside their days to pay was let in and written down like
+  /// anybody else, so they count here too.
+  bool get wasWritten =>
+      outcome == CheckinOutcome.recorded ||
+      outcome == CheckinOutcome.paymentDue;
 }
 
 class AttendanceProvider with ChangeNotifier {
@@ -76,14 +85,18 @@ class AttendanceProvider with ChangeNotifier {
     }
     _gymId ??= uid;
 
-    // Before any write: a visit they were not allowed to make leaves no trace.
-    if (member.isExpired()) {
+    // Before any write: a visit they were not allowed to make leaves no
+    // trace. A member only a few days past their expiry is still let in and
+    // chased for the money — the rule lives in the shared package, so this
+    // app and the front desk scanner can never disagree about who gets in.
+    final now = DateTime.now();
+    final access = CheckinRules.accessOn(member.expiryDate, now);
+    if (access == MembershipAccess.locked) {
       return CheckinResult(outcome: CheckinOutcome.expired, member: member);
     }
 
     try {
       final collection = _collection(uid);
-      final now = DateTime.now();
       final last = await _lastScanToday(collection, member.id);
 
       if (CheckinRules.alreadyRecordedToday(last)) {
@@ -108,7 +121,9 @@ class AttendanceProvider with ChangeNotifier {
       }
 
       return CheckinResult(
-        outcome: CheckinOutcome.recorded,
+        outcome: access == MembershipAccess.paymentDue
+            ? CheckinOutcome.paymentDue
+            : CheckinOutcome.recorded,
         member: member,
         record: record,
       );

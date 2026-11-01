@@ -1,7 +1,7 @@
 import 'package:fitstrong_gym/src/custom_import.dart';
 
 /// Where a membership stands right now.
-enum MembershipState { active, expiringSoon, expired }
+enum MembershipState { active, expiringSoon, paymentDue, expired }
 
 /// Works out a membership's state from its expiry date.
 ///
@@ -10,10 +10,18 @@ enum MembershipState { active, expiringSoon, expired }
 /// renewed — and renewals were only noticed once a member was already locked
 /// out.
 MembershipState membershipStateOf(MemberModel member, {int soonDays = 7}) {
-  if (member.isExpired()) return MembershipState.expired;
-  return daysUntilExpiry(member) <= soonDays
-      ? MembershipState.expiringSoon
-      : MembershipState.active;
+  // The same shared rule the front desk scanner applies, so a member the
+  // scanner still lets in never reads as flatly "Expired" in the office.
+  switch (CheckinRules.accessOn(member.expiryDate, DateTime.now())) {
+    case MembershipAccess.locked:
+      return MembershipState.expired;
+    case MembershipAccess.paymentDue:
+      return MembershipState.paymentDue;
+    case MembershipAccess.active:
+      return daysUntilExpiry(member) <= soonDays
+          ? MembershipState.expiringSoon
+          : MembershipState.active;
+  }
 }
 
 /// How many whole days until the membership lapses; negative once it has.
@@ -69,6 +77,18 @@ class MembershipBadge extends StatelessWidget {
                   : daysLeft == 1
                       ? 'Last day today'
                       : 'Expires in ${daysLeft}d',
+        ),
+      MembershipState.paymentDue => (
+          status.warningForeground,
+          status.warningSurface,
+          // Amber, matching the scanner: this member is still let in. Red is
+          // kept for the ones actually turned away at the door.
+          compact
+              ? 'Payment due'
+              : 'Payment due · ${CheckinRules.graceDaysLeft(
+                  member.expiryDate,
+                  DateTime.now(),
+                )}d left',
         ),
       MembershipState.expired => (
           status.dangerForeground,

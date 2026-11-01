@@ -44,14 +44,27 @@ void main() {
   });
 
   group('membershipStateOf', () {
-    test('a membership is expired from its expiry date onwards', () {
-      // The same day the scanner starts turning the member away.
+    test('payment is due from the expiry date through the week after', () {
+      // The scanner still lets these members in, so the office must not
+      // read them as flatly expired: the owner's job here is to chase the
+      // money, not to assume they are gone.
       expect(
         membershipStateOf(memberExpiring(daysFromToday(0))),
+        MembershipState.paymentDue,
+      );
+      expect(
+        membershipStateOf(memberExpiring(daysFromToday(-6))),
+        MembershipState.paymentDue,
+      );
+    });
+
+    test('expired once the days to pay have run out', () {
+      expect(
+        membershipStateOf(memberExpiring(daysFromToday(-7))),
         MembershipState.expired,
       );
       expect(
-        membershipStateOf(memberExpiring(daysFromToday(-1))),
+        membershipStateOf(memberExpiring(daysFromToday(-40))),
         MembershipState.expired,
       );
     });

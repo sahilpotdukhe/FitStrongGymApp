@@ -264,6 +264,33 @@ void main() {
 
       expect(text, contains('ended today'));
       expect(text, isNot(contains('0 days ago')));
+      // Still inside the days to pay, so the message gives them a deadline
+      // rather than an open invitation to come back some day.
+      expect(text, contains('keep training'));
+    });
+
+    test('past the days to pay, the message goes back to winning them back',
+        () {
+      // Seven days on, the scanner has stopped letting them in, so promising
+      // they can keep training would be a lie.
+      final digest = ReminderService.build(
+        [
+          member(
+            name: 'Arjun',
+            dateOfBirth: DateTime(1990, 9, 9),
+            expiryDate: DateTime(2026, 3, 3),
+          ),
+        ],
+        now: today,
+      );
+
+      final text = ReminderMessages.forReminder(
+        digest.expired.single,
+        'FitStrong Gym',
+      );
+
+      expect(text, contains('love to have you back'));
+      expect(text, isNot(contains('keep training')));
     });
 
     test('the birthday message is a birthday message', () {

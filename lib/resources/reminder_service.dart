@@ -1,3 +1,4 @@
+import 'package:fitstrong_core/fitstrong_core.dart';
 import 'package:fitstrong_gym/models/member_model.dart';
 
 /// Why a member is on the reminders list.
@@ -232,6 +233,21 @@ class ReminderMessages {
         : reminder.daysAway == -1
             ? 'yesterday'
             : '${-reminder.daysAway} days ago';
+    // While the member can still train, the thing that actually gets them to
+    // pay is the deadline — not an open invitation to come back some day.
+    //
+    // Worked out from the reminder's own day count rather than the clock, so
+    // the message always agrees with the list it was built from — and so it
+    // can be tested without waiting for a particular date to come round.
+    final daysLeft = CheckinRules.paymentGraceDays + reminder.daysAway;
+    if (daysLeft > 0) {
+      final howLong =
+          daysLeft == 1 ? 'today is your last day' : 'another $daysLeft days';
+      return 'Hi ${reminder.member.name}, your gym membership at $from ended '
+          '$when. You can keep training for $howLong — please renew at the '
+          'counter before then so your access carries on.';
+    }
+
     return 'Hi ${reminder.member.name}, your gym membership at $from ended '
         '$when. We would love to have you back — renew any time and pick up '
         'right where you left off.';
